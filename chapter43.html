@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 43 章 · PLC 硬件模块研发设计 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 43 章 · PLC 硬件模块研发设计：拆开一台真实 PLC：IO 模块怎么抗干扰、电源怎么分级隔离、背板总线怎么设计 —— 软硬一体的研发视角。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-industrial" data-chapter-id="ch43" data-chapter-file="chapter43.html" data-chapter-label="第 43 章 · PLC 硬件模块研发设计">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 43 章 · 工业自动化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>一台 PLC 的模块化解剖</a>
+<a href="#sec-2"><span class="num">02</span>DI 模块：现场信号如何安全进入系统</a>
+<a href="#sec-3"><span class="num">03</span>DO 模块：驱动现场执行器的两种流派</a>
+<a href="#sec-4"><span class="num">04</span>AI/AO 模块：模拟量前端的门道</a>
+<a href="#sec-5"><span class="num">05</span>电源架构与隔离体系</a>
+<a href="#sec-6"><span class="num">06</span>EMC 与可靠性设计清单（研发评审用）</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：DI 接线全图谱（PNP/NPN 一张表）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：AI 前端两个经典难题</a>
+<a href="#sec-10"><span class="num">10</span>深潜：浪涌防护三级配合（能量分级泄放）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：降额设计与 MTBF 预测入门</a>
+<a href="#sec-12"><span class="num">12</span>深潜：通讯模块 CM / CP / IM 的设计与实现 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 43 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第六篇 · 工业自动化 / Chapter 43</div>
+      <h1 id="heroTitle">第 43 章<br><span class="grad">PLC 硬件模块研发设计</span></h1>
+      <p class="hero-sub">拆开一台真实 PLC：IO 模块怎么抗干扰、电源怎么分级隔离、背板总线怎么设计 —— 软硬一体的研发视角。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">12 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">43</div>
+          <div class="console-part">工业自动化 / CH43</div>
+          <div class="console-title">PLC 硬件模块研发设计</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>12</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>5</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:67%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:42%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>43 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>12</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>5</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 DI/DO/AI/AO 四类模块的典型电路设计与器件选型</li>
+<li class="goal-item">理解工业电源架构与隔离策略</li>
+<li class="goal-item">建立 EMC/接地/屏蔽的系统性设计意识</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第六篇 · 工业自动化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,168 字 · 12 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 5 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        PLC 硬件、功能安全、工业总线与冗余设计。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">43.1</span>一台 PLC 的模块化解剖</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">┌─────────┬─────────┬─────────┬─────────┬─────────┐
+│ 电源模块 │ CPU模块 │ DI模块×N │ DO模块×N │ AI/AO   │ ← 导轨安装
+│ 24V→5V  │ SoC/FPGA│ 光耦隔离 │ 继电器/管│ 调理+ADC│
+└────┬────┴────┬────┴────┬────┴────┬────┴────┬────┘
+     └─────────┴─── 背板总线(PCIe/LVDS/SPI+IO) ─┴─────────┘
+          ↑ 内部高速互连，热插拔检测，槽位寻址</code></pre></div>
+<p>本课程的自研软 PLC 是「CPU 模块 + 板载 IO」的一体化形态；理解分体式模块化架构，你才能对接真实的模块级研发岗位。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">43.2</span>DI 模块：现场信号如何安全进入系统</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>要点</th><th>设计规范（行业惯例）</th><th>原因</th></tr>
+<tr><td>输入电压等级</td><td>24VDC 为绝对主流（PNP 常开型占 80%+）；干接点 vs 有源接点要区分</td><td>与传感器/按钮生态兼容；24V 在安全电压范围且抗干扰裕量大</td></tr>
+<tr><td>电气隔离</td><td>每路或每 4/8 路一组<strong>光耦</strong>（如 TLP291），前后完全独立地</td><td>现场地可能漂移数十伏；隔离是设备存活的第一道墙</td></tr>
+<tr><td>限流与保护</td><td>串联电阻按 LED 电流计算（24V→~5mA）；TVS/压敏电阻吸收浪涌；RC 滤波或施密特整形</td><td>IEC 61131-2 要求承受一定能量的浪涌（如 1.2/50μs 波形）</td></tr>
+<tr><td>三线制接近开关</td><td>处理 PNP/NPN 接法差异，输入极性反接保护（二极管桥或防反 MOS）</td><td>现场接线错误是售后 Top 故障</td></tr>
+<tr><td>滤波参数</td><td>硬件 RC ~1ms + 数字滤波可配(0~99ms)，默认 10ms</td><td>继电器触点抖动可达数 ms；对应本课程 PL 去抖引擎的工程出处</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">43.3</span>DO 模块：驱动现场执行器的两种流派</h3><ul>
+<li><strong>晶体管输出（24VDC）</strong>：高边驱动 P-MOS 或集成高端开关（BTS系列），带短路保护/过热关断/诊断回读；响应快（μs 级）、寿命无限长 —— 新一代小型 PLC 主流；</li>
+<li><strong>继电器输出</strong>：触点隔离 AC/DC 通用（2A 典型），但机械寿命 ~10⁵ 次、响应 ms 级 —— 驱动接触器线圈等大功率场合仍不可替代。必须加<strong>灭弧回路</strong>（DC 并续流二极管 / AC 并 RC 浪涌吸收器）否则触点烧蚀+干扰全柜；</li>
+<li>公共点分组（每组独立 COM）便于不同电压混配；保险丝分组熔断 + 熔断检测上报（进阶功能）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">43.4</span>AI/AO 模块：模拟量前端的门道</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>环节</th><th>设计内容</th><th>关键决策</th></tr>
+<tr><td>信号类型</td><td>0~10V / ±10V / 0(4)~20mA / 热电偶mV / RTD电阻</td><td><strong>4~20mA 两线制变送器是工业之王</strong>：电流传输抗长线压降，4mA 活零点兼作断线检测</td></tr>
+<tr><td>信号调理</td><td>分压/采样电阻(0.1%精度)→RC抗混叠→运放缓冲→可选隔离放大器(AMC1301类)或线性光耦</td><td>共模抑制比 CMR &gt;100dB@50Hz 才能对抗现场共模干扰</td></tr>
+<tr><td>ADC 选型</td><td>16bit Σ-Δ 型（如 ADS1148：内置PGA/激励源，RTD直连）为主流；分辨率≠精度，关注 INL/噪声峰峰</td><td>采样率 10~1kSPS 足够过程量；转换时间影响 AI 更新率规格</td></tr>
+<tr><td>软件标定</td><td>两点标定存 EEPROM：y=kx+b 工程量换算 + 断线/超程诊断标志</td><td>出厂标定数据是产品资产，随版本管理（呼应34章）</td></tr>
+<tr><td>AO 输出</td><td>DAC→运放缓冲→V/I 转换(0~20mA)；输出短路保护+回读校验</td><td>执行器侧同样需要隔离与保护</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">43.5</span>电源架构与隔离体系</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">现场24V ──▶ 反接保护 ──▶ 一级隔离DC-DC ──▶ 5V(数字核) ─▶ 3.3V/1.0V LDO
+ (PWR)      (理想二极管)    (如UCC12050数字隔离电源)      │
+                │                                          └▶ 模拟5V(独立LDO+磁珠)
+        TVS+共模电感 ◀── EMC 前级防护
+隔离原则：<strong>一次电源全局唯一穿越点</strong>；现场侧/背板侧/CPU侧三地分割，
+单点连接经磁珠或 0Ω；任何跨隔离屏障信号必须走光耦/数字隔离器/隔离变压器。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">43.6</span>EMC 与可靠性设计清单（研发评审用）</h3><ul>
+<li><strong>接地</strong>：PE 保护地/信号地/屏蔽地三套系统，机柜内星型接地，杜绝接地环路（46章排故案例伏笔）；</li>
+<li><strong>屏蔽</strong>：模拟信号双绞屏蔽线，屏蔽层单端接信号地；动力电缆与信号电缆分槽 ≥20cm 或垂直交叉；</li>
+<li><strong>浪涌/EFT</strong>：所有对外端口按 IEC 61000-4 系列（4=EFT、5=浪涌、6=射频传导）预留防护位不贴件；</li>
+<li><strong>PCB</strong>：模拟/数字分区、完整参考平面、晶振包地、复位走线远离干扰源；</li>
+<li><strong>温度</strong>：工业级 -40~+70℃（板卡实际按器件降额），电解电容寿命是短板 → 用固态或留足纹波电流裕量；</li>
+<li><strong>看门狗与上电时序</strong>：硬件 WDT 复位 FPGA+CPLD 监控多路电源 good 信号 —— 产品级标配。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：DI 模块现场指示灯亮但程序读不到？</summary><div class="ans"><p>分层查：LED 在光耦前还是后？前亮后灭 = 光耦/限流问题；软件读到 0 = 公共端 COM 未接（最常见！）或滤波参数把短脉冲滤掉了。对照 46 章「现象→层次」表排查。</p></div></details>
+<details class="qa"><summary>Q2：为什么 4~20mA 断线会显示最大值而不是 0？</summary><div class="ans"><p>活零点设计：<strong>&lt;3.6mA 判定断线、&gt;21mA 判定超程</strong>，0~20mA 无法区分「真 0」与「断线」。这是选活零点的根本理由 —— 安全仪表系统强制要求。</p></div></details>
+<details class="qa"><summary>Q3：继电器输出驱动变频器/电磁阀总是误动作？</summary><div class="ans"><p>感性负载断开瞬间的反电动势可达数百伏。必须在负载两端并联灭弧器件（AC:RC 吸收器 0.47μF+47Ω 起步；DC:续流二极管）。PLC 说明书都强调却总被忽略 —— 也是 EMC 干扰邻居设备的元凶。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L43-1：搭建「半工业」DI/DO 前端</strong>
+<p>用领航者扩展口外搭：① 光耦+限流电阻+TVS 的 24V DI 输入板（面包板即可）；② 高边 MOS 驱动 LED 模拟负载并实现短路保护验证（对地短路→自动关断）。接入你的 PLC 项目替换裸按键，用 12V/24V 适配器实测。完成后你对「工业 IO 为什么这么贵」会有切肤体会。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>设计一个 8 通道 DI 模块的完整原理框图，标注每个元件的作用与关键参数取值依据。</li>
+<li>AI 通道测 4~20mA 变送器，采样电阻 150Ω 时 ADC 输入范围是多少？为什么不用 500Ω？</li>
+<li>若客户要求 DO 直控 380V 接触器，你的输出方案与安全措施是什么？（提示：中间继电器两级驱动+硬件互锁）</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">43.7</span>深潜：DI 接线全图谱（PNP/NPN 一张表）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>接法</th><td>信号流向</td><td>公共端(COM)</td><td>程序电平语义</td></tr>
+<tr><td>PNP 常开(源型·欧系主流)</td><td>传感器输出→+24V 时导通流入模块</td><td>COM 接 0V? 模块内部下拉</td><td>导通=1（"正逻辑"，直观）★推荐统一</td></tr>
+<tr><td>NPN 常开(吸型·日系常见)</td><td>传感器输出→0V 时导通，电流流出模块</td><td>COM 接 +24V</td><td>导通=1 但物理电流反向——混接必出事故</td></tr>
+<tr><td>干接点(无源触点)</td><td>继电器/按钮直接短接 IN 与 COM</td><td>由模块偏置决定极性</td><td>最通用；注意湿接点抖动更大</td></tr>
+</table></div>
+<div class="box danger"><span class="bt">🚨 混接事故链</span>
+<p>同一模块 PNP/NPN 混接 = COM 电平矛盾 → 半数通道常亮。设计期用<strong>分组 COM 的模块</strong>物理隔离两种制式；图纸标注「源型/吸型」并进 BOM 审查。</p></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">43.8</span>深潜：AI 前端两个经典难题</h3><ul>
+<li><strong>热电偶冷端补偿 CJC</strong>：热偶测量的是冷热端温差 → 必须实测接线端子温度再叠加查表。实现：模块内置 PT100 或硅基温度传感贴在端子旁，软件按 ITS-90 分度表线性化（分段折线即可达 0.5℃）；断偶检测=超量程上冲判定。</li>
+<li><strong>RTD 三线制消除引线电阻</strong>：Pt100 引线每米 ~0.4Ω×2 根会带来数℃误差。三线制用恒流源在两根引线上产生等值压降，第三线回读抵消 —— ADC 差分测 RTD 端电压时引线压降自动相减。四线制则完全消除（实验室级精度）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">43.9</span>深潜：浪涌防护三级配合（能量分级泄放）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">入口: GDT气体放电管(耐大电流~kA级,响应慢,钳位高)
+  ↓ 解耦电感/电阻(让GDT先动作)
+中段: MOV压敏电阻(中等能量,钳位~2倍U)
+末端: TVS二极管(响应ps级,钳位精准但能量小) ──▶ 芯片引脚
+/* 口诀："大口吞能量、小口保精度"；三级间必须解耦否则TVS先牺牲。
+   对应测试: IEC 61000-4-5 共模1kV/差模0.5kV 起步(61131-2要求) */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">43.10</span>深潜：降额设计与 MTBF 预测入门</h3><ul>
+<li><strong>降额曲线</strong>：电解电容 105℃ 型在 70℃ 环境寿命 ≈ 额定×e^(温差/10)？工程按每降10℃寿命翻倍估算；MOSFET 按 60% 电压/50% 电流降额；LED 按光衰 L70 定寿。</li>
+<li><strong>MTBF 预测</strong>：Telcordia SR-332 方法 I 用器件应力法逐件计算 λ=λb×πT×πQ… 汇总；Excel 模板即可完成整机预测 —— 报价阶段客户常要这份文件（呼应46章可用性算术的输入）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12"><span class="h3-num">43.11</span>深潜：通讯模块 CM / CP / IM 的设计与实现 ★</h3><p>模块化 PLC 的通信能力由三类模块承担（命名以西门子体系为例，其他厂商概念同构）。理解它们的差异与内部实现，是通讯模块研发岗的核心知识。</p>
+
+<h4>① 模块分类学与功能定位</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类型</th><td>代表型号</td><td>定位</td><td>关键特征</td></tr>
+<tr><td><strong>CPU 板载口</strong></td><td>S7-1500 集成 PN 口</td><td>基础以太网通信，与扫描共用 CPU 资源</td><td>无独立处理器；负载影响扫描周期</td></tr>
+<tr><td><strong>CM 通信模块</strong></td><td>CM PtP (RS232/422/485)、CM CAN OPEN</td><td>扩展串行/现场总线接口</td><td>协议多由 CPU 软件栈承载或轻量协处理；点对点报文通信为主</td></tr>
+<tr><td><strong>CP 通信处理器</strong></td><td>CP 1543-1、CP 343-1 Lean、CP 1243-7?</td><td><strong>自带协议处理器的智能网卡</strong></td><td>独立于 CPU 扫描运行：连接管理/加密防火墙/Web服务/FTP/SOE缓冲；CPU 停机仍保通信</td></tr>
+<tr><td><strong>IM 接口模块</strong></td><td>IM 155-6 PN ST(ET200MP 头)、IM 153-2(ET200M)、老 IM360/365</td><td>分布式 IO 站点的「站点大脑」或机架互联</td><td>作为 <strong>PROFINET IO 设备侧</strong> 与上级控制器对话；管理本地 IO 模块背板</td></tr>
+</table></div>
+<p>一句话区分：<strong>CM 加接口、CP 加算力、IM 当代表</strong>。CP 与 CM 的本质差异是「是否有独立处理器使通信不占用 CPU 扫描资源」。</p>
+
+<h4>② 硬件架构设计（以 CP 为例）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">        ┌────────────────────────────────────────────┐
+背板 ◀──┤ 背板接口 ASIC/FPGA ──▶ 模块CPU(A RM R5/M4)  │
+(APL总线)│  · 槽位寻址/过程映像交换      │      │       │
+        │  · 参数集/诊断通道            │  协议栈│      │
+        │  ──▶ 看门狗+电源监测           ▼      ▼      │
+        │                    PHY×2 ─ 变压器 ─ RJ45×2   │
+        └────────────────────────────────────────────┘
+设计要点:
+· 背板: S7-1500 用类 PCIe 高速背板(APL), ET200SP 用 BusAdapter;
+  自研可用 SPI/并行总线 + 上电枚举协议(ID引脚编码槽位)
+· 双PHY支持设备级环网(MRP); 变压器+Bob Smith端接; 隔离地
+· LED组: SF(系统故障)/BF(总线故障)/Link/Act —— 状态机由固件驱动
+· 独立供电域: CP 的"CPU停机仍在通信"要求其电源不受主控复位影响</code></pre></div>
+
+<h4>③ 软件架构与实现要点（以 PROFINET IO 设备型 IM/CP 为例）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>层</th><td>职责</td><td>实现要点</td></tr>
+<tr><td>物理/链路</td><td>MAC+PHY, MRP 冗余可选</td><td>ZYNQ 方案: PS GEM 或 PL openMAC</td></tr>
+<tr><td>实时协议</td><td>RT 帧收发、VLAN优先级、DCP(发现/设名/IP)</td><td>RT 帧绕过 TCP/IP 栈直通驱动层 ★</td></tr>
+<tr><td>AR 连接管理</td><td>建立/参数化/释放应用关系; Watchdog 因子协商</td><td>超时=watchdog因子×基础时间, 超时即输出置安全态(OSS)</td></tr>
+<tr><td>循环数据</td><td>输入/输出 CR 镜像到过程映像</td><td>双缓冲+一致性标记; 长度与组态严格一致</td></tr>
+<tr><td>非循环服务</td><td>记录数据读写(诊断/参数)、报警通道</td><td>诊断条目带时戳入 SOE 缓冲</td></tr>
+<tr><td>与 CPU 接口</td><td>背板过程映像交换+参数集下载+固件升级通道</td><td>版本协商: 固件不匹配拒绝组态并 LED 提示</td></tr>
+</table></div>
+<p><strong>状态机主线</strong>：上电自检 → 读槽位/参数 → DCP 等待设备名 → AR 建立握手（含组态一致性校验）→ 数据交换 → 异常回退。每个状态迁移都要更新诊断缓冲与 LED。</p>
+
+<h4>④ 在 ZYNQ-7020 上的映射实现（本课程延伸）</h4>
+<ul>
+<li><strong>自制 CP 形态</strong>：PL 实现 openMAC/MAC 卸载 + PS 跑 openPOWERLINK MN 栈（见45章）——通信独立于 Linux 业务，等效 CP 定位；</li>
+<li><strong>自制 IM 形态</strong>：把第32章 Modbus 从站升级为 PROFINET IO 设备栈（开源 p-net），领航者变身分布式 IO 站点头；DI/DO 引擎（27章）即其背板 IO；</li>
+<li><strong>背板实验</strong>：用 SPI/AXI 总线模拟「CPU↔CM」过程映像交换协议（槽位枚举+看门狗+镜像区），两周可做出教学版 —— 这是理解模块化 PLC 的最佳练习。</li>
+</ul>
+
+<h4>⑤ 调试要点清单</h4>
+<ol>
+<li>LED 状态机先行：SF/BF 闪烁码即故障分类（对照手册灯语表）；</li>
+<li>抓包三查：DCP 有无响应（设备名/IP 分配层）、RT 帧是否到达（链路层）、AR 握手在哪一步失败（协议层）；</li>
+<li>Watchdog 超时类断连：核对双方 watchdog 因子与网络负载（47章案例4同源）；</li>
+<li>组态不一致错误码：逐一比对 IO 长度/槽位/子槽分配 —— 90% 是 GSD 组态与实际模块不符。</li>
+</ol></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch43"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 DI/DO/AI/AO 四类模块的典型电路设计与器件选型</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解工业电源架构与隔离策略</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立 EMC/接地/屏蔽的系统性设计意识</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「PLC 硬件模块研发设计」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter42.html"><span><span class="pager-label">上一章</span><b>第 42 章 · 精通之路：能力矩阵与成长闭环</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter44.html"><span><span class="pager-label">下一章</span><b>第 44 章 · 标准体系与功能安全认证</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 43 章 · PLC 硬件模块研发设计 · 第六篇 · 工业自动化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

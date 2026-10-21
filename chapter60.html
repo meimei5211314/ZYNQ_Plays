@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 60 章 · 把字节流当作不可信输入：协议解析、重同步与模糊测试 | Zynq 工程能力讲义</title><meta name="description" content="实现一个长度有界、增量输入、CRC明确的二进制帧解析器，测试拆包、粘包、噪声、坏帧和资源上限。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch60" data-chapter-file="chapter60.html" data-chapter-label="第 60 章 · 把字节流当作不可信输入：协议解析、重同步与模糊测试">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 60 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>先写一份精确到字节的契约</a>
+<a href="#s2"><span class="num">02</span>流式输入不承诺一读就是一帧</a>
+<a href="#s3"><span class="num">03</span>先检查剩余，再读取和分配</a>
+<a href="#s4"><span class="num">04</span>CRC参数要有可复核测试向量</a>
+<a href="#s5"><span class="num">05</span>用性质组织测试，而非只列几帧</a>
+<a href="#s6"><span class="num">06</span>先跑参考实现，再做覆盖引导模糊测试</a>
+<a href="#s7"><span class="num">07</span>解析成功之后仍要通过业务门</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 60 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 60 章<br><span class="grad">把字节流当作不可信输入：协议解析、重同步与模糊测试</span></h1><p class="hero-sub">实现一个长度有界、增量输入、CRC明确的二进制帧解析器，测试拆包、粘包、噪声、坏帧和资源上限。</p><div class="hero-meta"><span class="meta-chip">理论100分钟 + 实验3–5小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">实现课程A5 5A增量协议，记录坏头、CRC错与成功帧，向业务层只提交完整有效对象。</p></div></div><ul><li>把帧格式定义到字节序、CRC覆盖区间与长度上限</li><li>实现跨任意输入分块的增量解析及可解释重同步</li><li>证明边界检查不会被加法溢出或恶意长度绕过</li><li>建立有效语料、变异、分块不变性与资源约束测试</li></ul><div class="learning-links"><a href="chapter52.html">前置：第 52 章</a><a href="chapter54.html">前置：第 54 章</a><a href="chapter59.html">前置：第 59 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">先写一份精确到字节的契约</h3><p>课程实验帧为A5 5A | version=01的一字节 | payload_len的u16小端 | seq的u16小端 | payload | CRC16的低字节、高字节。payload_len只表示载荷，范围0–256，整帧长度9+L，最大265字节。CRC使用Modbus算法，但这份帧格式是课程自定义协议，不是Modbus RTU；不能把RTU的站号、功能码或静默间隔假设带进来。</p><div class="table-wrap" role="region" aria-label="可横向滚动的数据表" tabindex="0"><table><thead><tr><th>偏移</th><th>长度</th><th>字段</th></tr></thead><tbody><tr><td>0</td><td>2</td><td>A5 5A</td></tr><tr><td>2</td><td>1</td><td>version</td></tr><tr><td>3</td><td>2</td><td>L，小端</td></tr><tr><td>5</td><td>2</td><td>seq，小端</td></tr><tr><td>7</td><td>L</td><td>payload</td></tr><tr><td>7+L</td><td>2</td><td>CRC，小端</td></tr></tbody></table></div><p>CRC覆盖version开始到payload结束，即[2,7+L)，不含magic与CRC字段。seq回绕为16位序号，重复/乱序处理属于上层业务，不由CRC决定。payload允许包含A5 5A，合法帧内不能见到magic就提前截断。版本、长度、序号、载荷语义应分层检查，避免一条损坏数据触发实际设备动作。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">流式输入不承诺一读就是一帧</h3><p>串口read、TCP接收和DMA分块都可能在任意字节处分段。一次输入可能只有A5，下一次从5A开始；也可能一次含三帧半。解析器需要持久化有限状态或有限缓冲区，先找magic，再等固定头，校验版本和长度，等到9+L字节后校验CRC，最后一次只交付完整有效帧。空输入应保持状态，不等于连接结束或丢弃半帧。</p><p>当没有找到完整magic时保留可能作为前缀的最后一个A5，其余噪声可丢弃。坏版本、超长头或坏CRC时，应按明确策略继续搜寻后续候选；常见保守方案从候选起点之后逐字节重扫，避免整块丢弃而漏掉紧随其后的合法帧。合法长度但永不补全的半帧还需上层超时或连接重置契约。受控最大帧长限制单个候选，持续流入的批量数据则需循环消费和整体缓冲上限，不能无界累积。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">先检查剩余，再读取和分配</h3><p>C实现先确认固定头已齐，再读取L，拒绝L&gt;256，最后确认剩余字节足够。不要先访问p[4]才判断头是否存在，也不要先按声称长度分配内存。对于一般格式，检查offset+length≤size可能发生无符号加法回绕；应先证明offset≤size，再检查length≤size−offset。对于多项记录，先判断count≤SIZE_MAX/item_size再乘。</p><pre><code>/* 长度检查片段；buf为字节数组，n为当前可用字节 */
+if (n &lt; 7u) return NEED_MORE;
+size_t len = (size_t)buf[3] | ((size_t)buf[4] &lt;&lt; 8);
+if (len &gt; 256u) return BAD_HEADER;
+if (n - 7u &lt; len + 2u) return NEED_MORE;
+/* 到这里才可访问完整payload与CRC */</code></pre><p>本协议len+2因上限已受控而安全；这不表示任何协议都可以直接相加。不要把字节地址强转为uint16_t*来解析小端字段，它可能未对齐且依赖主机字节序。错误返回值要区分“还需输入”和“确定无效”，否则上层可能把合法拆包当坏帧，或者永远等待一个已知非法的头。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">CRC参数要有可复核测试向量</h3><p>CRC16 Modbus初始化0xFFFF，每输入一字节先异或低8位，再逐位右移；移出的最低位为1时异或反射多项式0xA001，无最终异或。线上低字节先发。对ASCII字符串123456789，结果为0x4B37；这个测试向量用于检查算法参数，仍需另测本协议的覆盖范围和序列化。</p><pre><code># 本协议空payload、seq=0的完整帧（独立算例）
+A5 5A 01 00 00 00 00 19 C0
+# CRC覆盖：01 00 00 00 00，结果0xC019</code></pre><p>把seq改为1时，即使payload未变也应重算CRC，因为序号在覆盖范围内。故意只计算payload可能让空payload的所有序号得到同一CRC，正常收发测试未必马上暴露。CRC用于检错，不提供身份认证或防恶意修改；攻击者可以改字段后重算CRC。若有安全控制命令，应由上层增加适合的认证、重放防护和权限约束，而非扩大CRC位数冒充认证。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">用性质组织测试，而非只列几帧</h3><p>第一条性质是编码后再解析得到相同的版本、序号与载荷；第二条是分块不变性：同一串字节一次喂入、逐字节喂入、任意切块喂入，输出有效帧序列一致。第三条是边界与资源：0/1/255/256字节载荷可处理，257被拒绝，所有截断前缀不交付半帧，连续噪声不导致无限缓冲。第四条是坏帧后的合法帧可恢复。</p><p>在有效语料中加入载荷含magic、序号65535→0、空帧、连续多帧，再按位翻转头和CRC、删除字节、插入噪声、拆开magic。变异测试未必每次都应输出零帧：随机变异可能偶然形成另一合法帧，因此检查器应验证输出本身合法及资源/终止性质。对精确设计的单比特CRC破坏用例，则可以断言原帧不被交付。随机试验固定种子，失败保存最小字节串与分块位置。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">先跑参考实现，再做覆盖引导模糊测试</h3><p>参考<a href="labs/reference/protocol.py" download>labs/reference/protocol.py</a>中FrameParser.feed(chunk)返回(序号,bytes载荷)列表，保留缓冲上限265字节；半帧超时由传输层调用expire_partial()并处理返回帧，新半帧须有自己的超时。浏览器使用固定字节流，可调1–20字节块并注入噪声/CRC错误，不接收任意协议输入；任意切分、L=257与超时在Python中验证。Python自检也不等于已运行libFuzzer。</p><pre><code># Python 3，在仓库根目录运行
+python -m unittest discover -s labs/tests -v
+python -m labs.reference.capstone</code></pre><p>C/C++移植版可再写LLVMFuzzerTestOneInput入口，单次输入只驱动有限解析状态并检查不变量，用Clang的-fsanitize=fuzzer,address,undefined构建受支持环境。需要重置每次输入的状态、限制内存与步数、保留能推进校验深处的有效种子。覆盖引导会寻找新路径，却不自动知道业务结果对错；往fuzz入口补上分块不变性和编解码一致性检查，才有机会发现不崩溃的逻辑缺陷。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">解析成功之后仍要通过业务门</h3><p>CRC正确只说明收到的字节满足本帧检错规则。上层还要核对命令类型、字段范围、状态机允许性、序号窗口与资源预算。更新采样率的合法帧也可能在DMA运行中不允许立即执行。应先解析成普通数据结构，再交给经过检查的业务层，不在解析半帧过程中修改硬件寄存器或提交不可逆动作。</p><p>错误统计至少区分噪声字节、坏版本、超长、CRC错、超时和业务拒绝，避免用一个“串口错误”计数掩盖问题。性能测试报告每秒输入字节、有效帧吞吐、峰值缓冲和坏帧比例，特别测大量magic前缀和合法长半帧造成的扫描开销。生产实现可采用有限状态机或有界环形缓冲减少移动与重扫，但优化后仍需保留相同性质。最终验收应有协议表、测试向量、恢复策略、资源上限和失败回归，而不是只显示一帧解析成功。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 实现课程A5 5A增量协议，记录坏头、CRC错与成功帧，向业务层只提交完整有效对象。</strong><p>运行labs/tests与capstone；浏览器固定流调1–20字节块并观察噪声/CRC恢复；任意随机分块与粘包在Python中核对。</p><p><b>故障练习：</b>浏览器注入CRC错误；Python另构造L=257、长半帧及其后合法帧，调用expire_partial检查超时恢复和缓冲上限。</p><p><b>验收：</b>Python中分块不变、编解码一致、截断前缀不误交付、257拒绝、超时恢复；CRC范围与小端向量一致，浏览器范围单列。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch60"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>把帧格式定义到字节序、CRC覆盖区间与长度上限</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>实现跨任意输入分块的增量解析及可解释重同步</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>证明边界检查不会被加法溢出或恶意长度绕过</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>建立有效语料、变异、分块不变性与资源约束测试</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter59.html"><span><span class="pager-label">上一章</span><b>第 59 章 · 可复现的崩溃诊断：构建身份、core与跨层证据</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter61.html"><span><span class="pager-label">下一章</span><b>第 61 章 · 断电也能恢复：双槽日志、提交点与Flash寿命</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

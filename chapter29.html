@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 29 章 · 软 PLC 运行时内核设计 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 29 章 · 软 PLC 运行时内核设计：M3 前奏：搭出运行时的「骨架」—— 三线程模型、映像区、扫描循环与看门狗。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch29" data-chapter-file="chapter29.html" data-chapter-label="第 29 章 · 软 PLC 运行时内核设计">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 29 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>进程视图与线程职责</a>
+<a href="#sec-2"><span class="num">02</span>变量映像区：IEC 寻址风格</a>
+<a href="#sec-3"><span class="num">03</span>扫描循环核心（含看门狗与统计）</a>
+<a href="#sec-4"><span class="num">04</span>配置与生命周期</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：一次扫描抖动排查全程（方法论示范）★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 29 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 29</div>
+      <h1 id="heroTitle">第 29 章<br><span class="grad">软 PLC 运行时内核设计</span></h1>
+      <p class="hero-sub">M3 前奏：搭出运行时的「骨架」—— 三线程模型、映像区、扫描循环与看门狗。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">29</div>
+          <div class="console-part">软 PLC 实战 / CH29</div>
+          <div class="console-title">软 PLC 运行时内核设计</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>29 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">设计并实现扫描线程/通信线程/监控线程的协作架构</li>
+<li class="goal-item">建立 IEC 风格变量映像区与互斥保护</li>
+<li class="goal-item">实现带抖动统计与超时看门狗的 10ms 扫描循环</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,534 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">29.1</span>进程视图与线程职责</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>执行体</th><th>周期/触发</th><th>职责</th><th>禁止事项</th></tr>
+<tr><td><strong>scan 线程</strong></td><td>10ms 绝对时间睡眠</td><td>读DI/AI→解算梯形图→写DO/PWM；喂狗；抖动统计</td><td>禁止 printf/网络调用 ★</td></tr>
+<tr><td>comm 线程</td><td>事件驱动(epoll)</td><td>Modbus TCP 监听 + RTU 串口轮询（32章）</td><td>不直接碰硬件寄存器</td></tr>
+<tr><td>web 线程</td><td>事件驱动</td><td>HTTP JSON API + 页面静态资源（33章）</td><td>同上</td></tr>
+<tr><td>irq 辅助</td><td>poll /dev/uio0</td><td>收 DI 事件 → 写入事件队列唤醒 scan 提前采样（可选优化）</td><td>-</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">29.2</span>变量映像区：IEC 寻址风格</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>区域</th><th>前缀</th><th>容量</th><th>Modbus 映射(32章)</th><th>例子</th></tr>
+<tr><td>离散输入</td><td>%IX</td><td>128 点</td><td>Discrete Input (FC2) 只读</td><td>%IX0.3 = DI通道3</td></tr>
+<tr><td>离散输出</td><td>%QX</td><td>128 点</td><td>Coil (FC1/5/15)</td><td>%QX0.0 = DO通道0</td></tr>
+<tr><td>模拟输入</td><td>%IW</td><td>64 字</td><td>Input Register (FC4)</td><td>%IW0 = AI_CH0 工程量</td></tr>
+<tr><td>保持寄存器</td><td>%MW</td><td>256 字</td><td>Holding Register (FC3/6/16)</td><td>定时器预设/计数值</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* image.h —— 全局唯一真源 */
+typedef struct {
+    /* 输入半区：scan 更新，他人只读 */
+    uint8_t  ix[16];            /* %IX 按位寻址 */
+    int16_t  iw[64];
+    /* 输出/中间半区：逻辑解算产出，comm/web 可写(MW)可读(QX) */
+    uint8_t  qx[16];
+    int16_t  mw[256];
+    /* 运行统计（只读给外部） */
+    uint32_t scan_cnt;          /* 扫描次数 */
+    uint32_t scan_max_us, scan_avg_us;
+    uint8_t  running;           /* RUN/STOP/FAULT */
+} image_t;
+
+extern image_t g_img;                        /* 单实例 */
+static inline void img_lock(void)   { pthread_mutex_lock(&amp;g_img_mtx); }
+static inline void img_unlock(void) { pthread_mutex_unlock(&amp;g_img_mtx); }
+/* 访问纪律：单次锁定内完成"取快照或写回"，锁内不做耗时操作 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">29.3</span>扫描循环核心（含看门狗与统计）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">void *scan_thread(void *arg)
+{
+    struct timespec next, t0, t1;
+    uint32_t last_tick = plcio_rd(REG_TICK);
+    clock_gettime(CLOCK_MONOTONIC, &amp;next);
+
+    while (g_running) {
+        /* ---- ① 读输入 ---- */
+        img_lock();
+        uint8_t di = plcio_rd(REG_DI);
+        memcpy(g_img.ix, &amp;di, sizeof di);
+        g_img.iw[0] = ai_to_engineering(plcio_rd(REG_AI0));   /* 0~10000=0~10V */
+        g_img.iw[1] = ai_to_engineering(plcio_rd(REG_AI1));
+        img_unlock();
+
+        /* ---- ② 解算用户逻辑（第30章解释器）---- */
+        logic_execute();                    /* 内部读写 g_img，自行持锁 */
+
+        /* ---- ③ 写输出 ---- */
+        img_lock();
+        uint8_t qout = 0;
+        memcpy(&amp;qout, g_img.qx, 1);
+        img_unlock();
+        plcio_wr(REG_DO, qout);             /* PL 自治保持到下周期 */
+
+        /* ---- ④ 周期节拍与看门狗 ---- */
+        uint32_t now = plcio_rd(REG_TICK);
+        if (now == last_tick &amp;&amp; ++stall_cnt &gt; 50) {   /* 500ms 硬件无心跳 */
+            log_write(LOG_FAULT, "PL engine stalled!");
+            plcio_wr(REG_FVAL, 0);          /* 安全态：全断输出 */
+        } else { stall_cnt = 0; last_tick = now; }
+
+        /* ---- ⑤ 定时到下个周期 ---- */
+        next.tv_nsec += 10 * 1000000L;
+        time_norm(&amp;next);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &amp;next, NULL);
+
+        /* ---- ⑥ 抖动统计（供 Web 显示）---- */
+        clock_gettime(CLOCK_MONOTONIC, &amp;t1);
+        long late_us = ts_diff_us(&amp;next, &amp;t1);      /* 正值=迟到 */
+        stat_update(late_us);
+    }
+    return NULL;
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">29.4</span>配置与生命周期</h3><ul>
+<li><code class="inline">/etc/plc/plc.conf</code>：键值对（scan_ms=10、uio=generic-uio、modbus_port=502、web_port=8080）；启动解析，SIGHUP 重载；</li>
+<li><code class="inline">/etc/plc/program.il</code>：用户程序文本（30章格式），校验失败则进入 FAULT 并保持安全输出；</li>
+<li>信号处理：SIGTERM/SIGINT → 置 <code class="inline">g_running=0</code> → 各线程 join → DO 清零退出；</li>
+<li>SIGSEGV 由 systemd Restart=always 或 init 脚本兜底拉起（34章）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：为什么禁止 scan 线程 printf？</summary><div class="ans"><p>串口 115200 打一行 ≈ 数十毫秒 —— 直接摧毁 10ms 节拍。日志统一走无锁环形缓冲由 web/独立线程落盘；紧急故障用 log_write(LOG_FAULT) 也只是入队。</p></div></details>
+<details class="qa"><summary>Q2：映像区要不要用双缓冲代替互斥？</summary><div class="ans"><p>本项目数据量小（&lt;1KB），mutex 开销纳秒级完全够。双缓冲适合大块高频场景（视频帧）。先选简单方案，有测量证据再优化 —— 过早优化的反面教材就在这。</p></div></details>
+<details class="qa"><summary>Q3：TICK 计数器 32 位回绕怎么办？</summary><div class="ans"><p>差值比较用无符号减法 <code class="inline">(uint32_t)(now - last)</code> 天然免疫回绕；判定阈值远小于 2³¹ 即安全。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L29-1：骨架先行</strong>
+<p>实现 image/plcio/log/stat 四模块 + scan 线程（logic_execute 先用空函数占位）。验收：① 运行 30 分钟，Web 占位接口能报 scan_cnt≈180000±5、max_us&lt;800；② kill -USR1 触发优雅退出且 DO 归零；③ 人为注释掉 plcio 心跳检查重编译，验证 FAULT 分支能触发安全输出。这个骨架将伴随你走完整个项目。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>若把解算逻辑放到 irq 辅助线程里做，会引入什么新问题？为什么坚持在 scan 线程做？</li>
+<li>设计「在线改参数不停机」机制：哪些配置可以热更新？如何保证一致性？</li>
+<li>对比你的映像区设计与 IEC 61131-3 的 RETAIN（掉电保持）语义，给出保留区的实现草案。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">29.5</span>深潜：一次扫描抖动排查全程（方法论示范）★</h3><p>把第51章的分析框架落到本项目：现象 → 证据链 → 根因 → 固化，全程可复现。</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【现象】24h 老化中 P99 抖动 0.3ms 正常, 但每天 2~3 次孤立尖刺 4~8ms
+【假设空间】① 内核抢占 ② THP/内存 ③ 日志IO阻塞 ④ NFS抖动 ⑤ 中断风暴
+【证据1】尖刺时刻 dmesg 无异常; /proc/interrupts 平稳 → 排除⑤
+【证据2】perf sched record 长跑抓到尖刺窗口:
+        scan 线程最大调度延迟 6.1ms, 处于 D 状态(不可中断睡眠)!
+【归因】D状态+时间规律性 → 日志线程 write() 落 NFS, 服务器偶发慢
+        → 扫描线程虽不写盘, 但 img_lock 被「正在格式化日志的日志线程」
+          长持锁? 复查: 日志线程持锁做 sprintf! 锁粒度错误实锤
+【修复】
+  ① 锁内只拷贝原始数据到本地缓冲, 格式化移出临界区
+  ② 日志落盘改异步: 环形缓冲 + 独立 lowprio 线程批量写本地分区
+     (弃 NFS 实时写; NFS 仅用于代码同步)
+【复测】72h 零 &gt;500μs 尖刺; 《优化报告》按 51.9 模板归档
+/* 教训: "锁内不做慢操作"纪律(29章FAQ)不是背出来的, 是被这种案例教育出来的 */</code></pre></div>
+<h4>配套调试命令速记</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">perf sched record -p $(pidof plc_runtime) -- sleep 60 && perf sched latency --sort max
+cat /proc/$(pidof plc_runtime)/status | grep -E 'voluntary|State'
+watch -n1 'cat /sys/kernel/debug? /proc/vmstat | egrep "pgmigrate|compact"'</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch29"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>设计并实现扫描线程/通信线程/监控线程的协作架构</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>建立 IEC 风格变量映像区与互斥保护</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>实现带抖动统计与超时看门狗的 10ms 扫描循环</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「软 PLC 运行时内核设计」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter28.html"><span><span class="pager-label">上一章</span><b>第 28 章 · Linux 平台定制与 UIO 驱动</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter30.html"><span><span class="pager-label">下一章</span><b>第 30 章 · 梯形图解释器实现</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 29 章 · 软 PLC 运行时内核设计 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

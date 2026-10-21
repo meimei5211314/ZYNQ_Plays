@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 26 章 · 项目需求分析与总体架构 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 26 章 · 项目需求分析与总体架构：像产品经理一样定义边界，像架构师一样切分模块 —— 磨刀两章，砍柴九章。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch26" data-chapter-file="chapter26.html" data-chapter-label="第 26 章 · 项目需求分析与总体架构">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 26 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>PLC 与 IEC 61131-3 三十秒入门</a>
+<a href="#sec-2"><span class="num">02</span>需求规格书 v1.0</a>
+<a href="#sec-3"><span class="num">03</span>总体架构一张图</a>
+<a href="#sec-4"><span class="num">04</span>关键架构决策记录（ADR）</a>
+<a href="#sec-5"><span class="num">05</span>开发里程碑（与章节对应）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 26 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 26</div>
+      <h1 id="heroTitle">第 26 章<br><span class="grad">项目需求分析与总体架构</span></h1>
+      <p class="hero-sub">像产品经理一样定义边界，像架构师一样切分模块 —— 磨刀两章，砍柴九章。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">4 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">26</div>
+          <div class="console-part">软 PLC 实战 / CH26</div>
+          <div class="console-title">项目需求分析与总体架构</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>0</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>26 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解 PLC 的核心概念：扫描周期、IEC 61131-3、软 PLC 形态</li>
+<li class="goal-item">完成本项目的需求规格与验收指标</li>
+<li class="goal-item">掌握 ZYNQ 软 PLC 的经典架构与模块契约</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,216 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">26.1</span>PLC 与 IEC 61131-3 三十秒入门</h3><p><strong>PLC（可编程逻辑控制器）</strong>是工业自动化的「大脑」，其灵魂是<strong>扫描周期模型</strong>：周而复始地执行「<em>读输入 → 解算逻辑 → 写输出</em>」三段式循环，周期典型 1~20ms。编程语言由国际标准 <strong>IEC 61131-3</strong> 规定五种：梯形图 LD（电气工程师最爱）、功能块图 FBD、结构化文本 ST、指令表 IL、顺序功能图 SFC。</p>
+<p><strong>软 PLC</strong> = 用通用 SoC/工控机 + 软件运行时实现上述功能。相比传统硬 PLC：硬件成本低、生态开放（Linux 网络/Web/AI 全都能上）；代价是实时性依赖系统设计 —— 而 <strong>ZYNQ 的 PL 恰好用硬件逻辑补齐了实时短板</strong>，这正是本项目选它的根本原因。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">26.2</span>需求规格书 v1.0</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>需求项</th><th>规格</th><th>验收方式</th></tr>
+<tr><td>R1</td><td>数字量输入 DI</td><td>8 路，板载去抖 ≥10ms 可配，边沿事件上报</td><td>L35 用例 V-DI</td></tr>
+<tr><td>R2</td><td>数字量输出 DO</td><td>8 路，支持软件强制(force)覆盖逻辑输出</td><td>V-DO</td></tr>
+<tr><td>R3</td><td>模拟量输入 AI</td><td>2 路 XADC，0~1V，12bit，更新率 ≥100Hz</td><td>V-AI 标定误差≤2%</td></tr>
+<tr><td>R4</td><td>PWM 输出</td><td>2 路，100Hz~10kHz，占空比 0~100% 运行时可调</td><td>示波器实测</td></tr>
+<tr><td>R5</td><td>梯形图运行时</td><td>LD→IL 编译执行；触点/线圈/定时器 TON·TOFF·TP/计数器 CTU·CTD</td><td>标准用例程序全过</td></tr>
+<tr><td>R6</td><td>扫描周期</td><td>标称 10ms，抖动 &lt;±1ms（默认内核）</td><td>30min 统计报告</td></tr>
+<tr><td>R7</td><td>Modbus 从站</td><td>TCP(502) + RTU(RS485可选) 双栈；FC1/2/3/5/6/15/16</td><td>Modbus Poll 主站验证</td></tr>
+<tr><td>R8</td><td>Web 监控</td><td>HTTP 页面实时显示 IO/变量/周期，支持强制与启停</td><td>浏览器演示</td></tr>
+<tr><td>R9</td><td>可靠性</td><td>开机自启；运行时崩溃自动重启；看门狗三级防线</td><td>kill -9 测试</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">26.3</span>总体架构一张图</h3><figure class="fig">
+<svg viewBox="0 0 940 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="软PLC总体架构">
+<style>.P{fill:#eef2f7;stroke:#94a3b8}.Q{font:11px sans-serif;fill:#1f2937}.R{font:bold 12px sans-serif}</style>
+<defs><marker id="a3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#333"/></marker></defs>
+<rect x="15" y="15" width="910" height="400" rx="14" fill="none" stroke="#107c10"/>
+<rect x="30" y="30" width="380" height="370" rx="10" fill="#f0fdf4" stroke="#107c10"/><text x="220" y="55" text-anchor="middle" class="R" fill="#107c10">PL · IO 引擎（第27章，Verilog）</text>
+<rect class="P" x="50" y="75" width="160" height="52"/><text x="130" y="96" text-anchor="middle" class="Q">DI 滤波 ×8</text><text x="130" y="113" text-anchor="middle" class="Q">10ms 去抖+沿检测</text>
+<rect class="P" x="230" y="75" width="160" height="52"/><text x="310" y="96" text-anchor="middle" class="Q">DO 寄存器 ×8 + Force</text><text x="310" y="113" text-anchor="middle" class="Q">硬件自治输出</text>
+<rect class="P" x="50" y="145" width="160" height="52"/><text x="130" y="166" text-anchor="middle" class="Q">PWM ×2</text><text x="130" y="183" text-anchor="middle" class="Q">独立分频/占空比</text>
+<rect class="P" x="230" y="145" width="160" height="52"/><text x="310" y="166" text-anchor="middle" class="Q">XADC 控制接口</text><text x="310" y="183" text-anchor="middle" class="Q">AI×2 平均滤波</text>
+<rect class="P" x="50" y="215" width="340" height="46"/><text x="220" y="234" text-anchor="middle" class="Q">AXI4-Lite 从设备：统一寄存器映射</text><text x="220" y="251" text-anchor="middle" class="Q">CTRL/DI/DO/AI/PWM/EVENT（见27.3表）</text>
+<rect class="P" x="50" y="285" width="340" height="44"/><text x="220" y="304" text-anchor="middle" class="Q">中断汇聚：DI变化 | AI就绪 → IRQ_F2P[0]</text><text x="220" y="320" text-anchor="middle" class="Q">50kHz 扫描节拍发生器</text>
+<rect x="545" y="30" width="365" height="370" rx="10" fill="#eff6ff" stroke="#2563eb"/><text x="727" y="55" text-anchor="middle" class="R" fill="#2563eb">PS · Linux 5.4（第28~34章）</text>
+<rect class="P" x="565" y="75" width="150" height="60"/><text x="640" y="98" text-anchor="middle" class="Q">plcio 平台驱动/UIO</text><text x="640" y="115" text-anchor="middle" class="Q">寄存器+中断抽象（28章）</text>
+<rect class="P" x="740" y="75" width="150" height="60"/><text x="815" y="98" text-anchor="middle" class="Q">PLC Runtime 内核</text><text x="815" y="115" text-anchor="middle" class="Q">10ms扫描+IL解释器(29~31)</text>
+<rect class="P" x="565" y="155" width="150" height="56"/><text x="640" y="178" text-anchor="middle" class="Q">Modbus TCP :502</text><text x="640" y="195" text-anchor="middle" class="Q">RTU /dev/ttyPS1（32章）</text>
+<rect class="P" x="740" y="155" width="150" height="56"/><text x="815" y="178" text-anchor="middle" class="Q">Web 服务 :8080</text><text x="815" y="195" text-anchor="middle" class="Q">HTTP JSON API（33章）</text>
+<rect class="P" x="565" y="235" width="325" height="48"/><text x="727" y="255" text-anchor="middle" class="Q">共享映像区 Image Map（互斥保护）</text><text x="727" y="272" text-anchor="middle" class="Q">%IX %QX %IW %QW %MW —— 三线程读写唯一真源</text>
+<rect class="P" x="565" y="305" width="325" height="70"/><text x="727" y="326" text-anchor="middle" class="Q">系统集成层（34章）</text><text x="727" y="343" text-anchor="middle" class="Q">init脚本自启 · watchdog · 配置文件</text><text x="727" y="360" text-anchor="middle" class="Q">日志环形缓冲 · 版本API</text>
+<line x1="418" y1="120" x2="557" y2="105" stroke="#333" stroke-width="2" marker-end="url(#a3)"/>
+<line x1="557" y1="140" x2="420" y2="240" stroke="#2563eb" stroke-width="2" marker-end="url(#a3)"/>
+<text x="480" y="95" class="Q" font-weight="bold">寄存器读/写</text>
+<line x1="418" y1="300" x2="557" y2="330" stroke="#dc2626" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#a3)"/>
+<text x="470" y="332" class="Q" fill="#dc2626" font-weight="bold">中断</text>
+<text x="470" y="395" class="Q" fill="#57606a">外部世界：按键/继电器接扩展排针 · 电位器→XADC · RS485/网线→主站与浏览器</text>
+</svg>
+<figcaption>图26-1 软 PLC 总体架构与模块契约总览</figcaption>
+</figure></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">26.4</span>关键架构决策记录（ADR）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>决策点</th><th>选择</th><th>理由</th></tr>
+<tr><td>IO 采样放哪？</td><td>PL 硬件滤波 + 中断上报</td><td>CPU 抖动不影响输入时序；输出由 PL 自治保持</td></tr>
+<tr><td>解释器形态</td><td>自研 IL 虚拟机（文本指令表）</td><td>教学价值最大化；代码量可控(&lt;2000行)；LD 由配套 Python 工具编译为 IL</td></tr>
+<tr><td>驱动方案</td><td>UIO(generic-uio) 为主</td><td>避免内核态代码维护成本；中断语义足够；同时保留字符驱动对照实现</td></tr>
+<tr><td>通信框架</td><td>自研轻量 Modbus 从站</td><td>libmodbus 移植作对照；自研才能讲透帧解析与并发</td></tr>
+<tr><td>实时性等级</td><td>标准内核 + ABSTIME 睡眠</td><td>满足 R6 即达标；PREEMPT_RT 作为拓展任务</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">26.5</span>开发里程碑（与章节对应）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>里程碑</th><th>内容</th><th>章节</th></tr>
+<tr><td>M1</td><td>PL IO 引擎 bitstream 通过仿真与 ILA 验证</td><td>27</td></tr>
+<tr><td>M2</td><td>Linux 能读写全部寄存器并收到中断</td><td>28</td></tr>
+<tr><td>M3</td><td>运行时跑通首个梯形图（启保停）</td><td>29~30</td></tr>
+<tr><td>M4</td><td>定时器/计数器功能块齐全</td><td>31</td></tr>
+<tr><td>M5</td><td>Modbus 双栈从站上线</td><td>32</td></tr>
+<tr><td>M6</td><td>Web 监控 + 自启 + 综合验收</td><td>33~35</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：为什么不用 CODESYS/Beremiz 现成运行时？</summary><div class="ans"><p>商业 CODESYS 收费且黑盒；Beremiz/MatIEC 开源但工程链复杂，初学者极易迷失在工具而非原理里。自研迷你运行时（约2000行C）让你吃透扫描模型、解释器、通信三大件 —— 之后再用开源方案就是降维使用。课程第36章会给出对接 Beremiz 的路线图。</p></div></details>
+<details class="qa"><summary>Q2：10ms 够做什么真实控制？</summary><div class="ans"><p>电机启停、阀门开关、灯光联锁、温控 PID（慢对象）绰绰有余 —— 这正是主流小型 PLC 的档位。伺服级运动控制需 μs 级，那是 PL 侧专项逻辑的领地（拓展方向）。</p></div></details>
+<details class="qa"><summary>Q3：没有 RS485 外设能做 RTU 吗？</summary><div class="ans"><p>可以：USB 转 485 接板卡 USB 口走 /dev/ttyUSB0，或主机侧用 USB-RS485 当主站模拟。协议层与物理介质无关，教学目标完全达成。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>解释「读输入→解算→写输出」为何必须原子成批交换，而不能边算边写 IO？（提示：竞态与一致性）</li>
+<li>若客户提出「断电后保持计数器值」，架构上需要新增什么机制？评估工作量。</li>
+<li>对比你的方案与西门子 S7-200 SMART 的规格差异，写出三条你项目的差异化卖点。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch26"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解 PLC 的核心概念：扫描周期、IEC 61131-3、软 PLC 形态</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>完成本项目的需求规格与验收指标</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 ZYNQ 软 PLC 的经典架构与模块契约</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「项目需求分析与总体架构」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter25.html"><span><span class="pager-label">上一章</span><b>第 25 章 · 内核调试与软硬件联合验证方法论</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter27.html"><span><span class="pager-label">下一章</span><b>第 27 章 · PL 侧 IO 引擎设计</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 26 章 · 项目需求分析与总体架构 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

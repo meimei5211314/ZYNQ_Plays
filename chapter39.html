@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 39 章 · 性能剖析：ftrace / perf / kmemleak | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 39 章 · 性能剖析：ftrace / perf / kmemleak：「感觉慢」不是工程语言。本章给你一套量化武器：定位热点、量化延迟、抓内存泄漏。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch39" data-chapter-file="chapter39.html" data-chapter-label="第 39 章 · 性能剖析：ftrace / perf / kmemleak">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 39 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>性能工程三步纪律</a>
+<a href="#sec-2"><span class="num">02</span>ftrace：内核行为显微镜</a>
+<a href="#sec-3"><span class="num">03</span>三个实战配方</a>
+<a href="#sec-4"><span class="num">04</span>perf：用户态热点与火焰图</a>
+<a href="#sec-5"><span class="num">05</span>内存泄漏双武器</a>
+<a href="#sec-6"><span class="num">06</span>综合案例：Modbus 响应时间优化闭环</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：tracepoint / kprobe / uprobe —— 三种探针层次</a>
+<a href="#sec-9"><span class="num">09</span>深潜：eBPF / bpftrace —— 现代观测的降维打击</a>
+<a href="#sec-10"><span class="num">10</span>深潜：核隔离与调度调优（实时性压榨）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：观测工具箱全景表（一页备查）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 39 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 39</div>
+      <h1 id="heroTitle">第 39 章<br><span class="grad">性能剖析：ftrace / perf / kmemleak</span></h1>
+      <p class="hero-sub">「感觉慢」不是工程语言。本章给你一套量化武器：定位热点、量化延迟、抓内存泄漏。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">39</div>
+          <div class="console-part">进阶精通 / CH39</div>
+          <div class="console-title">性能剖析：ftrace / perf / kmemleak</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>7</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>39 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">用 ftrace 追踪内核函数路径与调度行为</li>
+<li class="goal-item">用 perf 找出应用热点并生成火焰图</li>
+<li class="goal-item">掌握 kmemleak 检测内核内存泄漏的完整流程</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,026 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>7 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">39.1</span>性能工程三步纪律</h3><p><strong>① 定义指标</strong>（延迟 P99？吞吐？抖动？）→ <strong>② 基线测量</strong>（优化前数据必须留存）→ <strong>③ 单变量优化+复测</strong>。禁止凭直觉优化 —— 本章所有工具都服务于这套纪律。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">39.2</span>ftrace：内核行为显微镜</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># tracefs 挂载与可用 tracer 一览
+mount -t tracefs none /sys/kernel/tracing   # 新内核路径；老内核 debugfs/tracing
+cat /sys/kernel/tracing/available_tracers
+# 常用: function function_graph preemptirqsoff sched_switch blk ...
+
+# 方式一：裸接口
+echo function_graph &gt; current_tracer
+echo funcgraph-proc &gt; trace_options
+echo 'mb_process' &gt; set_graph_function     # 只深挖这个函数
+cat trace | head -40
+
+# 方式二（推荐）：trace-cmd 一站式
+apt install trace-cmd   # 板上或主机分析
+trace-cmd record -p function_graph -g mb_process sleep 5
+trace-cmd report | less
+kernelshark trace.dat        # GUI 波形级分析</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">39.3</span>三个实战配方</h3><h4>配方① 一次 Modbus 请求的内核路径耗时</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">trace-cmd record -p function_graph -g vfs_read -g sock_recvmsg ...
+# 报告中每行右侧的 + us / ! us 标记耗时：
+#  1.200 us  │ tcp_v4_rcv();
+#  ! 85.400 us │ mb_process();        ← 热点一目了然</code></pre></div>
+<h4>配方② 谁偷走了扫描线程的 CPU？</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">trace-cmd record -e sched_switch -e sched_wakeup --command plc_runtime
+# 在 report 中按线程名过滤 plc_runtime，观察每次切出的 next comm：
+# 若频繁被 kworker/日志线程抢占 → 降日志频率或调 SCHED_FIFO 优先级</code></pre></div>
+<h4>配方③ 最长关中断时间（实时性体检）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">echo preemptirqsoff &gt; current_tracer; echo 0 &gt; tracing_max_latency
+# 跑负载后: cat tracing_max_latency   → 最大关中断/抢占微秒数
+# 对 PLC 意义：该值直接进入抖动预算，超标即需拆长临界区</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">39.4</span>perf：用户态热点与火焰图</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 板上（rootfs 勾选 perf 包）或交叉编译 perf
+perf stat -e cycles,instructions,cache-misses ./plc_runtime --bench 5
+perf record -F 999 -g -p $(pidof plc_runtime) -- sleep 10
+perf report --sort symbol          # 文本热点榜
+
+# 火焰图（主机侧）：
+git clone https://github.com/brendangregg/FlameGraph
+perf script -i perf.data | stackcollapse-perf.pl | flamegraph.pl &gt; plc.svg</code></pre></div>
+<div class="box tip"><span class="bt">💡 符号是灵魂</span>
+<p>编译保留 <code class="inline">-g -fno-omit-frame-pointer</code>（帧指针让调用栈完整）。perf report 里全是 0x地址 = 白测。内核符号则依赖 <code class="inline">/proc/kallsyms</code> 权限。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">39.5</span>内存泄漏双武器</h3><h4>① kmemleak（内核侧）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># menuconfig: Kernel hacking → Memory Debugging → Kmemleak
+# bootargs 加 kmemleak=on，运行：
+echo scan &gt; /sys/kernel/debug/kmemleak
+cat /sys/kernel/debug/kmemleak      # 报 unreferenced object + alloc 回溯
+# 纪律：跑满 24h 老化后扫描一次，误报(如长期缓存)白名单豁免</code></pre></div>
+<h4>② 用户态</h4>
+<ul>
+<li><strong>valgrind</strong>：交叉编译到板或 qemu-user 运行，<code class="inline">valgrind --leak-check=full ./app</code>；慢 10~50 倍，适合功能测试期；</li>
+<li><strong>ASan</strong>：<code class="inline">-fsanitize=address</code> 编译，运行时即时报越界/泄漏，性能损失约 2 倍 —— CI 首选；</li>
+<li>PLC 运行时专项：Web 页常驻 RSS 曲线（/proc/pid/status VmRSS），30 分钟无趋势上涨即达标（35章已用）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">39.6</span>综合案例：Modbus 响应时间优化闭环</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>轮次</th><th>动作</th><th>数据</th></tr>
+<tr><td>基线</td><td>pymodbus 1000 次读 MW 统计</td><td>avg 4.8ms / p95 9.1ms</td></tr>
+<tr><td>定位</td><td>perf 火焰图 → 62% 在 accept+线程创建；strace 见每请求 3 次 connect 级系统调用</td><td>-</td></tr>
+<tr><td>优化①</td><td>预创建线程池替代 per-connection pthread_create</td><td>avg 3.1ms</td></tr>
+<tr><td>优化②</td><td>ftrace 发现 img_lock 竞争长尾 → 缩小锁内 memcpy 范围</td><td>p95 4.2ms</td></tr>
+<tr><td>复测归档</td><td>更新《性能基线报告》并纳入回归</td><td>avg 2.9ms / p95 4.0ms</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：ftrace 开了之后系统明显变卡？</summary><div class="ans"><p>function tracer 全量追踪开销 ~5-10%。务必用 set_graph_function/set_ftrace_filter 收窄范围，测完 echo nop &gt; current_tracer 关闭。</p></div></details>
+<details class="qa"><summary>Q2：perf record 采不到用户符号？</summary><div class="ans"><p>① 二进制 strip 过 → 保留带符号副本供分析；② 未加 -g；③ ASLR 干扰栈回溯 → perf record 加 --call-graph dwarf 或编译带帧指针。</p></div></details>
+<details class="qa"><summary>Q3：kmemleak 报了一堆"泄漏"但系统内存稳定？</summary><div class="ans"><p>典型误报源：故意长期持有的缓存、通过指针运算藏起来的引用。用 greylist 思路核对生命周期后豁免；关注的是「持续增长型」报告。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L39-1：产出《性能基线报告》</strong>
+<p>对软 PLC 完整跑一轮：① perf 火焰图（10 分钟采样）截取 Top5 热点函数；② ftrace 量最大关中断时长；③ kmemleak 8 小时扫描结论；④ 汇总成 1 页报告（指标/方法/数据/结论四栏）。这份报告是第42章「能力矩阵」中『性能工程』维度的通关证据。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>ftrace 的 function_graph 是如何做到「函数进出打点」的？（提示：-pg/mcount/fentry 动态补丁）</li>
+<li>perf 默认采样模式是什么？为什么 999Hz 采样能推断全程行为而不显著拖慢系统？</li>
+<li>设计 PLC 的「延迟预算表」：从 DI 引脚到 DO 引脚 21ms 预算如何分配到各环节，各用什么工具验证？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">39.7</span>深潜：tracepoint / kprobe / uprobe —— 三种探针层次</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>探针</th><td>挂接点</td><td>示例</td></tr>
+<tr><td>tracepoint</td><td>内核预埋静态点（稳定ABI）</td><td><code>perf record -e sched:sched_switch</code>; <code>echo 1 &gt; events/sched/sched_switch/enable</code></td></tr>
+<tr><td>kprobe</td><td>任意内核函数地址动态注入（可断点取参）</td><td><code>echo 'p:myprobe mb_process $arg1' &gt; kprobes? tracing/kprobe_events</code></td></tr>
+<tr><td>uprobe</td><td>用户态程序任意行/符号</td><td>追踪 plc_runtime 里 logic_execute 调用耗时分布</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">39.8</span>深潜：eBPF / bpftrace —— 现代观测的降维打击</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># bpftrace 一行 = 过去百行 C。例：统计 mb_process 每次调用耗时直方图
+bpftrace -e 'kprobe:mb_process { @start[tid] = nsecs; }
+             kretprobe:mb_process /@start[tid]/ {
+                 @us = hist((nsecs - @start[tid]) / 1000);
+                 delete(@start[tid]); }'
+# 追踪用户态函数参数：
+bpftrace -e 'uprobe:/usr/bin/plc_runtime:logic_execute { printf("enter\n"); }'
+# 前提：内核开启 BPF(4.x+ 自带)；嵌入式交叉编译 bcc/bpftrace 工具链稍重，
+# 主机分析 + 板上运行 aot 脚本是折中路线。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">39.9</span>深潜：核隔离与调度调优（实时性压榨）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><td>做法</td><td>效果</td></tr>
+<tr><td>isolcpus</td><td>cmdline 加 <code>isolcpus=1 nohz_full=1 rcu_nocbs=1</code></td><td>核1 不再被普通任务/RCU回调打扰</td></tr>
+<tr><td>亲和绑定</td><td><code>taskset -c 1 ./plc_runtime</code>；IRQ 也 <code>echo 2 &gt; /proc/irq/N/smp_affinity? smp_affinity_list</code></td><td>扫描线程独占核1，中断挪核0</td></tr>
+<tr><td>SCHED_FIFO+优先级</td><td><code>chrt -f 80 ./plc_runtime</code></td><td>压过所有 SCHED_OTHER 竞争者</td></tr>
+<tr><td>cgroup cpuset</td><td>限制后台服务到核0</td><td>系统级隔离（systemd CPUAffinity）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">39.10</span>深潜：观测工具箱全景表（一页备查）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>看什么</th><td>工具链</td></tr>
+<tr><td>CPU每核占用/软中断</td><td>mpstat -P ALL 1; cat /proc/softirqs</td></tr>
+<tr><td>内存/ slab泄漏趋势</td><td>vmstat 1; slabtop; /proc/meminfo(SUnreclaim趋势)</td></tr>
+<tr><td>单进程 IO/CPU 细分</td><td>pidstat -d -u -p PID 1; iotop</td></tr>
+<tr><td>块设备延迟</td><td>iostat -x 1 (await/util)</td></tr>
+<tr><td>锁竞争</td><td>/proc/lock_stat(开CONFIG_LOCK_STAT) — top contenders 排名</td></tr>
+<tr><td>网络重传/队列溢出</td><td>ss -s; netstat -s(drop segments); tc -s qdisc show</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch39"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>用 ftrace 追踪内核函数路径与调度行为</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>用 perf 找出应用热点并生成火焰图</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 kmemleak 检测内核内存泄漏的完整流程</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「性能剖析：ftrace / perf / kmemleak」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter38.html"><span><span class="pager-label">上一章</span><b>第 38 章 · AXI-DMA 高速数据通路实战</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter40.html"><span><span class="pager-label">下一章</span><b>第 40 章 · AMP 双核开发：OpenAMP / rpmsg</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 39 章 · 性能剖析：ftrace / perf / kmemleak · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

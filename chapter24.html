@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 24 章 · Linux 应用远程调试：GDB + VSCode | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 24 章 · Linux 应用远程调试：GDB + VSCode：在 Windows 的 VSCode 里给板卡上的进程打断点 —— 现代嵌入式开发的标准姿势。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-debug" data-chapter-id="ch24" data-chapter-file="chapter24.html" data-chapter-label="第 24 章 · Linux 应用远程调试：GDB + VSCode">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 24 章 · 调试验证</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>架构与准备</a>
+<a href="#sec-2"><span class="num">02</span>命令行完整流程（先跑通再上 IDE）</a>
+<a href="#sec-3"><span class="num">03</span>VSCode 图形化配置</a>
+<a href="#sec-4"><span class="num">04</span>进阶技巧清单</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：GDB 高级实战三案例 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 24 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第三篇 · 调试验证 / Chapter 24</div>
+      <h1 id="heroTitle">第 24 章<br><span class="grad">Linux 应用远程调试：GDB + VSCode</span></h1>
+      <p class="hero-sub">在 Windows 的 VSCode 里给板卡上的进程打断点 —— 现代嵌入式开发的标准姿势。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">24</div>
+          <div class="console-part">调试验证 / CH24</div>
+          <div class="console-title">Linux 应用远程调试：GDB + VSCode</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>24 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">搭建 gdbserver + 交叉 GDB + VSCode 三层调试架构</li>
+<li class="goal-item">掌握 attach 调试、多线程检查、监视点等进阶技能</li>
+<li class="goal-item">能对 PLC 运行时做「周期级」的行为分析</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第三篇 · 调试验证</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,372 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        ILA、时序、GDB 与内核排障，建立可验证的工程习惯。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">24.1</span>架构与准备</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">┌─ Windows: VSCode (GDB 前端 UI) ─┐
+│  └─ arm-xilinx-linux-gnueabi-gdb ──── TCP ────┐
+├─ Ubuntu: SDK 提供交叉 gdb 与 sysroot ─────────┤
+│  └─ 板卡: gdbserver :1234 ./plc_runtime ◀─────┘  JTAG/网口均可承载</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>组件</th><th>获取方式</th><th>验证</th></tr>
+<tr><td>板上 gdbserver</td><td>petalinux-config -c rootfs 勾选（15.5）</td><td><code class="inline">which gdbserver</code></td></tr>
+<tr><td>主机交叉 gdb</td><td>PetaLinux SDK 自带</td><td><code class="inline">$GDB --version</code></td></tr>
+<tr><td>sysroot</td><td>SDK 安装目录 <code class="inline">sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi</code></td><td>含 /lib /usr/lib 镜像</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">24.2</span>命令行完整流程（先跑通再上 IDE）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 板上：
+gdbserver :1234 /usr/bin/plc_runtime
+# Process plc_runtime created; pid = 812, Listening on port 1234
+
+# 主机（source SDK 后）：
+$GDB ~/work/apps/plc_runtime            # 注意：加载的是带符号的主机侧副本
+(gdb) set sysroot ~/work/sdk/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi
+(gdb) target remote 192.168.2.30:1234
+(gdb) break scan_loop                    # 函数断点
+(gdb) continue                           # 板上开始运行，命中后停下
+(gdb) print period_ms
+(gdb) bt                                 # 调用栈</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">24.3</span>VSCode 图形化配置</h3><div class="code-block"><div class="code-head"><span class="code-lang">JSON</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="json">// .vscode/launch.json —— 安装 C/C++ 扩展后使用
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ZYNQ Remote Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/plc_runtime",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerPath": "arm-xilinx-linux-gnueabi-gdb",
+      "miDebuggerServerAddress": "192.168.2.30:1234",
+      "setupCommands": [
+        { "text": "set sysroot /home/user/work/sdk/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi" },
+        { "text": "set pagination off" }
+      ]
+    }
+  ]
+}</code></pre></div>
+<p>F5 启动 → 断点可视化命中、悬停看变量、Watch 窗口监视表达式 —— 与本地开发体验完全一致。板上先手动跑 <code class="inline">gdbserver :1234 app</code> 即可。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">24.4</span>进阶技巧清单</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>场景</th><th>GDB 操作</th></tr>
+<tr><td>调试已运行进程（不停服务）</td><td>板上 <code class="inline">gdbserver --attach :1234 &lt;pid&gt;</code>；或 gdb 中 <code class="inline">target remote</code></td></tr>
+<tr><td>只在特定值触发</td><td><code class="inline">break scan_loop if tick_count==500</code></td></tr>
+<tr><td>变量被谁改了？</td><td><code class="inline">watch period_ms</code>（硬件监视点，写访问即停）</td></tr>
+<tr><td>多线程死锁分析</td><td><code class="inline">info threads</code> → <code class="inline">thread apply all bt</code> 一屏看清各线程卡点</td></tr>
+<tr><td>抓崩溃现场</td><td>开启 core dump 后 <code class="inline">gdb app core</code> 直接回放事故</td></tr>
+<tr><td>免打扰观察</td><td><code class="inline">set confirm off; handle SIGPIPE nostop noprint</code> 屏蔽噪音信号</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：断点行号对不上/单步乱跳？</summary><div class="ans"><p>-O2 内联重排所致。调试构建用 <code class="inline">-O0 -g</code>；发布才开优化。若必须调优化的代码，改用汇编级断点与 watchpoint。</p></div></details>
+<details class="qa"><summary>Q2：打印结构体显示 incomplete type？</summary><div class="ans"><p>sysroot 未设置或路径错，GDB 读不到库头文件调试信息。确认 set sysroot 指向 SDK 目录而非板卡导出的 rootfs。</p></div></details>
+<details class="qa"><summary>Q3：单步一次卡好几秒？</summary><div class="ans"><p>每步都经网络往返。缓解：把断点上移到粗粒度函数、用 until/break 行号批量推进；或临时把工程搬到 NFS 上以缩短符号解析。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L24-1：抓住抖动现行</strong>
+<p>对 L20-1 的 mini_rt 远程调试：① 在扫描线程设条件断点 <code class="inline">if jitter_us > 200</code>；② 命中时执行 <code class="inline">thread apply all bt</code> 截图归档；③ 分析该时刻其他线程正在做什么（大概率是通信线程在 printf）—— 用证据支撑你后续的性能优化决策。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 program 要指向主机侧副本而不是板上文件？两者不一致会发生什么？</li>
+<li>对比 gdbserver/TCP 与 JTAG+hw_server 两种调试通道的能力边界（能否调试内核？能否暂停整机？）。</li>
+<li>设计 PLC 运行时的「飞行记录仪」：环形缓冲保存最近 N 个扫描周期的耗时统计，崩溃后由 gdb 导出分析。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">24.6</span>深潜：GDB 高级实战三案例 ★</h3><h4>① 案例：多线程死锁的 5 分钟定位</h4>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">现象: Web 接口无响应, CPU 空闲(排除忙等)
+(gdb) thread apply all bt
+  Thread 3 (scan):   ... pthread_mutex_lock (&amp;img_mtx) ← 卡在这
+  Thread 5 (web):    ... pthread_mutex_lock (&amp;img_mtx) ← 也卡? 不对——
+  Thread 2 (log):    ... memcpy(...) ← 持锁者在拷贝大缓冲!
+/* 判读: 并非死锁环, 而是"持锁时间过长"造成的活饥饿。
+   log 线程在锁内做格式化+memcpy 大块 → 缩锁: 锁内只交换指针 */
+若真是环状死锁: bt 显示 A 等 mtx1(持有mtx2), B 等 mtx2(持有mtx1)
+→ 修复: 统一加锁顺序(37章) + lockdep/pthread_mutexattr 设 PTHREAD_MUTEX_ERRORCHECK 复核</code></pre></div>
+<h4>② 案例：变量被神秘修改 —— watchpoint 抓真凶</h4>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">现象: period_ms 每 ~10 分钟被改成随机值
+(gdb) watch -l g_cfg.period_ms        # 硬件观察点: 写访问即停
+Hardware watchpoint 2: g_cfg.period_ms
+(gdb) c
+Hardware watchpoint 2: *g_cfg.period_ms
+Old value = 10; New value = 23734
+0x00013a4c in cfg_reload_thread (...) at config.c:71
+# bt → 来自 SIGUSR1 处理路径, sscanf 未校验长度 → 越界写踩踏相邻内存
+/* watchpoint 是"内存指纹采集器"——谁改的、改前改后值、完整调用栈一屏呈现 */</code></pre></div>
+<h4>③ core dump 全流程（事后取证）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 板上开启:
+ulimit -c unlimited
+echo "/media/ram/core.%e.%p" &gt; /proc/sys/kernel/core_pattern   # tmpfs防写坏存储
+# 崩溃后主机分析:
+$GDB plc_runtime core.plc_runtime.812
+(gdb) bt full                    # 全栈含局部变量
+(gdb) info threads; thread apply all bt brief
+(gdb) frame N; print struct      # 逐帧还原现场
+/* 加分项: 应用内置最近200条操作日志环形缓冲, 崩溃处理函数把它
+   dump 到 stderr → core 里直接可见"死前在干什么"(49章黑匣子同思想) */</code></pre></div>
+<h4>④ GDB 批量化</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><td>示例</td></tr>
+<tr><td>命令脚本</td><td><code class="inline">gdb -x init.gdb --batch app core</code>(init.gdb 里 bt/printf 自动执行)</td></tr>
+<tr><td>自定义命令</td><td><code class="inline">define plcstat / printf "tick=%d\n", g_img.scan_cnt / end</code></td></tr>
+<tr><td>hook 断点</td><td><code class="inline">define hook-stop / info threads / end</code> 每次停下自动打印现场</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch24"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>搭建 gdbserver + 交叉 GDB + VSCode 三层调试架构</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 attach 调试、多线程检查、监视点等进阶技能</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能对 PLC 运行时做「周期级」的行为分析</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Linux 应用远程调试：GDB + VSCode」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter23.html"><span><span class="pager-label">上一章</span><b>第 23 章 · JTAG 裸机调试</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter25.html"><span><span class="pager-label">下一章</span><b>第 25 章 · 内核调试与软硬件联合验证方法论</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 24 章 · Linux 应用远程调试：GDB + VSCode · 第三篇 · 调试验证</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

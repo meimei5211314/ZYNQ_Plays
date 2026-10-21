@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 40 章 · AMP 双核开发：OpenAMP / rpmsg | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 40 章 · AMP 双核开发：OpenAMP / rpmsg：ZYNQ 的隐藏大招：核0 跑 Linux 管生态，核1 裸机跑微秒级实时 —— 两全其美的正确打开方式。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch40" data-chapter-file="chapter40.html" data-chapter-label="第 40 章 · AMP 双核开发：OpenAMP / rpmsg">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 40 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>为什么需要 AMP</a>
+<a href="#sec-2"><span class="num">02</span>资源划分（AMP 设计第一步，白纸黑字）</a>
+<a href="#sec-3"><span class="num">03</span>OpenAMP 软件栈一图流</a>
+<a href="#sec-4"><span class="num">04</span>核1 固件最小工程（Vitis 裸机 + openamp 库）</a>
+<a href="#sec-5"><span class="num">05</span>Linux 侧配置与使用</a>
+<a href="#sec-6"><span class="num">06</span>实战：高速软 PWM 下沉核1</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：vring 三环结构详解</a>
+<a href="#sec-9"><span class="num">09</span>深潜：rpmsg 通道生命周期（NS 公告机制）</a>
+<a href="#sec-10"><span class="num">10</span>深潜：OpenAMP vs rpmsg-lite 选型表</a>
+<a href="#sec-11"><span class="num">11</span>深潜：可靠性三件套（核1 崩了怎么办）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 40 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 40</div>
+      <h1 id="heroTitle">第 40 章<br><span class="grad">AMP 双核开发：OpenAMP / rpmsg</span></h1>
+      <p class="hero-sub">ZYNQ 的隐藏大招：核0 跑 Linux 管生态，核1 裸机跑微秒级实时 —— 两全其美的正确打开方式。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">40</div>
+          <div class="console-part">进阶精通 / CH40</div>
+          <div class="console-title">AMP 双核开发：OpenAMP / rpmsg</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>5</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:36%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>40 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">设计 AMP 系统的资源划分方案（内存/中断/外设归属）</li>
+<li class="goal-item">跑通 remoteproc 固件加载与 rpmsg 核间通信全链路</li>
+<li class="goal-item">把实时任务从 Linux 下沉到核1，量化收益</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,448 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>2 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">40.1</span>为什么需要 AMP</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>形态</th><th>核0</th><th>核1</th><th>实时性</th><th>适用</th></tr>
+<tr><td>SMP Linux</td><td colspan="2">Linux 调度两核</td><td>~100μs 级抖动</td><td>通用应用（本课程主线）</td></tr>
+<tr><td><strong>AMP</strong></td><td>Linux</td><td>裸机/FreeRTOS</td><td><strong>μs 级硬实时</strong></td><td>电机电流环、高速协议栈、安全通道 ★</td></tr>
+</table></div>
+<p>PLC 项目里 10ms 扫描靠 Linux 已够；但若客户要求 <strong>100μs 级 PWM 闭环或 EtherCAT DC 同步</strong>，Linux 无论怎么调参都不保险 —— 把这个任务扔给核1，Linux 继续负责 Web/Modbus/业务，各得其所。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">40.2</span>资源划分（AMP 设计第一步，白纸黑字）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>资源</th><th>核0 Linux</th><th>核1 裸机</th><th>说明</th></tr>
+<tr><td>OCM 256KB</td><td>-</td><td>代码+数据全占</td><td>片上存储，访问仍受仲裁与配置影响</td></tr>
+<tr><td>DDR 0x100000~</td><td>内核+应用</td><td>-</td><td>常规区域</td></tr>
+<tr><td>DDR 0x08000000 起 1MB</td><td><strong>reserved</strong></td><td>固件加载区+rpmsg 共享缓冲</td><td>设备树 reserved-memory 声明</td></tr>
+<tr><td>私有定时器/看门狗</td><td>各自私有</td><td>各自私有</td><td>PPI 天然隔离</td></tr>
+<tr><td>UART1/网口</td><td>独占</td><td>禁用</td><td>外设只能单主 ★</td></tr>
+<tr><td>核间中断</td><td colspan="2">SGI 0~15（rpmsg/vring 底层走 IPI）</td><td>GIC 天然支持</td></tr>
+</table></div>
+<div class="box danger"><span class="bt">🚨 铁律</span>
+<p>同一外设绝不允许两核同时访问（除非硬件支持仲裁且软件有锁）。AMP 翻车 Top1 就是两边都在摸同一个 UART/GPIO —— 划分表要像 27 章寄存器合同一样冻结归档。</p></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">40.3</span>OpenAMP 软件栈一图流</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">┌─ 核0 Linux ────────────────┐   ┌─ 核1 bare-metal ───────────┐
+│ /dev/rpmsg0 (用户态)        │   │ openamp: rpmsg endpoint     │
+│ rpmsg_char 驱动             │   │   ▲ virtqueue               │
+│ remoteproc 生命周期管理     │◀──┼──▶ IPC 共享内存(0x08000000) │
+│  - /sys/class/remoteproc0  │   │   ▼ SGI 中断(IPI)           │
+│  - start/stop/firmware     │   │ 应用: 高速PWM/采集/协议栈    │
+└────────────────────────────┘   └─────────────────────────────┘
+   固件 ELF 放 /lib/firmware/plc_rpu.elf，echo start 即加载运行</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">40.4 OpenAMP 消息路径与资源合同</h3><p>先使用所选平台参考工程的初始化和 echo 示例，固定 OpenAMP/libmetal/BSP 版本。下面用流程解释职责，不虚构通用 create_ept 函数签名：</p><ol><li>建立并验证共享内存、资源描述和通知机制。</li><li>初始化平台与传输层，创建服务端点，按实现完成名称服务/端点发现。</li><li>发送带 epoch、seq、长度的消息；接收端验证边界并给确认。</li><li>明确接收缓冲回收时机，处理耗尽、超时与对端复位。</li><li>用日志与计数检查双向顺序，再接入控制业务。</li></ol><p>resource table、vring、通知中断和 Linux 驱动必须匹配。不能把其他 SoC 的 IPI 节点或 rpmsg-lite API 混入 OpenAMP 示例。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">40.5 Linux 端：先确认驱动与绑定</h3><p>Zynq-7000 CPU1 的启动与 remoteproc 支持依赖所用厂商 BSP/内核版本；本课程的 A9 不是带独立 R5 RPU 的 ZynqMP。原稿中带 sram? 的节点与固定 vring IRQ 不是可编译的设备树，已移除。</p><ol><li>从匹配版本的官方参考工程取得 DTS、驱动与固件，核对 compatible 和 binding。</li><li>比较 reserved-memory 与 ELF 每个加载段、vring 和共享缓冲，确认无重叠。</li><li>确认 sysfs 中实际存在的 remoteproc 实例和其 firmware 属性，再按该驱动支持的生命周期启动。</li><li>rpmsg 服务匹配相应 Linux 驱动后才会暴露接口；不假设必然出现 /dev/rpmsg0，也不默认字符写入就等于业务协议。</li><li>先做 echo 与重启恢复，保存 dmesg、端点信息、seq 和错误计数。</li></ol><p>参考：<a href="https://github.com/OpenAMP/openamp-system-reference" target="_blank" rel="noopener">OpenAMP 系统参考材料</a>。确切启动命令由已核对的 BSP 说明给出，不在缺少板级事实时猜测寄存器或中断号。</p></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">40.6</span>实战：高速软 PWM 下沉核1</h3><p>协议设计（rpmsg 消息 16 字节定长）：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>字段</th><th>偏移</th><th>说明</th></tr>
+<tr><td>CMD</td><td>0</td><td>1=设频率占空比 2=急停 3=读状态</td></tr>
+<tr><td>CH</td><td>1</td><td>通道号</td></tr>
+<tr><td>PARAM[3]</td><td>4..15</td><td>freq_hz/duty_us 等参数（小端）</td></tr>
+</table></div>
+<p>核1 用私有定时器以 10μs 节拍直接翻转 EMIO/GPIO 寄存器（SLCR 划归核1 管理），Linux 侧 PLC 运行时只发命令。<strong>收益量化</strong>：Linux GPIO 翻转抖动 ±80μs → 核1 实测 ±1.5μs（ILA 验证），且与 Linux 负载完全解耦。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：remoteproc start 报 "invalid firmware"？</summary><div class="ans"><p>① ELF 未放对路径/名字不符；② ELF 的加载段地址超出声明窗口；③ 核1 复用模式未在 FSBL/PCW 配置为 split 模式（两核独立跑）—— 检查 ps7 配置的 split/lockstep 选项。</p></div></details>
+<details class="qa"><summary>Q2：rpmsg 发送偶发 -ENOMEM？</summary><div class="ans"><p>vring 缓冲池（默认 512B×256）耗尽，对端消费太慢。对策：发送前查询可用描述符、失败重试退避，或增大 vring 数量（改共享内存布局）。</p></div></details>
+<details class="qa"><summary>Q3：怎么调试核1 固件？</summary><div class="ans"><p>Vitis Debug → attach 到 Cortex-A9 #1（不 reset），即可断点单步；日志经 rpmsg 回传核0 打印，或用 OCM 一块区域做共享 printf 缓冲由 Linux 侧轮询导出。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L40-1：核间链路验收</strong>
+<p>① 跑通 echo 回环；② 写延迟测试：Linux 发 1000 个 16B 消息等回显，统计 RTT 分布（预期 avg 20~60μs，远快于任何 Linux 内进程间通道）；③ 实现 40.6 的 PWM 命令协议，用 ILA 对比「Linux GPIO vs 核1 GPIO」的边沿抖动直方图 —— 把两张图放进你的答辩 PPT，效果炸裂。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>vring 的本质是什么？为什么用「共享内存+描述符环」而不是消息队列 IPC？</li>
+<li>若核1 死机，Linux 如何感知并恢复？（设计健康检查+remoteproc restart 策略）</li>
+<li>对比 AMP 方案与「全放 PL 硬件逻辑」处理同一实时任务的工程取舍。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">40.7</span>深潜：vring 三环结构详解</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">共享内存布局（rpmsg/virtio 标准）：
+┌──────────────┬────────────────┬─────────────┬──────────────┐
+│ 描述符表 desc │ 可用环 avail    │ 已用环 used  │ 缓冲池(512B×N)│
+└──────────────┴────────────────┴─────────────┴──────────────┘
+desc[i]: addr | len | flags(NEXT/WRITE) | next   ← 描述一个512B缓冲
+avail:   消费者可取的 desc 索引流(生产者追加)
+used:    消费者归还的 desc 索引流(含写后长度)
+/* 双向各一套 vring；通知经 IPI(SGI) —— "共享内存+环+门铃"三件套，
+   与 DPDK/SPDK/网卡队列同构：学会一处，处处通明 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">40.8</span>深潜：rpmsg 通道生命周期（NS 公告机制）</h3><ol>
+<li>核1 固件创建 endpoint(name="rpmsg-plc", src=50) 并向 <strong>name service 端点(addr=53)</strong> 发公告；</li>
+<li>核0 rpmsg_char 驱动收到公告 → 自动创建 <code class="inline">/dev/rpmsg0</code>（或按 dst 匹配已有通道）；</li>
+<li>用户态 open 读写即达对端；固件销毁端点则发 destroy 公告，节点消失；</li>
+<li>排障锚点：公告未达 → 查 vring 地址一致性；节点建了但读写无响应 → 对端 poll 没跑（核1 主循环阻塞）。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">40.9</span>深潜：OpenAMP vs rpmsg-lite 选型表</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><td>OpenAMP(全栈)</td><td>rpmsg-lite(精简)</td></tr>
+<tr><td>体积/复杂度</td><td>完整 virtio+remoteproc，万行级</td><td>单文件级，无动态发现</td></tr>
+<tr><td>动态通道</td><td>支持 NS 公告</td><td>静态指定端点号</td></tr>
+<tr><td>适用</td><td>核1 也需被远程管理/多通道</td><td>固定拓扑、RAM 紧张（本课程推荐）★</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">40.10</span>深潜：可靠性三件套（核1 崩了怎么办）</h3><ul>
+<li><strong>健康心跳</strong>：核1 每周期递增共享计数，核0 检测停跳 → <code class="inline">echo stop&gt;state; echo start&gt;state</code> 自动重启固件；</li>
+<li><strong>看门狗联动</strong>：核1 定期喂 PS WDT，卡死触发硬件复位整机（最后手段）；</li>
+<li><strong>命令幂等</strong>：核间协议带序号+ACK，重启后核0 重发未确认命令 —— 分布式系统「至少一次+幂等」标准解。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch40"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>设计 AMP 系统的资源划分方案（内存/中断/外设归属）</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>跑通 remoteproc 固件加载与 rpmsg 核间通信全链路</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>把实时任务从 Linux 下沉到核1，量化收益</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「AMP 双核开发：OpenAMP / rpmsg」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter39.html"><span><span class="pager-label">上一章</span><b>第 39 章 · 性能剖析：ftrace / perf / kmemleak</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter41.html"><span><span class="pager-label">下一章</span><b>第 41 章 · 扩展实战项目集（4 选 2）</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 40 章 · AMP 双核开发：OpenAMP / rpmsg · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

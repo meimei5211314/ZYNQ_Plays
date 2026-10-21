@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 54 章 · 并发发布的证明：C11原子、SPSC与所有权 | Zynq 工程能力讲义</title><meta name="description" content="用先写数据后发布索引的双向协议，推导单生产者单消费者环形队列，并理解CPU同步与DMA同步的边界。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch54" data-chapter-file="chapter54.html" data-chapter-label="第 54 章 · 并发发布的证明：C11原子、SPSC与所有权">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 54 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>先问谁能写，再选原子操作</a>
+<a href="#s2"><span class="num">02</span>release与acquire连起数据关系</a>
+<a href="#s3"><span class="num">03</span>手算一个留空槽的环</a>
+<a href="#s4"><span class="num">04</span>边界、退出与过载也是算法</a>
+<a href="#s5"><span class="num">05</span>原子不保证处处无锁</a>
+<a href="#s6"><span class="num">06</span>先跑边界自检，再扩展并发压力</a>
+<a href="#s7"><span class="num">07</span>不要跨越模型适用范围</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 54 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 54 章<br><span class="grad">并发发布的证明：C11原子、SPSC与所有权</span></h1><p class="hero-sub">用先写数据后发布索引的双向协议，推导单生产者单消费者环形队列，并理解CPU同步与DMA同步的边界。</p><div class="hero-meta"><span class="meta-chip">理论90分钟 + 实验2–4小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">运行SPSC边界自检，随后以SPSC_NO_MAIN复用实现，自行扩展有界采样队列的双线程验序与过载计数。</p></div></div><ul><li>为共享对象画出happens-before关系和槽位所有权</li><li>选择正确的acquire/release配对，而不滥用volatile</li><li>实现并测试有界SPSC队列的满、空、回绕和压力场景</li><li>解释原子性、无锁进度、缓存一致性和设备同步的不同保证</li></ul><div class="learning-links"><a href="chapter52.html">前置：第 52 章</a><a href="chapter53.html">前置：第 53 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">先问谁能写，再选原子操作</h3><p>并发缺陷通常不是“同时执行得太快”，而是两个执行主体对同一个对象缺少合法的访问关系。C11中，冲突的非原子访问若没有适当同步，会构成数据竞争并导致未定义行为。某次板上运行恰好没撞上不能证明安全。先为每个共享字段指定写者、读者、发布时间和归还时间，再决定锁、消息或原子方案。</p><p>SPSC的前提是恰好一个生产者推进head、一个消费者推进tail。两个中断上下文都调用push，即使从未同时进入，也必须证明它们被同一种串行化机制保护，否则已超出此算法。payload可以是普通对象，只要发布前仅生产者写、取得所有权后仅消费者读、归还后才允许覆写。原子索引的作用是建立交接契约；并非要求把每个payload字节都改成原子。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">release与acquire连起数据关系</h3><p>生产者先写slot，再对head做release存储；消费者用acquire读取head，并观察到对应发布后，才能读取slot。消费者读完slot，对tail做release；生产者通过acquire观察到归还后，才能重新写该槽位。这是两个方向的交接。只给head加屏障而让tail随意访问，可能在槽位复用时破坏安全。</p><pre><code>/* C11消息发布示意片段；payload仅在该协议保护下访问 */
+payload = value;
+atomic_store_explicit(&amp;ready, 1, memory_order_release);
+/* 另一个线程：观察到本次发布后才读取payload */
+if (atomic_load_explicit(&amp;ready, memory_order_acquire))
+    consume(payload);</code></pre><p>这段单次发布片段不是可无限复用的邮箱：ready何时清零、旧数据何时不再被读，都还没定义。relaxed仍提供该原子对象本身的原子性和修改顺序，但不独立发布旁边的普通数据。acquire必须通过观察相关release形成关系，两个地方各写一个屏障不会自动产生通信。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">手算一个留空槽的环</h3><p>选N=8，索引在0到7之间循环，next=(head+1)&amp;7。head==tail表示空，next==tail表示满，因此可用容量是7而不是8。head=6、tail=2时，已有(6−2)&amp;7=4个元素，可再放3个。生产者读取tail可能稍旧，最多保守地误判满；消费者读取head稍旧，最多保守地误判空。这种保守性成立于单写者和正确发布协议。</p><pre><code>/* push的核心片段；省略结构体、初始化和完整错误路径 */
+unsigned h = atomic_load_explicit(&amp;q-&gt;head, memory_order_relaxed);
+unsigned n = (h + 1u) &amp; (N - 1u);
+if (n == atomic_load_explicit(&amp;q-&gt;tail, memory_order_acquire))
+    return false;
+q-&gt;slot[h] = value;
+atomic_store_explicit(&amp;q-&gt;head, n, memory_order_release);</code></pre><p>自己的索引由自己唯一写入，因此可relaxed读取；对方索引承担交接，需要相应acquire。N必须为2的幂才能用掩码代替取模。若改用单调计数器和全部N个槽位，就必须重新证明回绕、差值范围与满空判定，不能混用两种设计的公式。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">边界、退出与过载也是算法</h3><p>队列满时选择返回失败、丢弃新样本、覆盖旧样本或阻塞，属于业务契约。留空槽SPSC不能在满时由生产者强行推进tail：那会让tail出现第二个写者，也可能覆写消费者正在读取的对象。需要覆盖策略时应另选经过证明的算法。固定容量只解决内存上界，无法替持续过载的系统创造吞吐量。</p><p>例如生产率100 k项/秒、消费率80 k项/秒，净积压20 k项/秒；可用容量1023从空到满大约51.15 ms。即使每次操作都无锁，也只是在这个时间后更快地报告满。退出时还需定义停止生产、排空或放弃、join消费者、销毁内存的顺序。消费者拿到的是槽位内指针时，归还tail之后不得继续使用该指针；否则生产者可以合法覆写它。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">原子不保证处处无锁</h3><p>_Atomic类型保证语言层面的原子操作，但具体目标宽度可能由库函数甚至锁实现。对目标编译器检查atomic_is_lock_free、生成指令及链接依赖，尤其是32位A9上的64位原子。不能在可能借助阻塞锁实现的原子上，未经分析就放入硬中断上下文。无锁只表达系统级进度性质，不等于每个参与者在固定步数内完成，也不等于实时截止期保证。</p><p>head与tail若落在同一缓存线，即使语言正确也可能频繁争夺缓存线。可以按目标缓存线规划索引存储，但填充大小需用目标布局验证，不能把桌面机64字节结论直接当A9事实。一次acquire/release的真实成本还依赖编译器、架构和共享状态。先用正确算法建立基线，再测吞吐和尾部延迟；不要通过删除同步来优化一个已经有数据竞争的程序。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">先跑边界自检，再扩展并发压力</h3><p>参考<a href="labs/c/spsc.c" download>labs/c/spsc.c</a>自带单线程交错自检：验证空读、填满、拒绝额外入队，以及10万项递增序号的保序与回绕，并输出atomic_is_lock_free。它不创建线程，没有pthread依赖，也不测真实并发。按<a href="labs/README.md">构建说明</a>创建labs/.build，再用gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic labs/c/spsc.c -o labs/.build/spsc_selftest构建并按平台运行。实现用显式回绕，支持非2次幂深度；掩码片段只是N=8的教学变体。</p><p>学习者扩展可用SPSC_NO_MAIN复用实现，另写生产/消费线程，增加派生校验、满/空计数、可复现延迟和退出同步，验证“成功入队数=成功出队数+占用”。这不属于现成自检。支持时单独使用TSan检查该线程扩展，不要与ASan混成同一构建。单线程通过不能证明弱内存并发安全，线程压力无告警也不能替代交接关系证明；目标A9的布局、原子实现与性能还需单独核对。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">不要跨越模型适用范围</h3><p>本章发布交互允许逐步安排“写payload、发布、观察、读取”的顺序，用于发现缺少交接的反例。它不执行C编译器、不模拟ARM弱内存模型，也不产生真实竞态概率。模型展示“可能错误”是一种解释；只有经过语言和架构契约推导，才能说明实际实现允许哪些观察。</p><p>用户态C11原子、Linux内核的smp_store_release/smp_load_acquire和设备DMA屏障属于不同接口体系。不能把stdatomic.h原样塞进内核，也不能对MMIO寄存器使用atomic_fetch_add来替代设备规定的读写。若环的一端变成PL DMA，CPU原子并不会替代DMA映射、缓存同步和设备所有权位。迁移前重新列出参与者和观察域，并注明哪个API建立CPU间关系、哪个API建立CPU与设备关系，避免看似相同的“发布”二字掩盖不同的硬件条件。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 运行SPSC边界自检，随后以SPSC_NO_MAIN复用实现，自行扩展有界采样队列的双线程验序与过载计数。</strong><p>按labs/README.md构建运行单线程10万项自检，再用SPSC_DEPTH=3验证非2次幂回绕；并发压力需另写线程入口。</p><p><b>故障练习：</b>在独立实验副本中把release/acquire换成relaxed，解释失去哪条happens-before关系；主机不复现时仍提交合法交错反例而非声称安全。</p><p><b>验收：</b>自带自检空满/保序/回绕通过；每个索引仅一个写者且payload关系完整；线程扩展另验退出及总数守恒；明确目标原子是否无锁。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch54"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>为共享对象画出happens-before关系和槽位所有权</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>选择正确的acquire/release配对，而不滥用volatile</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>实现并测试有界SPSC队列的满、空、回绕和压力场景</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>解释原子性、无锁进度、缓存一致性和设备同步的不同保证</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter53.html"><span><span class="pager-label">上一章</span><b>第 53 章 · Cortex-A9存储系统：MMU、TLB、缓存与DMA地址</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter55.html"><span><span class="pager-label">下一章</span><b>第 55 章 · 跨越时钟与复位边界：CDC、RDC与握手协议</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

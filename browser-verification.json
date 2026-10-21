@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-21",
+  "desktop": {
+    "chaptersOpened": 51,
+    "allRegisteredViewsMounted": true,
+    "unavailableComponents": 0,
+    "pageOverflowFailures": 0,
+    "consoleErrorsObserved": 0
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844,
+    "chaptersChecked": 51,
+    "appendicesChecked": 4,
+    "courseIndexChecked": true,
+    "pageOverflowFailures": 0
+  },
+  "interactionChecks": [
+    "AXI Lite separated AW/W commits once; simultaneous-only fault loses the write",
+    "AXI Stream ignoring backpressure yields the visible sequence 0,1,6,7",
+    "Step button advances cursor; playback reaches the last cycle",
+    "DMA reads 0 after CPU writes 42 without clean; reads 42 after clean",
+    "Quiz score survives reload and resets to 0 on retry",
+    "Engineering note and prediction checkbox survive reload",
+    "JSON download has format zynq-learning-records and version 1",
+    "Import merges missing chapter progress; imported ch04 displays 100 percent in course index",
+    "Dynamic mobile links close sidebar, overlay and scroll lock in index, chapter2, chapter9 and appendix",
+    "All four appendices change the recalled question when next is clicked"
+  ],
+  "directFileNavigation": "Not verified: browser testing surface only allows http and https; file URL navigation was blocked. Local HTTP rendering and local-only assets were checked.",
+  "hardwareValidation": "Not performed; no target board was used"
+}

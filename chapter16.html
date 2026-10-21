@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 16 章 · 根文件系统与 BusyBox | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 16 章 · 根文件系统与 BusyBox：内核只是地基，「房子」是根文件系统。本章手工搭一个最小系统 —— 从此 init 脚本、开机自启对你再无秘密。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch16" data-chapter-file="chapter16.html" data-chapter-label="第 16 章 · 根文件系统与 BusyBox">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 16 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>最小根文件系统的骨架</a>
+<a href="#sec-2"><span class="num">02</span>编译 BusyBox（静态版最适合教学）</a>
+<a href="#sec-3"><span class="num">03</span>补齐让它「活」起来的四件事</a>
+<a href="#sec-4"><span class="num">04</span>动态链接版的关键步骤（贴近实际产品）</a>
+<a href="#sec-5"><span class="num">05</span>PetaLinux 世界里的对应关系</a>
+<a href="#sec-6"><span class="num">06</span>根文件系统载体选型</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：initramfs 与 pivot_root（固件升级/救援的基石）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：热插拔 mdev vs udev</a>
+<a href="#sec-10"><span class="num">10</span>深潜：账号、口令与远程访问加固</a>
+<a href="#sec-11"><span class="num">11</span>深潜：开机自检与环境自愈脚本</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 16 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 16</div>
+      <h1 id="heroTitle">第 16 章<br><span class="grad">根文件系统与 BusyBox</span></h1>
+      <p class="hero-sub">内核只是地基，「房子」是根文件系统。本章手工搭一个最小系统 —— 从此 init 脚本、开机自启对你再无秘密。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">16</div>
+          <div class="console-part">嵌入式 Linux / CH16</div>
+          <div class="console-title">根文件系统与 BusyBox</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>8</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:57%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>16 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解 FHS 目录规范与最小可启动 rootfs 的组成</li>
+<li class="goal-item">亲手编译 BusyBox 并构建能登录 shell 的迷你根文件系统</li>
+<li class="goal-item">掌握 PetaLinux 下添加开机自启应用的标准做法</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>1,883 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>8 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">16.1</span>最小根文件系统的骨架</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>路径</th><th>必须内容</th><th>缺失后果</th></tr>
+<tr><td>/sbin/init（或 /init）</td><td>PID 1 用户态第一进程</td><td>Kernel panic - not syncing: No init found</td></tr>
+<tr><td>/dev/console</td><td>控制台设备节点（mknod c 5 1）</td><td>init 起来了但无声无息</td></tr>
+<tr><td>/lib/*.so*</td><td>动态链接器 ld-linux + libc（若非静态编译）</td><td>所有程序报 not found（其实是缺解释器）</td></tr>
+<tr><td>/etc/inittab</td><td>定义 sysinit/getty/shutdown 行为</td><td>init 默认行为不可控</td></tr>
+<tr><td>/bin /sbin /usr</td><td>BusyBox 提供全部命令</td><td>无 shell 可用</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">16.2</span>编译 BusyBox（静态版最适合教学）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">cd ~/work/src
+git clone https://git.busybox.net/busybox && cd busybox
+# 或下载 1_31_stable 分支压缩包
+make defconfig ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi-
+make menuconfig   # Settings → Build static binary (no shared libs) 勾选
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- -j$(nproc)
+make CONFIG_PREFIX=~/work/rootfs-mini install
+# 产物：rootfs-mini/{bin,sbin,usr} + linuxrc，全是符号链接指向 busybox</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">16.3</span>补齐让它「活」起来的四件事</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># ~/work/rootfs-mini 内：
+mkdir -p dev proc sys etc/init.d tmp var home/root
+
+① 设备节点（NFS root 时由内核 devtmpfs 自动挂载，手工版先建占位）
+sudo mknod -m 666 dev/console c 5 1
+
+② /etc/inittab —— busybox init 的剧本
+::sysinit:/etc/init.d/rcS
+::respawn:-/bin/login -f root        # 免密直登（实验用）
+::restart:/sbin/init
+::ctrlaltdel:/sbin/reboot
+
+③ /etc/init.d/rcS —— 开机脚本入口
+#!/bin/sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev 2>/dev/null
+hostname navigator
+echo "mini rootfs ready!"
+
+④ /etc/passwd 与 group（login 需要）
+root:x:0:0:root:/home/root:/bin/sh</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">chmod +x ~/work/rootfs-mini/etc/init.d/rcS
+# NFS 导出该目录，U-Boot 用 nfsroot=/home/user/work/rootfs-mini 引导
+# 看到提示符的一刻，你就拥有了一个 100% 自己构建的 Linux！</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">16.4</span>动态链接版的关键步骤（贴近实际产品）</h3><p>静态编译体积大且放弃 glibc 生态。动态版的正确操作：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">file bin/busybox          # 确认 dynamically linked
+readelf -d bin/busybox    # NEEDED 列表：libm/libc...
+# 从 SDK sysroot 拷贝运行时库（注意保留软链！）：
+SDK=~/work/sdk/sysroots/cortexa9t2hf-neon-xilinx-linux-gnueabi
+cp -a $SDK/lib/ld-linux-armhf.so.3* rootfs-mini/lib/
+cp -a $SDK/lib/libc.so.*     rootfs-mini/lib/
+cp -a $SDK/lib/libm.so.*     rootfs-mini/lib/
+# 缺什么补什么：板卡上报 "not found" 的程序逐个 readelf 分析</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">16.5</span>PetaLinux 世界里的对应关系</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手工概念</th><th>PetaLinux/Yocto 实现</th></tr>
+<tr><td>BusyBox init + inittab</td><td>默认同款；可在 <code class="inline">petalinux-config -c rootfs → Image Settings</code> 定制</td></tr>
+<tr><td>往 /usr/bin 放程序</td><td><code class="inline">petalinux-create -t apps</code> 配方自动安装</td></tr>
+<tr><td>rcS 里加启动命令</td><td>配方继承 <code class="inline">update-rc.d</code> 类，自动生成 S 链接（见下）</td></tr>
+<tr><td>拷贝 .ko/.so</td><td>modules/rootfs 配方管理依赖，绝不手拷</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># 让 plcapp 开机自启：编辑其配方 .bb 追加
+inherit update-rc.d
+INITSCRIPT_NAME = "plcapp.sh"
+INITSCRIPT_PARAMS = "start 99 5 ."
+SRC_URI += "file://plcapp.sh"
+do_install_append() {
+    install -d ${D}${sysconfdir}/init.d
+    install -m 0755 ${WORKDIR}/plcapp.sh ${D}${sysconfdir}/init.d/
+}
+# plcapp.sh 内：case start) /usr/bin/plcapp & ;; stop) ... esac
+# 重新 petalinux-build 后，板上 /etc/rc5.d/S99plcapp.sh 出现即成功</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">16.6</span>根文件系统载体选型</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>形态</th><th>介质</th><th>读写能力</th><th>场景</th></tr>
+<tr><td>NFS 目录</td><td>网络</td><td>全读写</td><td>研发期首选（本课程主线）</td></tr>
+<tr><td>ext4</td><td>eMMC/SD 分区</td><td>全读写+日志</td><td>通用量产</td></tr>
+<tr><td>squashfs</td><td>QSPI/eMMC</td><td>只读</td><td>固件防篡改、OTA 主分区</td></tr>
+<tr><td>jffs2/ubifs</td><td>NOR/NAND</td><td>可读写、掉电安全</td><td>裸 flash 方案</td></tr>
+<tr><td>initramfs</td><td>并入内核镜像</td><td>内存盘</td><td>救援系统、快速起跳后 pivot_root</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：启动停在 "Run /sbin/init as init process" 之后没动静？</summary><div class="ans"><p>init 已运行但输出无处去：检查 /dev/console 是否存在、内核 bootargs console 是否正确、inittab 是否有 respawn 条目。三查之后基本必中。</p></div></details>
+<details class="qa"><summary>Q2：板上执行程序报 "-sh: ./app: not found" 但文件明明存在？</summary><div class="ans"><p>九成是缺动态链接器：ld-linux 找不到时报的就是 not found。readelf -l app | grep interpreter 看请求路径是否存在于你的 rootfs。</p></div></details>
+<details class="qa"><summary>Q3：根目录只读无法写入？</summary><div class="ans"><p>squashfs 天生只读；ext4 则可能因异常断电进入只读保护。dmesg 看 EXT4-fs error，修复需 e2fsck；产品设计上建议数据写独立分区。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L16-1：双系统对比</strong>
+<p>① 完成 16.2~16.3 的 mini rootfs 并通过 NFS 引导登录；② 在其中加入一个 C 写的自绘 <code class="inline">mytop</code>（读 /proc/stat 显示CPU占用），静态编译放入验证；③ 对照 PetaLinux 生成的 rootfs.tar.gz，找出三个你 mini 版没有但生产必需的目录/机制（如 /var/log、udev/mdev 热插拔），写下它们的作用。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>PID 1 为什么特殊？如果 init 进程被 kill 会发生什么？</li>
+<li>设计 OTA 升级方案：squashfs 主分区 A/B 双备份 + uboot 计数切换，画出分区表。</li>
+<li>为什么嵌入式设备普遍用 busybox init 而不是 systemd？什么时候值得换 systemd？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">16.7</span>深潜：initramfs 与 pivot_root（固件升级/救援的基石）</h3><p>initramfs = 打进内核或独立加载的微型内存根文件系统，用途：①挂载真根前完成驱动/解密/网络配置；②<strong>OTA 升级器</strong>（在内存系统里安全改写 eMMC 分区）；③救援壳。手工制作：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">mkdir -p cpio/{bin,dev,proc,sys,usr/bin}
+cp busybox cpio/bin/ && ln -s ../bin/busybox cpio/sbin/init? # busybox init 或自写脚本
+cat > cpio/init &lt;&lt;'EOF'
+#!/bin/busybox sh
+mount -t proc none /proc; mount -t sysfs none /sys
+mount /dev/mmcblk0p2 /mnt && exec switch_root /mnt /sbin/init
+EOF
+chmod +x cpio/init
+(cd cpio && find . | cpio -o -H newc | gzip) > rootfs.cpio.gz
+# U-Boot: tftpboot ${ramdisk_addr} rootfs.cpio.gz
+# bootz ${kaddr} ${ramdisk_addr}:${filesize} ${dtb_addr}   ← 第二参数带ramdisk!</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">16.8</span>深潜：热插拔 mdev vs udev</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><td>mdev(BusyBox)</td><td>udev(systemd/eudev)</td></tr>
+<tr><td>体积</td><td>~KB 级</td><td>MB 级+依赖</td></tr>
+<tr><td>规则语法</td><td>简化版 /etc/mdev.conf</td><td>完整 match/action 体系</td></tr>
+<tr><td>适用</td><td>无桌面嵌入式（本课程默认）</td><td>桌面/复杂热插拔</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># /etc/mdev.conf 示例：SD卡分区自动挂载
+mmcblk[0-9]p[0-9]  0:6  660  @/bin/sh -c 'mkdir -p /media/$MDEV && mount /dev/$MDEV /media/$MDEV'
+# 内核侧需 CONFIG_UEVENT_HELPER + echo /sbin/mdev > /proc/sys/kernel/hotplug（或netlink模式）</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">16.9</span>深潜：账号、口令与远程访问加固</h3><ul>
+<li><strong>/etc/passwd 字段</strong>：user:x:UID:GID:comment:home:shell —— x 表示口令在 shadow；<strong>/etc/shadow</strong> 存哈希+时效策略（字段含义面试常考）；</li>
+<li>生成口令哈希：<code class="inline">mkpasswd -m sha-512</code> 或 openssl passwd -6，替换 shadow 中 'x'？注意 shadow 里才是哈希；</li>
+<li>远程访问三档：口令 ssh（最弱）→ <strong>密钥登录</strong>（dropbear -s 禁口令，authorized_keys 放 /etc/dropbear）→ 证书+跳板（企业级）；</li>
+<li>最小授权：专用 plcuser 跑业务，root 仅运维；sudoers 白名单命令。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">16.10</span>深潜：开机自检与环境自愈脚本</h3><div class="code-block"><div class="code-head"><span class="code-lang">SH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="sh">#!/bin/sh
+# S97selfcheck —— 开机体检，失败进入安全态
+fail=0
+[ -c /dev/uio0 ]            || { echo "uio0 missing"; fail=1; }
+ping -c1 -W1 192.168.2.20 &gt;/dev/null || echo "warn: host unreachable"
+mountpoint -q /media/data   || mount /dev/mmcblk0p3 /media/data || fail=1
+if [ $fail -eq 1 ]; then
+    logger -t selfcheck "SAFE MODE"
+    /usr/bin/plc_runtime --safe-mode &     # 只允许读输入+全关输出
+    exit 0
+fi
+/etc/init.d/S99plc start</code></pre></div>
+<p>设计思想：<strong>自检失败不等于停机，而是降级到已知安全状态</strong> —— 与 34 章看门狗、44 章安全输出态一脉相承。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch16"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解 FHS 目录规范与最小可启动 rootfs 的组成</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>亲手编译 BusyBox 并构建能登录 shell 的迷你根文件系统</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 PetaLinux 下添加开机自启应用的标准做法</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「根文件系统与 BusyBox」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter15.html"><span><span class="pager-label">上一章</span><b>第 15 章 · PetaLinux 全流程实战</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter17.html"><span><span class="pager-label">下一章</span><b>第 17 章 · 字符设备驱动开发</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 16 章 · 根文件系统与 BusyBox · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

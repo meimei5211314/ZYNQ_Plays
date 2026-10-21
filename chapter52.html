@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 52 章 · C语言到机器：ABI、ELF、链接布局与启动证据 | Zynq 工程能力讲义</title><meta name="description" content="把结构体、调用约定、链接地址与启动代码连成一条可检查的证据链，解释优化后失效、移植失败和启动前崩溃。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch52" data-chapter-file="chapter52.html" data-chapter-label="第 52 章 · C语言到机器：ABI、ELF、链接布局与启动证据">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 52 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>先建立四份契约</a>
+<a href="#s2"><span class="num">02</span>手算一次对象布局</a>
+<a href="#s3"><span class="num">03</span>函数边界不是源代码边界</a>
+<a href="#s4"><span class="num">04</span>ELF是可审计的装载说明</a>
+<a href="#s5"><span class="num">05</span>链接脚本与启动代码必须配对</a>
+<a href="#s6"><span class="num">06</span>优化器不会替未定义行为兜底</a>
+<a href="#s7"><span class="num">07</span>从布局模型走向板上证据</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 52 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 52 章<br><span class="grad">C语言到机器：ABI、ELF、链接布局与启动证据</span></h1><p class="hero-sub">把结构体、调用约定、链接地址与启动代码连成一条可检查的证据链，解释优化后失效、移植失败和启动前崩溃。</p><div class="hero-meta"><span class="meta-chip">理论90分钟 + 实验2–4小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">为一个含采样序号、时间戳和状态字的共享描述符写出显式布局契约，输出目标ELF与map审计表。</p></div></div><ul><li>计算结构体的偏移、对齐和尾部填充，区分内存布局与线协议</li><li>用ELF头、段表、符号表和map文件定位代码及数据</li><li>追踪Cortex-A9进入main之前的栈、数据段和异常向量初始化</li><li>用最小反例证明越界、别名或整数溢出问题，并给出无未定义行为的修复</li></ul><div class="learning-links"><a href="chapter4.html">前置：第 4 章</a><a href="chapter12.html">前置：第 12 章</a><a href="chapter19.html">前置：第 19 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">先建立四份契约</h3><p>C源程序同时受语言标准、编译器选项、目标ABI和启动环境约束。语言决定表达式是否合法，ABI规定跨函数与跨目标文件如何交换数据，链接脚本规定地址，启动环境建立C运行需要的状态。能够编译只验证了其中一部分。为每个固件保存编译器版本、完整命令行、BSP版本、链接脚本和最终ELF；不要只归档BIN。</p><p>本课目标是Zynq-7000的32位Cortex-A9。先核对指针和long的实际宽度、大小端、ARM/Thumb、浮点调用约定，再链接第三方库。编译器支持浮点指令与函数参数采用硬浮点ABI是两件事。Linux用户程序的装载器负责许多初始化；裸机应用由BSP启动代码与前级引导共同完成，不能把两者的入口假设互换。本文引用的现行ABI用于查原则，2020.2工程仍须以本机工具链产物为准。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">手算一次对象布局</h3><p>在uint32_t对齐为4、uint16_t对齐为2的常见AAPCS32布局下，下面结构体的a在偏移0，b在4，c在8，最大对齐为4，末尾补齐到12字节。字段大小之和只有7。改为b、c、a后，偏移依次为0、4、6，总长通常为8。这里的“通常”必须由目标编译器的sizeof与offsetof证明，而非由主机电脑代答。</p><pre><code>/* 可独立放入目标工程的检查片段；需包含stdint.h、stddef.h */
+struct sample { uint8_t a; uint32_t b; uint16_t c; };
+_Static_assert(offsetof(struct sample, b) == 4, "ABI mismatch");
+_Static_assert(sizeof(struct sample) == 12, "unexpected layout");</code></pre><p>packed可以消除某些填充，却可能制造未对齐访问和性能代价，不能把它当通用协议编码器。填充字节也不应参与memcmp或CRC。跨PS/PL共享描述符时，逐项声明字段宽度、字节序、对齐、保留位及所有权位；网络或文件中逐字节编码，不直接发送整个C对象。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">函数边界不是源代码边界</h3><p>AAPCS32基础约定用r0–r3传递部分参数和结果，其余可能入栈；更宽参数、结构体返回与VFP变体有额外规则。公共接口处SP必须满足8字节对齐，手写汇编保存一个4字节寄存器后直接调用C函数，可能破坏这个要求。被调用者应保存约定要求保留的寄存器，r9的角色依平台约定，不能照抄另一套启动模板。</p><p>排查“仅开启优化才错”时，先看声明与定义是否一致、是否省略函数原型、可变参数格式是否正确、汇编内联是否申明寄存器和memory破坏。利用objdump检查调用点的参数放置，再核对readelf的架构属性。hard-float库和soft-float对象混用，不能靠给链接器屏蔽错误来修好。ARM与Thumb互调也应交给正确的符号属性和链接器生成互工作跳板，不能把函数地址最低位随意清零后跳转。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">ELF是可审计的装载说明</h3><p>节描述编译链接的组织方式，程序头中的段描述装载器需要映射或加载的区域，二者不是一张表。.text通常含指令，.rodata含只读数据，.data有初始值，.bss通常是NOBITS：它占运行内存而不保存等长的零字节镜像。ELF文件变小不代表运行内存变少，调试信息变大也不代表板端RAM同样增加。</p><pre><code># 工具链终端中运行；前缀随实际安装调整
+arm-none-eabi-readelf -h -l -S -A app.elf
+arm-none-eabi-nm -n -S app.elf
+arm-none-eabi-objdump -drS app.elf
+# 链接时追加：-Wl,-Map=app.map,--cref</code></pre><p>若数组声明为uint32_t ring[1024]且静态零初始化，应在bss及map中解释4096字节的运行占用。若栈向下增长而堆向上增长，map中两者符号相隔64 KiB，只能说明静态保留区间；还需最深调用链、中断嵌套和动态分配峰值的证据，不能据此宣称永不碰撞。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">链接脚本与启动代码必须配对</h3><p>VMA是运行地址，LMA是镜像中的装载地址。若.data运行在RAM但初值放在非易失介质，某个明确的装载阶段必须把初值复制过去；如果ELF加载器已经放好数据，启动代码未必再复制。bss清零、各异常模式栈、向量基址、MMU/缓存状态与C库初始化也要逐项找到责任方。Cortex-A9不采用Cortex-M那种“首字为初始SP”的向量表规则。</p><pre><code>/* 链接脚本示意片段，不能替换BSP完整脚本 */
+.data : { __data_start = .; *(.data*) __data_end = .; } &gt; RAM AT&gt; FLASH
+__data_load = LOADADDR(.data);
+.bss (NOLOAD) : { __bss_start = .; *(.bss*) *(COMMON) __bss_end = .; } &gt; RAM</code></pre><p>对已有2020.2工程，从实际生成的lscript.ld、boot.S、crt0路径和FSBL日志追踪到main。把停点设在入口、bss清零后与main，观察同一个全局变量。调试器加载一次后“正常”、冷启动却失败，常说明调试下载或前一轮运行替启动链完成了缺失步骤；必须断电重启复核。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">优化器不会替未定义行为兜底</h3><p>有符号溢出、越界、释放后使用、违反有效类型的指针重解释都可能让优化结果偏离直觉。int计数器加到INT_MAX后，不能假定自然回绕。无符号回绕有定义，却仍需证明业务正确。移位次数不能为负或达到类型位宽；把uint8_t左移前还要注意整数提升。volatile约束特定访问行为，不会修复越界、数据竞争或跨核同步。</p><pre><code>/* 完整的4字节小端读取函数：调用者保证p至少有4字节 */
+static uint32_t load_le32(const uint8_t *p) {
+    return (uint32_t)p[0] | ((uint32_t)p[1] &lt;&lt; 8) |
+           ((uint32_t)p[2] &lt;&lt; 16) | ((uint32_t)p[3] &lt;&lt; 24);
+}</code></pre><p>读协议字段时先检查剩余长度，再用这种组装或memcpy到对齐局部对象，必要时做端序转换。检查count * item_size时先比较count是否超过SIZE_MAX / item_size，不能等乘法溢出后再判断。为失败输入保留原始字节、优化级别、告警与反汇编，形成可重复的缺陷证据。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">从布局模型走向板上证据</h3><p>本章布局交互演示.text、.data、.bss和stack的ROM/RAM预算以及启动步骤，不执行目标编译器或链接器。给.data增加4 KiB，它既可能增加镜像初值占用又增加运行RAM；给.bss增加4 KiB则主要增加运行占用。这里的ROM是存储预算抽象，实际ELF加载、压缩镜像和FSBL布局应另行核对。结构体字段重排需要前述目标sizeof与offsetof实验验证。</p><p>建立三组构建：诊断构建使用告警与调试信息，发布构建保留实际优化，主机可移植核心构建加入可用的UB/地址检查。主机检查不能证明目标ABI正确，板端运行成功也不能证明无未定义行为。最终交付一张“源符号→ELF节→装载段→运行地址→初始化责任方”的表，以及一个能在冷启动与热复位重复执行的断言实验。用这张表解释一次异常PC落在数据区、初值错误或栈越界，才算贯通了C到机器的路径。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 为一个含采样序号、时间戳和状态字的共享描述符写出显式布局契约，输出目标ELF与map审计表。</strong><p>在目标工程加入sizeof/offsetof断言；分别检查readelf节表与程序头，单步确认bss和全局初值何时建立。</p><p><b>故障练习：</b>在实验分支中去掉一个函数原型或故意错误声明参数宽度，先用告警定位再用反汇编解释；不要烧录未审计固件到生产板。</p><p><b>验收：</b>结构体断言通过；每个运行区间都有map及初始化责任方；断电冷启动和调试下载的全局初值一致；不存在用关闭优化掩盖的问题。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch52"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>计算结构体的偏移、对齐和尾部填充，区分内存布局与线协议</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>用ELF头、段表、符号表和map文件定位代码及数据</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>追踪Cortex-A9进入main之前的栈、数据段和异常向量初始化</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>用最小反例证明越界、别名或整数溢出问题，并给出无未定义行为的修复</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter51.html"><span><span class="pager-label">上一章</span><b>第 51 章 · Linux 系统优化实战</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter53.html"><span><span class="pager-label">下一章</span><b>第 53 章 · Cortex-A9存储系统：MMU、TLB、缓存与DMA地址</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

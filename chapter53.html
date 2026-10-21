@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 53 章 · Cortex-A9存储系统：MMU、TLB、缓存与DMA地址 | Zynq 工程能力讲义</title><meta name="description" content="从地址翻译和内存属性出发，建立CPU与DMA之间可验证的地址、可见性和所有权契约。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch53" data-chapter-file="chapter53.html" data-chapter-label="第 53 章 · Cortex-A9存储系统：MMU、TLB、缓存与DMA地址">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 53 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>同一个缓冲区有三种地址视角</a>
+<a href="#s2"><span class="num">02</span>翻译、权限与TLB是不同层次</a>
+<a href="#s3"><span class="num">03</span>内存类型决定哪些优化合法</a>
+<a href="#s4"><span class="num">04</span>发布描述符要证明两件事</a>
+<a href="#s5"><span class="num">05</span>一条缓存线会把邻居卷进来</a>
+<a href="#s6"><span class="num">06</span>一致性不等于互斥，也不等于零成本</a>
+<a href="#s7"><span class="num">07</span>以证据区分三类旧数据</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 53 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 53 章<br><span class="grad">Cortex-A9存储系统：MMU、TLB、缓存与DMA地址</span></h1><p class="hero-sub">从地址翻译和内存属性出发，建立CPU与DMA之间可验证的地址、可见性和所有权契约。</p><div class="hero-meta"><span class="meta-chip">理论100分钟 + 实验3–5小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">绘制一个PS内存到PL DMA的地址与所有权表，给出发送和接收两条生命周期。</p></div></div><ul><li>分别解释CPU虚拟地址、物理地址和DMA总线地址</li><li>根据页大小手算地址翻译并解释TLB失效</li><li>区分缓存一致性、内存顺序和设备完成三个条件</li><li>为收发缓冲区给出对齐、映射、同步与释放的完整生命周期</li></ul><div class="learning-links"><a href="chapter19.html">前置：第 19 章</a><a href="chapter24.html">前置：第 24 章</a><a href="chapter52.html">前置：第 52 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">同一个缓冲区有三种地址视角</h3><p>CPU执行普通加载时使用虚拟地址，MMU把它翻译成物理地址；PL中的DMA主设备通过互连发起总线访问，不能直接使用Linux进程指针。即使某个Zynq系统中的物理地址和DMA地址数值相同，二者也具有不同契约。Linux用dma_addr_t保存DMA API返回值；不能强制转换void*后写给硬件，也不能假定virt_to_phys适用于任意用户或vmalloc内存。</p><p>先画实际连接：PL AXI DMA连接HP端口还是ACP，缓冲区位于DDR还是OCM，软件运行裸机还是Linux。HP路径通常需要软件管理缓存可见性；ACP具有进入一致性域的能力，但事务属性、内存共享属性和处理器配置仍须正确。没有连线与属性证据时，只说“Zynq支持一致性”不能解释这块缓冲区为何正确。本文不把其他SoC上的IOMMU或Cortex-M的MPU机制套到A9。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">翻译、权限与TLB是不同层次</h3><p>以4 KiB页为教学算例，虚拟地址0x12345ABC拆成虚拟页号0x12345和页内偏移0xABC；若页表将其映射到物理页基址0x20007000，则物理地址为0x20007ABC。偏移不变。真实ARMv7-A短描述符还支持节等映射粒度，课程已有BSP可能使用1 MiB节，必须看实际翻译表而非假设所有映射都是4 KiB。</p><p>TLB缓存翻译与属性，修改RAM中的页表并不自动更新已缓存条目。切换映射可能需要按架构规定发布页表写入、执行相应TLB维护和屏障；页表自身可缓存时还涉及维护到正确的一致性点。不能在正在执行的代码下随便改映射，也不能把“TLB miss”解释为非法访问：miss通常触发硬件查表，权限或翻译故障才会产生异常。记录故障地址和状态寄存器，才能区分地址不存在、权限错误与外部总线异常。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">内存类型决定哪些优化合法</h3><p>DDR数据通常映射为Normal内存，寄存器窗口应使用适当Device属性与MMIO访问器。把具有读清零副作用的状态寄存器映射成普通可缓存内存，会破坏访问语义；仅给C指针加volatile无法修复页表属性。反过来把所有DDR都设为Device，也会损失正常缓存与合并带来的性能，并可能违反某些访问方式的要求。</p><p>DMB约束相关内存访问的观察顺序，DSB还要求指定范围内相关操作达到其完成条件，ISB用于使后续指令在更新后的执行上下文中重新取指。三者都不是通用“等DMA结束”指令。设备完成必须从DMA状态、完成中断或协议所有权得到。改变缓存或MMU配置属于特权操作，应使用已审核BSP路径并核对A9架构要求，不能把浏览器里的事件顺序直接翻译成一串CP15指令投入工程。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">发布描述符要证明两件事</h3><p>发送方向先由CPU填写payload和描述符，再使其对设备可见，最后交出所有权或敲门铃。接收方向先给设备一个可用缓冲区，确认完成后再让CPU取得新数据。缓存维护解决某些副本的可见性，内存屏障解决先后顺序，完成事件解决设备是否已经停止修改；缺少任一项，都可能得到“中断来了但数据还是旧的”。</p><pre><code>/* Linux coherent描述符发布的示意片段，非完整驱动 */
+desc-&gt;addr = dma_address;
+desc-&gt;length = length;
+dma_wmb();
+WRITE_ONCE(desc-&gt;status, DEVICE_OWN);
+/* 后续MMIO通知还须按设备与访问器契约实现 */</code></pre><p>coherent分配不代表任意CPU写入都不会重排。streaming映射则按DMA_TO_DEVICE、DMA_FROM_DEVICE或双向的真实方向调用；复用映射要按所有权转换使用dma_sync_*。在映射归设备期间，CPU不能一边修改一边“靠多刷几次缓存”保证正确。Linux使用DMA API，让平台实现处理必要的维护。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">一条缓存线会把邻居卷进来</h3><p>Cortex-A9的L1数据缓存线为32字节；具体BSP范围维护还必须覆盖系统中相关缓存层。教学缓冲区从0x1003开始，长度70字节，末端排他地址为0x1049。按32字节对齐，维护区间应向外扩为[0x1000,0x1060)，共96字节。只处理70字节的直觉忽略了首尾缓存线。裸机应核查本版本Xil_DCache*Range的实现及参数约束。</p><p>更危险的是首尾线与其他可写变量共享。设备接收完成后失效一条脏线，可能连带丢弃CPU刚更新的邻居；不恰当地clean又可能把旧缓存内容覆盖到设备结果上。解决方法是让DMA区域按要求对齐、独占完整缓存线并明确所有权，或使用正确的DMA分配接口；不是机械地把invalidate换成flush。日志至少同时保存CPU地址、DMA地址、方向、长度、对齐、映射时间与完成时间，才能定位偶发的边界损坏。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">一致性不等于互斥，也不等于零成本</h3><p>两个CPU在正确共享属性下可以通过一致性机制观察缓存更新，但仍会存在数据竞争、顺序错误和假共享。同一缓存线上的两个独立计数器由不同核频繁写入，可能导致线在核间来回迁移。把它们分离可改善性能，却不能代替原子操作和所有权协议。ACP同理，连接到一致性域不会替硬件规定“什么时候能改哪块数据”。</p><p>对比缓存启用/关闭、HP/ACP或缓冲区尺寸时，固定CPU与总线频率、映射属性、方向和测量区间。小包可能被中断、描述符处理和维护开销主导；大包可能受DDR带宽及竞争限制。记录有效载荷吞吐量与端到端延迟分布，不用单一循环耗时推断峰值总线带宽。课程界面中的MMU模型只做地址拆分、映射和状态演示，不模拟真实缓存替换、总线仲裁或维护指令延迟。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">以证据区分三类旧数据</h3><p>建立递增序号加固定图样的收发实验。若DMA地址或长度错误，优先检查描述符、地址位宽和边界；若完成状态正确而CPU读到前一轮序号，核查所有权与同步点；若只在首尾几个字节失败，核查对齐和缓存线共享。每个假设只改一个条件，保留发送图样、寄存器快照、驱动日志及实际板卡连接说明。</p><p>在Linux中可以先对照官方DMA指南，画出allocate→map→device owns→complete→sync/unmap→CPU owns→free的路径，再阅读真实驱动。裸机则对照本地BSP缓存维护和AXI DMA轮询示例，检查返回值、超时和完成后的维护。不要在仍运行的DMA旁释放缓冲区，也不要为了让数据“看着正确”在每个循环全局关闭缓存。最终报告必须明确哪些结论来自地址模型，哪些经过目标硬件验证，哪些仍待总线或缓存证据。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 绘制一个PS内存到PL DMA的地址与所有权表，给出发送和接收两条生命周期。</strong><p>先在固定4 KiB页模型中核对地址翻译，再在目标系统记录实际映射、DMA地址、图样序号、同步点和完成状态；无板卡时只提交模型与源码审计结论。</p><p><b>故障练习：</b>在隔离实验中给CPU与DMA故意共享首尾缓存线，预测邻居变量受损风险；用日志区分地址错误与可见性错误。</p><p><b>验收：</b>每次缓冲区交接都有唯一所有者及对应同步；运行证据包含首尾边界与多轮序号；报告没有把CPU指针当DMA地址。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch53"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>分别解释CPU虚拟地址、物理地址和DMA总线地址</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>根据页大小手算地址翻译并解释TLB失效</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>区分缓存一致性、内存顺序和设备完成三个条件</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>为收发缓冲区给出对齐、映射、同步与释放的完整生命周期</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter52.html"><span><span class="pager-label">上一章</span><b>第 52 章 · C语言到机器：ABI、ELF、链接布局与启动证据</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter54.html"><span><span class="pager-label">下一章</span><b>第 54 章 · 并发发布的证明：C11原子、SPSC与所有权</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

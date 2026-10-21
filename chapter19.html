@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO：站在子系统肩膀上：99% 的通用外设不需要自己写驱动，只需要「配好树 + 会用接口」。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch19" data-chapter-file="chapter19.html" data-chapter-label="第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 19 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>分层思想：为什么不用自己写驱动</a>
+<a href="#sec-2"><span class="num">02</span>SPI：以 spidev 访问外置 ADC 为例</a>
+<a href="#sec-3"><span class="num">03</span>I2C：i2c-tools 快速上手</a>
+<a href="#sec-4"><span class="num">04</span>IIO 与 XADC：PLC 模拟量的正解 ★</a>
+<a href="#sec-5"><span class="num">05</span>UART 应用编程要点（termios 最小集）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：PWM 子系统（sysfs 即用）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：input 子系统（按键上报标准化）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：watchdog 子系统（与34章联动）</a>
+<a href="#sec-10"><span class="num">10</span>深潜：clk / regulator framework 概览</a>
+<a href="#sec-11"><span class="num">11</span>深潜：IIO buffered 连续采集实战（XADC 流式）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 19 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 19</div>
+      <h1 id="heroTitle">第 19 章<br><span class="grad">常用外设驱动：UART / SPI / I2C / IIO</span></h1>
+      <p class="hero-sub">站在子系统肩膀上：99% 的通用外设不需要自己写驱动，只需要「配好树 + 会用接口」。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">19</div>
+          <div class="console-part">嵌入式 Linux / CH19</div>
+          <div class="console-title">常用外设驱动：UART / SPI / I2C / IIO</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>10</b></div>
+            <div class="console-metric"><span>TBL</span><b>1</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:71%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>19 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>1</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解「子系统 core + 板级 driver」的内核分层设计</li>
+<li class="goal-item">会用 spidev/i2c-dev 在用户态完成总线读写</li>
+<li class="goal-item">掌握 IIO 子系统读取 XADC 模拟量 —— PLC 的 AI 通道就绪</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,429 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>10 段 · 1 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">19.1</span>分层思想：为什么不用自己写驱动</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>外设</th><th>内核已有组件</th><th>你要做的</th><th>用户态入口</th></tr>
+<tr><td>UART0/1</td><td>xuartps + tty 子系统</td><td>DTS 打开 status 即可</td><td>/dev/ttyPS0~1 + termios</td></tr>
+<tr><td>SPI0/1</td><td>spi-cadence + <strong>spidev</strong></td><td>DTS 挂子设备节点</td><td>/dev/spidevB.C + ioctl</td></tr>
+<tr><td>I2C0/1</td><td>i2c-cadence + i2c-dev</td><td>同上</td><td>/dev/i2c-N 或专用驱动绑定</td></tr>
+<tr><td>XADC</td><td><strong>iio</strong> + xadc 驱动</td><td>DTS 节点使能</td><td>/sys/bus/iio/devices/*</td></tr>
+<tr><td>GEM 网卡</td><td>macb + net 子系统</td><td>PHY 地址/模式</td><td>eth0 + socket</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 判断标准</span>
+<p>遇到新外设先问一句：「上游有现成 compatible 吗？」（查 <code class="inline">Documentation/devicetree/bindings/</code>）。有 → 配树即可；无 → 才考虑自写驱动（第17/18章方法）。工业项目里自驱动的比例通常 &lt;10%，且集中在 PL 自定义 IP。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">19.2</span>SPI：以 spidev 访问外置 ADC 为例</h3><div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">/* system-user.dtsi */
+&amp;spi0 {
+    status = "okay";
+    adc@0 {
+        compatible = "rohm,dh2228fv";   /* spidev 官方占位 compatible */
+        reg = &lt;0&gt;;                       /* 片选0 */
+        spi-max-frequency = &lt;10000000&gt;;  /* 10MHz */
+    };
+};</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* spidev 三步走：配置模式→收发→解析 */
+#include &lt;linux/spi/spidev.h&gt;
+#include &lt;sys/ioctl.h&gt;
+
+int fd = open("/dev/spidev0.0", O_RDWR);
+uint8_t mode = SPI_MODE_0, bits = 8;
+uint32_t speed = 10000000;
+ioctl(fd, SPI_IOC_WR_MODE,        &amp;mode);
+ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &amp;bits);
+ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &amp;speed);
+
+uint8_t tx[3] = {0x01, 0x80, 0x00}, rx[3];   /* 以MCP3204为例 */
+struct spi_ioc_transfer t = {
+    .tx_buf = (unsigned long)tx, .rx_buf = (unsigned long)rx,
+    .len = 3, .speed_hz = speed, .bits_per_word = bits,
+};
+ioctl(fd, SPI_IOC_MESSAGE(1), &amp;t);
+int raw = ((rx[1] &amp; 0x0F) &lt;&lt; 8) | rx[2];
+printf("adc=%d (%.3fV)\n", raw, raw * 3.3 / 4096);</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">19.3</span>I2C：i2c-tools 快速上手</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># DTS 使能 i2c0 后：
+i2cdetect -y 0                 # 扫描总线，列出在线从机地址
+i2cget -y 0 0x50 0x00          # 读 EEPROM(AT24C02) 地址0
+i2cset -y 0 0x50 0x00 0xAB     # 写一个字节
+# 正式产品建议绑定具体驱动（at24/eeprom），而非裸 i2c-dev 操作</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">19.4</span>IIO 与 XADC：PLC 模拟量的正解 ★</h3><p>ZYNQ 的 PS 内置双通道 12 位 XADC。Linux 通过 <strong>IIO（Industrial I/O）子系统</strong>统一暴露：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">&amp;xadc {                         /* dtsi 中已有节点，打开并声明使用通道 */
+    status = "okay";
+    xlnx,channels = &lt;0x1 0x8&gt;? /* 具体掩码按板卡 VAUX 接线填写，见 bindings */
+};</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">cat /sys/bus/iio/devices/iio:device0/in_voltage0_raw      # 原始码值
+cat .../in_voltage_scale                                   # 每 LSB 对应 mV
+# 工程量换算：U(mV) = raw × scale
+watch -n0.1 cat .../in_voltage0_raw                        # 实时观察电位器</code></pre></div>
+<div class="box note"><span class="bt">📌 PLC 视角</span>
+<p>IIO 提供了 buffer 模式（连续采样到 FIFO）与触发器机制。软 PLC 的 AI 更新率通常 ≤100Hz，直接轮询 raw 文件即可；若做高速录波再启用 buffer + hrtimer 触发 —— 第27章 PL 侧会给出更快的替代路径（PL 自采 AXI 上报）。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">19.5</span>UART 应用编程要点（termios 最小集）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">int fd = open("/dev/ttyPS1", O_RDWR | O_NOCTTY);
+struct termios t;
+tcgetattr(fd, &amp;t);
+cfmakeraw(&amp;t);                                /* 8N1 原始模式 */
+cfsetispeed(&amp;t, B115200); cfsetospeed(&amp;t, B115200);
+t.c_cflag |= CLOCAL | CREAD;
+t.c_cc[VMIN] = 0; t.c_cc[VTIME] = 10;         /* 1s 超时读 */
+tcsetattr(fd, TCSANOW, &amp;t);
+write(fd, "AT\r\n", 4); read(fd, buf, sizeof(buf));</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：spidev 加载时打印 "probe of ... rejected"？或没生成节点？</summary><div class="ans"><p>新版内核限制任意 compatible 绑定 spidev。确认使用了官方白名单字符串（如 rohm,dh2228fv / linux,spidev 视版本而定），或修改驱动源码加自己的 compatible 后重编内核模块。</p></div></details>
+<details class="qa"><summary>Q2：i2cdetect 全是 "--" 或 UU？</summary><div class="ans"><p>"--"=无应答：查上拉电阻（板卡通常自带）与接线；"UU"=已被内核驱动占用属正常。另外注意 7 位地址 vs 8 位写地址的换算（工具用 7 位）。</p></div></details>
+<details class="qa"><summary>Q3：in_voltage_raw 读出来恒定不变？</summary><div class="ans"><p>XADC 输入范围 0~1V 且需确认通道确实接到 VP/VN 或 VAUX 引脚；分压电位器超量程会钳位在满码值。先用万用表验证引脚电压再怀疑软件。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L19-1：模拟量标定</strong>
+<p>电位器接 XADC 通道：① 用万用表实测 5 个点位的电压，记录对应 raw×scale 读数；② 计算线性度误差与零偏；③ 写脚本把读数转换为 0~100% 工程量 —— 这套标定数据将用于第35章 PLC 的 AI 精度验收。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>同样是读 ADC，「IIO 子系统」比「自己写字符驱动」多了哪些能力？（缓冲、触发、单位、标准化命名……）</li>
+<li>spidev 全双工传输中，为什么即使只想读也必须发送等长字节？这是 SPI 协议的什么特性？</li>
+<li>若 PLC 需要 8 路 16bit 1kSPS 同步采样，XADC 还够吗？给出你的硬件方案（提示：PL 外置多路同步 ADC + S_AXI_HP/DMA）。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">19.6</span>深潜：PWM 子系统（sysfs 即用）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># DT: pwm@... { compatible="xlnx,axi-timer-2.0"? → 需 PWM 变体; 或用 axi-pwmgen 类IP }
+echo 0 &gt; /sys/class/pwm/pwmchip0/export
+echo 1000000 &gt; /sys/class/pwm/pwmchip0/pwm0/period     # ns
+echo 300000 &gt; /sys/class/pwm/pwmchip0/pwm0/duty_cycle  # 30%
+echo 1 &gt; /sys/class/pwm/pwmchip0/pwm0/enable
+# 应用 API: pwm_get(dev,NULL)/pwm_config(p, duty_ns, period_ns)/pwm_enable</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">19.7</span>深潜：input 子系统（按键上报标准化）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static struct input_dev *idev;
+idev = devm_input_allocate_device(dev);
+idev-&gt;name = "plc-keys";
+set_bit(EV_KEY, idev-&gt;evbit); set_bit(KEY_F1, idev-&gt;keybit);
+input_register_device(idev);
+/* 中断线程里： */
+input_report_key(idev, KEY_F1, pressed); input_sync(idev);
+/* 验证: evtest /dev/input/eventX —— 上层(Qt/SDL)零改动获得按键事件 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">19.8</span>深潜：watchdog 子系统（与34章联动）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 标准接口：打开即启动喂狗倒计时
+exec 3&gt;/dev/watchdog          # 打开=激活
+echo 30 &gt; /sys/class/watchdog/watchdog0/timeout   # 若驱动支持可设
+while :; do echo 1 &gt;&amp;3; sleep 10; done            # 周期喂
+# nowayout(CONFIG_WATCHDOG_NOWAYOUT): 一旦启动无法关闭→断电才停（产品安全首选）
+# 测试技巧：故意不喂，验证复位时间与 bootargs 里 watchdog 参数一致性</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">19.9</span>深潜：clk / regulator framework 概览</h3><ul>
+<li><strong>clk framework</strong>：驱动用 <code class="inline">devm_clk_get(dev,"axi_clk") + clk_prepare_enable()</code> 获取时钟，频率来自 DT <code class="inline">clocks=&lt;&amp;clkc N&gt;</code> —— 硬编码频率是移植杀手；调试入口 <code class="inline">/sys/kernel/debug/clk/clk_summary</code> 全树快照；</li>
+<li><strong>regulator framework</strong>：电源轨抽象（enable/电压），Zynq 板多为固定常开轨，认知即可；MPSoC 复杂 PMIC 时必备。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">19.10</span>深潜：IIO buffered 连续采集实战（XADC 流式）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 目标：脱离逐次读 sysfs，以 hrtimer 触发+内核缓冲连续采样 */
+/* DT: 触发器 iio-hrtimer-dev? 用内置 hrtimer trigger:
+   triggers { hrtimer0 { compatible = "iio,hrtimer-trigger"; freq=? }; } */
+
+int fd = open("/dev/iio:device0", O_RDONLY);
+/* 绑定触发器并使能扫描缓冲(sysfs操作)：
+   echo /sys/bus/iio/devices/trigger0 > .../trigger/current_trigger
+   echo 1 > .../scan_elements/in_voltage0_en ; echo 1 > buffer/enable */
+char buf[64];
+int n = read(fd, buf, sizeof buf);      /* 每次 read 返回一帧扫描样本 */
+/* 解析按 scan_elements/en_in_voltage0_index 的位序拼装 */
+/* 适用：kHz级录波。MHz级仍走 PL DMA(38章) —— 分工明确 */</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch19"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解「子系统 core + 板级 driver」的内核分层设计</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>会用 spidev/i2c-dev 在用户态完成总线读写</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 IIO 子系统读取 XADC 模拟量 —— PLC 的 AI 通道就绪</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「常用外设驱动：UART / SPI / I2C / IIO」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter18.html"><span><span class="pager-label">上一章</span><b>第 18 章 · 设备树进阶与 platform 驱动</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter20.html"><span><span class="pager-label">下一章</span><b>第 20 章 · Linux 应用编程</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

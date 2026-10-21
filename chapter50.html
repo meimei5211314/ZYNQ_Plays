@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 50 章 · seL4 微内核解析与实践视角 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 50 章 · SeL4 微内核解析与实践视角：全球唯一被完整形式化验证的操作系统内核 —— 理解它，你对「安全与隔离」的认知将升维。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-rtos" data-chapter-id="ch50" data-chapter-file="chapter50.html" data-chapter-label="第 50 章 · SeL4 微内核解析与实践视角">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 50 章 · 嵌入式 RTOS</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>50.1 理解 seL4 的机制与证明范围</a>
+<a href="#sec-2"><span class="num">02</span>微内核 vs 宏内核：哲学之争一张表</a>
+<a href="#sec-3"><span class="num">03</span>Capability：把「权限」变成「对象」★（SeL4 灵魂）</a>
+<a href="#sec-4"><span class="num">04</span>50.4 从官方工程理解组件与能力</a>
+<a href="#sec-5"><span class="num">05</span>50.5 Zynq-7000 平台迁移检查</a>
+<a href="#sec-6"><span class="num">06</span>冷静评估：什么时候该/不该用它</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>第七篇通关自测</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 50 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第七篇 · 嵌入式RTOS / Chapter 50</div>
+      <h1 id="heroTitle">第 50 章<br><span class="grad">SeL4 微内核解析与实践视角</span></h1>
+      <p class="hero-sub">全球唯一被完整形式化验证的操作系统内核 —— 理解它，你对「安全与隔离」的认知将升维。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">50</div>
+          <div class="console-part">嵌入式 RTOS / CH50</div>
+          <div class="console-title">SeL4 微内核解析与实践视角</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>2</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:14%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>50 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解微内核哲学与 SeL4 的 Capability 权限模型</li>
+<li class="goal-item">掌握内核对象体系与基于 CAmkES 的开发形态</li>
+<li class="goal-item">能客观评估 SeL4 的适用场景与学习路线</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第七篇 · 嵌入式RTOS</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,782 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        FreeRTOS 源码与移植，以及 SeL4 微内核视角。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">50.1 理解 seL4 的机制与证明范围</h3><p>seL4 是采用 capability 的微内核，形式化验证把特定实现与规格及安全属性联系起来。<b>证明与源码版本、架构、配置和假设绑定</b>，不是对任何 seL4 镜像与整机的无条件保证。</p><p>用它学习隔离，应分别回答：谁拥有内存与设备、谁能发送消息、发生故障怎样恢复、所选配置有哪些已验证属性。不要从“微内核”直接推导“满足功能安全与信息安全认证”。参见 <a href="https://docs.sel4.systems/projects/sel4/verified-configurations.html" target="_blank" rel="noopener">官方 Verified Configurations</a>。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">50.2</span>微内核 vs 宏内核：哲学之争一张表</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><th>宏内核(Linux)</th><th>微内核(SeL4)</th></tr>
+<tr><td>特权态内容</td><td>调度+驱动+文件+网络全在内核</td><td>仅调度、IPC、基础内存管理、中断分发</td></tr>
+<tr><td>故障域</td><td>驱动崩溃=系统崩</td><td>驱动作为用户态进程可重启，内核存活</td></tr>
+<tr><td>性能策略</td><td>调用即函数，快但耦合</td><td>服务经 IPC 消息传递，有跨界成本（用短路径优化补偿）</td></tr>
+<tr><td>策略/机制</td><td>机制策略混合</td><td><strong>严格分离</strong>：内核只给机制，策略在用户空间</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">50.3</span>Capability：把「权限」变成「对象」★（SeL4 灵魂）</h3><ul>
+<li>传统系统里「root 能做一切」；SeL4 里<strong>任何内核操作都必须持有一个 capability</strong> —— 它是对某内核对象的引用+权限位掩码。没有 cap，连给自己分配内存都做不到；</li>
+<li><strong>启动引导链</strong>：内核把全部初始能力交给首个用户态任务(root task)，由它按需「切割再分发」—— 最小权限原则从第一行代码生效；</li>
+<li><strong>内存重类型化 Retype</strong>：物理内存初始为 <code class="inline">Untyped Memory</code> cap，只能被「铸造」成具体对象（TCB/帧/端点…），且铸造后不可伪造 —— 内存分配本身就是受控的能力授予；</li>
+<li><strong>CNode/CSpace</strong>：每个线程的能力存放在其能力空间树中，IPC 可按位转移能力（如把设备帧转交给新驱动进程）。</li>
+</ul>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>内核对象</th><th>用途</th><th>类比 Linux</th></tr>
+<tr><td>TCB</td><td>线程控制块（调度/读写寄存器）</td><td>task_struct 的最小集</td></tr>
+<tr><td>Endpoint</td><td>同步消息传递端口（收发双队列）</td><td>管道/socket 的原子版</td></tr>
+<tr><td>Notification</td><td>轻量信号（位标志唤醒）</td><td>eventfd</td></tr>
+<tr><td>Frame/PT/PD</td><td>页帧与多级页表对象</td><td>mmap 页表项</td></tr>
+<tr><td>IRQ Handler</td><td>中断的 capability 化授权</td><td>/dev/xxx + request_irq 合体</td></tr>
+<tr><td>Untyped Memory</td><td>可重类型的原始内存</td><td>-（独有概念）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">50.4 从官方工程理解组件与能力</h3><p>先使用 <a href="https://github.com/seL4/sel4test" target="_blank" rel="noopener">sel4test</a> 和官方 capability/IPC 教程，再选择 CAmkES 或 Microkit 的开发方式。它们的源码组织、支持平台与构建入口随版本变化，按所选 manifest 与说明核对。</p><p>组件描述需要接口定义、连接类型、配置与构建集成，不能把只有几行 ADL 的片段当作完整可烧写工程。练习先画 Client→Endpoint→Server 的权限图，再对照构建生成的 glue code 与能力分发。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">50.5 Zynq-7000 平台迁移检查</h3><ol><li>在所选 seL4 版本的支持平台与 verified 配置列表中确认 zynq7000；固定 manifest 与工具链。</li><li>按对应官方构建说明选择平台和配置，读取实际产生的目标名；<b>不使用 tk1 的镜像名代替 Zynq</b>。</li><li>核对本板 RAM、时钟、串口、引脚、启动入口和加载地址。同芯片不等于同板级配置。</li><li>先跑官方测试并保存完整输出，再部署用户组件；测试成功与证明覆盖分别记录。</li></ol><p>Zynq-7020 的 Cortex-A9 不具备 Cortex-A15/A53 那类虚拟化扩展，不能把需要 ARM virtualization extensions 的 Linux VM 路径直接承诺为本板可用。评估虚拟化时先核对芯片能力、seL4 配置与 VMM 支持；资源隔离也不能凭示意图成立。</p></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">50.6</span>冷静评估：什么时候该/不该用它</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>适合 SeL4</th><th>不适合</th></tr>
+<tr><td>航空医疗等需 DO-178C/医疗认证的高保障场景</td><td>快速原型、生态依赖重的消费类产品</td></tr>
+<tr><td>多关键级混合部署（一芯片同时跑安全+非安全业务）</td><td>团队 &lt;5 人且无内核功底，工期紧</td></tr>
+<tr><td>需要向监管方出示「数学证据」的安全壳/自动驾驶域控</td><td>只需 FreeRTOS 级实时的小型控制器（杀鸡牛刀）</td></tr>
+</table></div>
+<p>学习路线建议：<strong>① 读论文《seL4: Formal Verification of an OS Kernel》(SOSP'09)；② QEMU 跑通 sel4test；③ 通读《seL4 Manual》理解 cap 操作；④ CAmkES 双组件实战；⑤ 选读 MCS 调度白皮书。</strong>学习使用不需要先成为验证专家 —— 会用与懂证明是两个独立维度。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：形式化验证到底证明了什么？没证明什么？</summary><div class="ans"><p>证明了：C 实现的功能正确性（对抽象规格）、完整性、无运行时错误（溢出/除零/UAF 类）——针对<strong>已建模的部分</strong>。没证明：规格本身是否正确反映需求、硬件自身无 bug、侧信道时序安全（有后续 GHOST/时序研究补充）。答题时区分这两层是专业度的体现。</p></div></details>
+<details class="qa"><summary>Q2：Capability 检查会不会让 IPC 很慢？</summary><div class="ans"><p>SeL4 的 IPC 快速路径做了极致优化（直接切换、寄存器传参），fastpath 的测量依赖具体硬件、内核版本、消息大小与条件；短消息、长消息和跨核应分开比较，不能给出无条件的数量级结论。这也是「微内核必然慢」刻板印象的反例考点。</p></div></details>
+<details class="qa"><summary>Q3：为什么工业界用得还不多？</summary><div class="ans"><p>生态成本：驱动要自己写/适配（用户态框架）、工程师储备稀缺、GUI 等中间件缺失；以及大多数产品尚未被监管逼到需要形式化证据的程度。但 DARPA HACMS 项目后趋势明显抬头 —— 学它是提前布局稀缺技能。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L50-1：QEMU 初见 SeL4</strong>
+<p>宿主机 Ubuntu 上按官方 Getting Started 用 QEMU 跑通 <code class="inline">sel4test</code>（无需硬件），观察测试项列表并记录 3 个与你预期不同的行为；然后阅读 CAmkES hello-world 生成的 glue code 目录结构，画出「Client 调 h_hello() 之后到 Echo 收到消息之间」经过的层。完成后你已具备评估类岗位的对话资格。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">第七篇通关自测</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>能力项</th><th>达标标准</th></tr>
+<tr><td>FreeRTOS 内核</td><td>能手画就绪列表/延时表/事件表三张图并解释一次 vTaskDelay 全旅程</td></tr>
+<tr><td>FreeRTOS 移植</td><td>ZYNQ 核1 从零跑通多任务+rpmsg，TOP10 问题不看表能复述一半</td></tr>
+<tr><td>RTOS 工程素养</td><td>栈水位监控、运行时统计、Tracealyzer 时间线三件套常态化使用</td></tr>
+<tr><td>SeL4 认知</td><td>能用 10 分钟讲清 Capability 模型并回答「验证了什么/没证明什么」</td></tr>
+</table></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>把你的软 PLC 拆成 CAmkES 组件（IO/解释器/Modbus/Web），写出 ADL 拓扑并标注每条连接应授予的最小能力集合。</li>
+<li>对比 FreeRTOS、SeL4、Linux 三者在「WCET 可分析性」上的排序并说明理由。</li>
+<li>若客户要求同一颗 ZYNQ 同时跑 SIL2 安全逻辑与开放网络服务，给出三种技术路线并推荐一种。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch50"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解微内核哲学与 SeL4 的 Capability 权限模型</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握内核对象体系与基于 CAmkES 的开发形态</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能客观评估 SeL4 的适用场景与学习路线</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「SeL4 微内核解析与实践视角」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter49.html"><span><span class="pager-label">上一章</span><b>第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战）</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter51.html"><span><span class="pager-label">下一章</span><b>第 51 章 · Linux 系统优化实战</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 50 章 · SeL4 微内核解析与实践视角 · 第七篇 · 嵌入式RTOS</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作：亲手编译三级火箭的第三级，并组装出第一个完全自制的 BOOT.BIN。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch13" data-chapter-file="chapter13.html" data-chapter-label="第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 13 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>获取源码</a>
+<a href="#sec-2"><span class="num">02</span>配置与编译</a>
+<a href="#sec-3"><span class="num">03</span>移植三板斧（面向领航者）</a>
+<a href="#sec-4"><span class="num">04</span>组装 BOOT.BIN（手工全流程）</a>
+<a href="#sec-5"><span class="num">05</span>SD 卡启动验证</a>
+<a href="#sec-6"><span class="num">06</span>固化到 QSPI（产品化路径）</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：U-Boot 高频命令全集速查</a>
+<a href="#sec-9"><span class="num">09</span>深潜：boot.scr 与 distro 自动启动链</a>
+<a href="#sec-10"><span class="num">10</span>深潜：U-Boot 驱动模型(DM) 与新板 checklist</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 13 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 13</div>
+      <h1 id="heroTitle">第 13 章<br><span class="grad">U-Boot 编译移植与 BOOT.BIN 制作</span></h1>
+      <p class="hero-sub">亲手编译三级火箭的第三级，并组装出第一个完全自制的 BOOT.BIN。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">10 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">13</div>
+          <div class="console-part">嵌入式 Linux / CH13</div>
+          <div class="console-title">U-Boot 编译移植与 BOOT.BIN 制作</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>10</b></div>
+            <div class="console-metric"><span>CODE</span><b>7</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:56%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>13 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>10</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">独立完成 Xilinx U-Boot 2020.2 的配置与编译</li>
+<li class="goal-item">掌握 bootgen 打包 BOOT.BIN 的完整手工流程</li>
+<li class="goal-item">会用 U-Boot 命令行完成网络启动与 Flash 固化</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>1,656 字 · 10 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>7 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">13.1</span>获取源码</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">mkdir -p ~/work/src && cd ~/work/src
+git clone https://github.com/Xilinx/u-boot-xlnx.git
+cd u-boot-xlnx && git checkout xilinx-v2020.2    # 与工具链严格同版本</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">13.2</span>配置与编译</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">source ~/work/sdk/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+cd ~/work/src/u-boot-xlnx
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- distclean
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- xilinx_zynq_virt_defconfig
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- -j$(nproc)
+# 产物：u-boot / u-boot.elf / u-boot.bin / tools/mkimage</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">13.3</span>移植三板斧（面向领航者）</h3><p>Xilinx 公版 defconfig 已包含 Zynq PS 全部通用驱动（串口/MMC/网口/QSPI），「移植」实际只做三件事：</p>
+<ol>
+<li><strong>设备树适配</strong>：U-Boot 使用与内核同一份板级 DTS 思路。复制 <code class="inline">arch/arm/dts/zynq-zc702.dts</code> 改名 <code class="inline">zynq-navigator.dts</code>，按板卡修改：UART1 引脚、SD 控制器使能、网口 PHY 地址（RTL8211E 通常 addr 0x01，读原理图确认）、QSPI flash 型号与大小。在 <code class="inline">arch/arm/dts/Makefile</code> 注册新 dtb。</li>
+<li><strong>默认环境变量</strong>：编辑 <code class="inline">configs/xilinx_zynq_virt_defconfig</code> 追加：
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">CONFIG_BOOTDELAY=1
+CONFIG_BOOTCOMMAND="run sd_qspiboot"
+CONFIG_BOOTARGS="console=ttyPS0,115200 earlycon=uart,mmio,0xe0001000"</code></pre></div></li>
+<li><strong>提示符等个性化</strong>：<code class="inline">CONFIG_SYS_PROMPT="navigator&gt; "</code> —— 别小看它，多板混用时防呆。</li>
+</ol>
+<p>重新 <code class="inline">make</code> 后用 <code class="inline">u-boot.elf</code> 参与打包。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">13.4</span>组装 BOOT.BIN（手工全流程）</h3><p>准备三件材料：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>文件</th><th>来源</th><th>说明</th></tr>
+<tr><td><code class="inline">fsbl.elf</code></td><td>Vitis 平台工程 <code class="inline">&lt;platform&gt;/fsbl/fsbl.elf</code></td><td>必须与当前 XSA 配套</td></tr>
+<tr><td><code class="inline">design_1_wrapper.bit</code></td><td>Vivado 实现产物</td><td>含 PL 逻辑（可省略）</td></tr>
+<tr><td><code class="inline">u-boot.elf</code></td><td>本章 13.2 编译产物</td><td>-</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># boot.bif
+all:
+{
+        [bootloader] fsbl.elf
+        design_1_wrapper.bit
+        u-boot.elf
+}
+# 打包（Windows Vivado 命令行或 Linux 均有 bootgen）
+bootgen -image boot.bif -arch zynq -o BOOT.BIN -w on</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">13.5</span>SD 卡启动验证</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># Ubuntu 下给 TF 卡分区：p1 FAT32(≥64MB, boot) p2 ext4(rootfs)
+sudo mkfs.vfat -F 32 /dev/sdb1 && sudo mkfs.ext4 /dev/sdb2
+cp BOOT.BIN /media/$USER/boot/            # FAT 分区根目录即可
+# 插卡 → 拨码 SD → 上电 → MobaXterm 应看到你的新提示符</code></pre></div>
+<p>在 U-Boot 里手动网络引导内核（第14章编好后回填此步骤）：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">setenv serverip 192.168.2.20 && setenv ipaddr 192.168.2.30
+setenv bootargs console=ttyPS0,115200 root=/dev/nfs nfsroot=192.168.2.20:/home/user/work/rootfs rw ip=192.168.2.30::192.168.2.1:255.255.255.0:navigator:eth0:off
+tftpboot 0x10000000 zImage && tftpboot 0x11000000 navigator.dtb
+bootz 0x10000000 - 0x11000000</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">13.6</span>固化到 QSPI（产品化路径）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># 方式一：U-Boot 命令行自更新
+fatload mmc 0 ${loadaddr} BOOT.BIN
+sf probe 0 50000000
+sf erase 0x0 0x2000000
+sf write ${loadaddr} 0x0 ${filesize}
+# 方式二：Vitis → Xilinx Program Flash，选 BOOT.BIN 与 fsbl.elf，Offset 0</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：编译报 openssl/bounds.h 相关错误？</summary><div class="ans"><p>缺主机依赖：<code class="inline">sudo apt install libssl-dev bison flex swig python3-dev</code>。另确认 gcc 主机版本不过新导致的告警转错误时，可加 <code class="inline">KCFLAGS=-Wno-error</code> 应急。</p></div></details>
+<details class="qa"><summary>Q2：U-Boot 卡在 "DRAM:" 不动？</summary><div class="ans"><p>典型 DDR 参数错误 —— 你的 DTS/U-Boot 用了别家的 DDR 时序。回到第7章确认 PS DDR 配置与板卡一致，FSBL 与 U-Boot 必须使用<strong>同一份 XSA 生成</strong>。</p></div></details>
+<details class="qa"><summary>Q3：saveenv 报错没有存储介质？</summary><div class="ans"><p>环境变量保存位置未配置（默认可能指向 SPI）。defconfig 中启用 <code class="inline">CONFIG_ENV_IS_IN_SPI_FLASH</code> 并指定 offset（避开 BOOT.BIN 占用的前几 MB），或干脆用 <code class="inline">CONFIG_ENV_IS_NOWHERE</code> 每次由脚本注入。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L13-1：一键网络开发环境</strong>
+<p>把 13.5 的手动命令固化为 U-Boot 默认行为：bootdelay=1，bootcommand 先尝试 tftp 取 <code class="inline">zImage/navigator.dtb</code> 成功即 bootz，失败回落 SD 卡。验收标准：上电 10 秒内无需人工干预进入 NFS root 的 Linux。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>BIF 中三个镜像的排列顺序可以调换吗？为什么 bootloader 标记必须存在？</li>
+<li>设计一个「双系统备份」方案：QSPI 存主系统，SD 存备份，主系统连续 3 次启动失败自动切备份。（提示：U-Boot 计数变量 + saveenv）</li>
+<li>mkimage 生成的 uImage 与直接 bootz 加载的 zImage 有何区别？本课程为何选 bootz？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">13.7</span>深潜：U-Boot 高频命令全集速查</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类别</th><th>命令</th><th>用途/要点</th></tr>
+<tr><td rowspan="3">信息类</td><td><code class="inline">bdinfo / version / coninfo</code></td><td>板级参数(时钟/内存基址)、版本、串口列表</td></tr>
+<tr><td><code class="inline">printenv [name]</code></td><td>查看环境变量；<code class="inline">env default -f -a; saveenv</code> 恢复出厂</td></tr>
+<tr><td><code class="inline">iminfo ${loadaddr}</code></td><td>校验镜像头(legacy uImage/FIT)完整性</td></tr>
+<tr><td rowspan="4">加载类</td><td><code class="inline">tftpboot addr file</code></td><td>TFTP 下载（需先设 ipaddr/serverip）</td></tr>
+<tr><td><code class="inline">fatload/ext4load mmc 0:1 addr path</code></td><td>按文件系统类型从 SD 卡读文件</td></tr>
+<tr><td><code class="inline">sf probe 0; sf read/write/erase</code></td><td>QSPI 全套操作；地址勿覆盖 BOOT.BIN 区</td></tr>
+<tr><td><code class="inline">usb start; usb storage? fatload usb 0:1</code></td><td>U 盘读取（需内核侧同样支持）</td></tr>
+<tr><td rowspan="3">内存类</td><td><code class="inline">md/mw addr [val]</code></td><td>显示/写内存（.b .w .l 后缀选宽度）——寄存器调试神器</td></tr>
+<tr><td><code class="inline">cp/cmp/crc32</code></td><td>拷贝/比较/CRC 校验（验证烧写结果）</td></tr>
+<tr><td><code class="inline">itest/expr?</code></td><td>脚本条件判断（配合 hush shell 写启动逻辑）</td></tr>
+<tr><td rowspan="3">设备树与启动</td><td><code class="inline">fdt addr ${fdt_addr}; fdt print /model</code></td><td>运行期解析/修改 DTB（如临时改 console 再 bootz）★调试利器</td></tr>
+<tr><td><code class="inline">bootz kaddr - daddr</code></td><td>启 zImage+DTB（本课程）；<strong>bootm</strong> 启 legacy uImage/FIT；<strong>booti</strong> 启 Image(aarch64)</td></tr>
+<tr><td><code class="inline">bootm &lt;fit&gt;#conf-xc7z020.dtb? conf@1</code></td><td>FIT 多配置选择（多板一镜像方案基础）</td></tr>
+<tr><td rowspan="2">维护类</td><td><code class="inline">fastboot / ums 0 mmc 0</code></td><td>把 SD 卡当 U 盘挂给 PC（ums）—— 免拔卡改文件 ★</td></tr>
+<tr><td><code class="inline">reset / poweroff? sleep / test</code></td><td>-</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">13.8</span>深潜：boot.scr 与 distro 自动启动链</h3><p>硬编码 bootcmd 灵活性差，业界用<strong>脚本镜像</strong>：<code class="inline">mkimage -A arm -T script -C none -d boot.cmd boot.scr</code>，U-Boot 里 <code class="inline">load mmc 0:1 ${scriptaddr} boot.scr && source ${scriptaddr}</code>。脚本内可用 if 判断介质存在性依次尝试（SD→USB→网络），这就是 <em>distro_bootcmd</em> 的思想 —— 多启动源自动回退。你的产品若需「主系统损坏自动切救援系统」，在 boot.scr 层实现计数器+saveenv 即可落地。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">13.9</span>深潜：U-Boot 驱动模型(DM) 与新板 checklist</h3><ul>
+<li>2014+ 的 U-Boot 采用 <strong>DM 设备模型</strong>：uclass(类)+driver+device tree 三层，驱动声明 <code class="inline">U_BOOT_DRIVER(xxx)</code>，与内核风格趋同 —— 移植经验可部分迁移；</li>
+<li>新板移植 checklist（按序）：① 复制最接近的 DTS 并改名注册 Makefile → ② defconfig 打开所需 uclass(MMC/NET/SPI) → ③ 板级头文件(旧式)或 CONFIG 默认 env → ④ DDR 参数核对（最高优先级！）→ ⑤ 编译上电逐段验证 banner。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch13"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>独立完成 Xilinx U-Boot 2020.2 的配置与编译</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 bootgen 打包 BOOT.BIN 的完整手工流程</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用 U-Boot 命令行完成网络启动与 Flash 固化</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「U-Boot 编译移植与 BOOT.BIN 制作」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter12.html"><span><span class="pager-label">上一章</span><b>第 12 章 · 启动流程深度剖析</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter14.html"><span><span class="pager-label">下一章</span><b>第 14 章 · 内核编译与设备树基础</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

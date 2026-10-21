@@ -1,0 +1,46 @@
+// Rebuild the static, readable chapter HTML from reviewed content data.
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const root=path.join(__dirname,'..'),context={window:{}};vm.createContext(context);
+for(const name of ['senior-content-core.js','senior-content-systems.js'])vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),context,{filename:name});
+const chapters=context.window.SENIOR_CHAPTERS,entries=Object.values(chapters).sort((a,b)=>a.number-b.number);
+if(entries.length!==20||entries[0].number!==52||entries.at(-1).number!==71)throw new Error('Expected chapters 52–71 before generating');
+const E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const version='20261021-senior4';
+const bodyHtml=s=>s.replaceAll('<table>','<div class="table-wrap" role="region" aria-label="可横向滚动的数据表" tabindex="0"><table>').replaceAll('</table>','</table></div>');
+const assets=['chapter.js','lab-data-1.js','lab-data-2.js','lab-data-3.js','workbench-models.js','advanced-models.js','workbench.js','advanced-workbench.js','learning-paths.js','senior-content-core.js','senior-content-systems.js','senior-registration.js','learning.js','lab.js'];
+const groups=[{id:'part-senior-core',name:'第九篇 · 底层正确性与验证',range:[52,61],description:'贯通 C、内存、并发、CDC、驱动、实时分析与故障恢复。'},{id:'part-senior-system',name:'第十篇 · 产品化与系统设计',range:[62,68],description:'把安全、构建、DSP、容量、测量、功耗热与时基变成设计约束。'},{id:'part-senior-project',name:'第十一篇 · 综合交付与评审',range:[69,71],description:'用可重现的参考实验和设计证据，检验独立工程能力。'}];
+for(const c of entries){
+  const group=groups.find(g=>c.number>=g.range[0]&&c.number<=g.range[1]),label='第 '+c.number+' 章 · '+c.title;
+  const prev=c.number===52?'Linux 系统优化实战':chapters['ch'+(c.number-1)].title;
+  const next=c.number===71?'附录 A · 面试与速查':'第 '+(c.number+1)+' 章 · '+chapters['ch'+(c.number+1)].title;
+  const nav=c.sections.map((s,i)=>'<a href="#'+E(s.id)+'"><span class="num">'+String(i+1).padStart(2,'0')+'</span>'+E(s.title)+'</a>').join('\n');
+  const html=`<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${E(label)} | Zynq 工程能力讲义</title><meta name="description" content="${E(c.summary)}">
+${['style.css','chapter.css','lab.css','workbench.css'].map(f=>'<link rel="stylesheet" href="'+f+'?v='+version+'">').join('\n')}
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch${c.number}" data-chapter-file="chapter${c.number}.html" data-chapter-label="${E(label)}">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 ${c.number} 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a>${nav}<a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 ${c.number} 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">${E(group.name)} · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 ${c.number} 章<br><span class="grad">${E(c.title)}</span></h1><p class="hero-sub">${E(c.summary)}</p><div class="hero-meta"><span class="meta-chip">${E(c.duration)}</span><span class="meta-chip">${c.sections.length} 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">${E(c.practice.project)}</p></div></div><ul>${c.goals.map(g=>'<li>'+E(g)+'</li>').join('')}</ul><div class="learning-links">${c.prerequisites.map(n=>'<a href="chapter'+n+'.html">前置：第 '+n+' 章</a>').join('')}</div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+${c.sections.map(s=>'<section class="lesson-block reveal" id="'+E(s.id)+'" aria-labelledby="h-'+E(s.id)+'"><h3 id="h-'+E(s.id)+'">'+E(s.title)+'</h3>'+bodyHtml(s.html)+'</section>').join('\n')}
+<div class="lab" data-lab-card="1"><strong>工程任务 · ${E(c.practice.project)}</strong><p>${E(c.practice.experiment)}</p><p><b>故障练习：</b>${E(c.practice.fault)}</p><p><b>验收：</b>${E(c.practice.acceptance)}</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch${c.number}"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist">${c.goals.map((g,i)=>'<label class="check-item"><input type="checkbox" data-goal="'+i+'"><span>'+E(g)+'</span></label>').join('')}</div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter${c.number-1}.html"><span><span class="pager-label">上一章</span><b>第 ${c.number-1} 章 · ${E(prev)}</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="${c.number===71?'appendix-a.html':'chapter'+(c.number+1)+'.html'}"><span><span class="pager-label">下一章</span><b>${E(next)}</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>${E(group.name)} · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+${assets.map(f=>'<script src="'+f+'?v='+version+'"></script>').join('\n')}
+</body></html>\n`;
+  fs.writeFileSync(path.join(root,'chapter'+c.number+'.html'),html);
+}
+const card=c=>`<a class="course-card" href="chapter${c.number}.html" data-chapter="ch${c.number}" data-title="第 ${c.number} 章 · ${E(c.title)}" data-search="${E(c.number+' '+c.title+' '+c.summary+' '+c.demoKinds.join(' '))}" data-total="5"><div class="course-card-top"><span class="course-num">第 ${c.number} 章</span><span class="course-state">未开始</span></div><h3>${E(c.title)}</h3><p>${E(c.summary)}</p><div class="course-card-meta"><span>${c.sections.length} 节</span><span>${E(c.duration)}</span><span>${c.quiz.length} 问答</span></div><div class="course-progress"><i></i><b>0%</b></div></a>`;
+const directory=groups.map(g=>`<section class="course-part" id="${g.id}" aria-labelledby="${g.id}-title"><div class="course-part-head reveal"><div><h2 id="${g.id}-title">${g.name}</h2><p>${g.description}</p></div><span>${g.range[1]-g.range[0]+1} 讲</span></div><div class="course-grid">${entries.filter(c=>c.number>=g.range[0]&&c.number<=g.range[1]).map(card).join('\n')}</div></section>`).join('\n');
+const coursePath=path.join(root,'course.html');let course=fs.readFileSync(coursePath,'utf8');
+course=course.replace(/<!-- SENIOR DIRECTORY START -->[\s\S]*?<!-- SENIOR DIRECTORY END -->/,'');
+course=course.replace('<section class="course-part" id="part-appendix"','<!-- SENIOR DIRECTORY START -->'+directory+'<!-- SENIOR DIRECTORY END --><section class="course-part" id="part-appendix"');
+if(!course.includes('href="#part-senior-core"'))course=course.replace('<a href="#part-appendix">',groups.map((g,i)=>'<a href="#'+g.id+'"><span class="num">'+(10+i)+'</span>'+g.name+'</a>').join('')+'<a href="#part-appendix">');
+fs.writeFileSync(coursePath,course);
+console.log('Built '+entries.length+' chapters and course directory.');

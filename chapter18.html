@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 18 章 · 设备树进阶与 platform 驱动 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 18 章 · 设备树进阶与 platform 驱动：从「能跑」到「专业」：资源管理、中断处理、sysfs 导出 —— 工业级驱动的三块拼图。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch18" data-chapter-file="chapter18.html" data-chapter-label="第 18 章 · 设备树进阶与 platform 驱动">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 18 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>匹配模型一张图（文字版）</a>
+<a href="#sec-2"><span class="num">02</span>设备树进阶：给硬件画像加细节</a>
+<a href="#sec-3"><span class="num">03</span>专业版 probe：devm 家族与错误回滚</a>
+<a href="#sec-4"><span class="num">04</span>中断处理最佳实践</a>
+<a href="#sec-5"><span class="num">05</span>sysfs 属性：给运维留窗口</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：GPIO 新旧接口对照（gpiod 是未来）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：regmap —— 总线无关的寄存器抽象</a>
+<a href="#sec-9"><span class="num">09</span>深潜：pinctrl 与 ZYNQ 的关系</a>
+<a href="#sec-10"><span class="num">10</span>深潜：devres 资源全家桶（错误回滚终结者）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：写一份合格的 Binding 文档</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 18 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 18</div>
+      <h1 id="heroTitle">第 18 章<br><span class="grad">设备树进阶与 platform 驱动</span></h1>
+      <p class="hero-sub">从「能跑」到「专业」：资源管理、中断处理、sysfs 导出 —— 工业级驱动的三块拼图。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">18</div>
+          <div class="console-part">嵌入式 Linux / CH18</div>
+          <div class="console-title">设备树进阶与 platform 驱动</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>18 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">吃透 platform 设备-总线-驱动匹配模型与 probe 时序</li>
+<li class="goal-item">掌握 devm 资源族、中断申请、设备树自定义属性读取</li>
+<li class="goal-item">会用 waitqueue/poll 实现「按键到来即唤醒应用」的异步模型</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,534 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">18.1</span>匹配模型一张图（文字版）</h3><p>内核启动 → 解析 DTB，每个 <code class="inline">status="okay"</code> 且有 compatible 的节点生成 <strong>platform_device</strong> 挂到 platform 总线 → 驱动注册时声明 <strong>of_match_table</strong> → 字符串匹配成功即回调 <code class="inline">probe()</code>。所以：<strong>DTS 写对 = 一半工作完成</strong>。</p>
+<div class="box tip"><span class="bt">💡 probe 失败的调试捷径</span>
+<p>在 DTS 加 <code class="inline">pinctrl-name/debug</code>? 不如直接：dmesg 打开动态调试 <code class="inline">echo 'file plc*.c +p' &gt; /sys/kernel/debug/dynamic_debug/control</code>；或在 probe 首行 dev_info 打印 res->start，确认资源解析正确再往下走。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">18.2</span>设备树进阶：给硬件画像加细节</h3><div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">/* 扩展第14/15章的 plc_io 节点 */
+plc_io@43c10000 {
+    compatible = "demo,plc-io-v1";
+    reg        = &lt;0x43c10000 0x1000&gt;;
+    interrupt-parent = &lt;&amp;intc&gt;;
+    interrupts = &lt;0 29 4&gt;;              /* IRQ_F2P[0] */
+
+    /* 自定义属性：驱动用 of_property_read_* 读取 */
+    demo,di-channels   = &lt;8&gt;;           /* DI 通道数 */
+    demo,do-channels   = &lt;8&gt;;           /* DO 通道数 */
+    demo,scan-period-ms = &lt;10&gt;;         /* PL 内部滤波周期提示值 */
+
+    clocks = &lt;&amp;clkc 15&gt;;                 /* FCLK_CLK0 */
+    clock-names = "axi_clk";
+};</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">18.3</span>专业版 probe：devm 家族与错误回滚</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static int plc_probe(struct platform_device *pdev)
+{
+    struct device *dev = &amp;pdev-&gt;dev;
+    struct resource *res;
+    struct plc_priv *priv;
+    int virq, ret, di_n = 8;
+
+    priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+    if (!priv) return -ENOMEM;
+    platform_set_drvdata(pdev, priv);
+
+    /* 内存资源：devm 版本随 remove 自动释放，告别手工 iounmap */
+    res  = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    priv-&gt;base = devm_ioremap_resource(dev, res);
+    if (IS_ERR(priv-&gt;base)) return PTR_ERR(priv-&gt;base);
+
+    /* 时钟：FCLK 由 clock framework 管理 */
+    priv-&gt;clk = devm_clk_get(dev, "axi_clk");
+    if (IS_ERR(priv-&gt;clk)) return PTR_ERR(priv-&gt;clk);
+    clk_prepare_enable(priv-&gt;clk);
+
+    /* 自定义属性读取 */
+    of_property_read_u32(dev-&gt;of_node, "demo,di-channels", &amp;di_n);
+    dev_info(dev, "DI channels = %d\n", di_n);
+
+    /* 中断：platform_get_resource 或 of_irq_get 均可 */
+    virq = platform_get_irq(pdev, 0);
+    if (virq &lt; 0) return virq;
+    ret = devm_request_threaded_irq(dev, virq, NULL, plc_isr_thread,
+                                    IRQF_ONESHOT, "plc-io", priv);
+    if (ret) { clk_disable_unprepare(priv-&gt;clk); return ret; }
+
+    init_waitqueue_head(&amp;priv-&gt;wq);     /* 供 poll 使用 */
+    return 0;                            /* devm 保证 remove 全自动回收 */
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">18.4</span>中断处理最佳实践</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>主题</th><th>要点</th></tr>
+<tr><td>上半部 vs 线程化</td><td>简单清标志用普通 request_irq；耗时处理（如解析数据）用 <strong>threaded_irq</strong>（handler=NULL, thread_fn 干活），享受可睡眠上下文</td></tr>
+<tr><td>触发标志</td><td>边沿型 PL 中断配 <code class="inline">IRQF_ONESHOT | IRQF_TRIGGER_RISING</code>，并在 IP 内保证「写 1 清除」</td></tr>
+<tr><td>中断风暴</td><td>若 ISR 里不清源标志，内核检测到高频重入会打印 <em>"irq N nobody cared"</em> 并禁用该中断 —— 排查第一嫌疑永远是「漏了 ack」</td></tr>
+<tr><td>ISR 纪律</td><td>不 sleep、不 printk 大循环、不拿重量级锁；只做：读状态→清标志→置位/入队→wake_up</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static irqreturn_t plc_isr_thread(int irq, void *data)
+{
+    struct plc_priv *priv = data;
+    u32 st = readl(priv-&gt;base + REG_STATUS);
+    writel(st, priv-&gt;base + REG_ACK);       /* 写1清除，防风暴关键 */
+
+    priv-&gt;events++;
+    wake_up_interruptible(&amp;priv-&gt;wq);       /* 唤醒阻塞在 poll/read 的应用 */
+    return IRQ_HANDLED;
+}
+
+static unsigned int plc_poll(struct file *f, poll_table *pt)
+{
+    struct plc_priv *priv = ...;
+    unsigned int mask = 0;
+    poll_wait(f, &amp;priv-&gt;wq, pt);
+    if (priv-&gt;events != priv-&gt;events_seen) mask |= POLLIN | POLLRDNORM;
+    return mask;
+}
+/* 应用侧：poll()/select() 监听 /dev/plcio，事件到达立即返回——
+   这正是 PLC 运行时「输入变化即响应」的低延迟通道 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">18.5</span>sysfs 属性：给运维留窗口</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static ssize_t scan_period_show(struct device *dev,
+        struct device_attribute *attr, char *buf)
+{   struct plc_priv *priv = dev_get_drvdata(dev);
+    return sprintf(buf, "%u\n", priv-&gt;period_ms);
+}
+static ssize_t scan_period_store(struct device *dev,
+        struct device_attribute *attr, const char *buf, size_t n)
+{   struct plc_priv *priv = dev_get_drvdata(dev);
+    kstrtouint(buf, 0, &amp;priv-&gt;period_ms);          /* echo 20 > scan_period */
+    writel(priv-&gt;period_ms, priv-&gt;base + REG_PERIOD);
+    return n;
+}
+static DEVICE_ATTR_RW(scan_period);
+
+/* probe 中：device_create_file(dev, &amp;dev_attr_scan_period); */
+# 板上使用：
+cat /sys/devices/platform/.../plc_io@43c10000/scan_period
+echo 20 &gt;  .../scan_period</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：request_irq 返回 -EBUSY？</summary><div class="ans"><p>中断号被占。PL 中断默认独占，出现 EBUSY 多半是两个驱动都匹配到了同一节点，或上一模块没卸干净。lsmod 排查；确需共享才加 IRQF_SHARED 且 handler 必须判断是否属于自己的设备。</p></div></details>
+<details class="qa"><summary>Q2：卸载模块后系统偶发崩溃？</summary><div class="ans"><p>典型资源回收顺序问题：先注销 cdev/class 再释放寄存器映射；中断必须 free 后才能 unmap。全部改用 devm 族可让框架按依赖自动排序 —— 本章推荐做法的意义就在此。</p></div></details>
+<details class="qa"><summary>Q3：of_property_read_u32 读不到值？</summary><div class="ans"><p>属性名含逗号前缀（demo,di-channels），代码里要带全称；确认最终 DTB 已包含（dtc 反编译验证）；数值必须是 &lt;...&gt; 形式而非字符串。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L18-1：异步按键服务</strong>
+<p>基于 18.3/18.4 骨架完成 plc_io 平台驱动：① 中断线程累计按键事件数并唤醒 poll；② 应用用 poll()+read() 打印每次事件的时间戳（clock_gettime）；③ 用示波器测量「按键按下→应用打印」延迟，记录数值 —— 它将成为第35章 PLC 输入响应测试的对照组。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 threaded_irq 能在 thread_fn 里调用可能睡眠的 API？它付出了什么代价？</li>
+<li>设计「10 个 DI 通道任意变化都触发一次聚合中断」的 IP 硬件策略，避免每通道一根中断线。</li>
+<li>sysfs 与 ioctl 两种控制接口各适合什么场景？你的 PLC 项目会怎么选？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">18.6</span>深潜：GPIO 新旧接口对照（gpiod 是未来）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>操作</th><td>legacy gpio_*</td><td>描述符 gpiod_*(推荐)</td></tr>
+<tr><td>获取</td><code>gpio_request(num,label)</code><td><code>devm_gpiod_get(dev,"enable",GPIOD_OUT_HIGH)</code>（DT属性名 xxx-gpios 自动匹配）</td></tr>
+<tr><td>方向/值</td><code>gpio_direction_output(num,v)</code><td><code>gpiod_set_value_cansleep(desc,v)</code>（自动处理睡眠型控制器）</td></tr>
+<tr><td>中断</td><code>gpio_to_irq(num)</code><td><code>gpiod_to_irq(desc)</code></td></tr>
+<tr><td>优势</td><td>-</td><td>按名字取引脚(与板卡解耦)、活动极性由 DT 声明(GPIO_ACTIVE_LOW)驱动零改动、devm 自动释放</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">18.7</span>深潜：regmap —— 总线无关的寄存器抽象</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static const struct regmap_config plc_regmap = {
+    .reg_bits = 32, .val_bits = 32, .reg_stride = 4,
+    .max_register = 0x38,
+    .cache_type = REGCACHE_RBTREE,          /* 读缓存+debugfs可见 */
+};
+priv-&gt;map = devm_regmap_init_mmio(dev, base, &amp;plc_regmap);
+regmap_write(priv-&gt;map, REG_CTRL, 1);
+/* 价值：同一套业务代码可跑 MMIO/I2C/SPI 三种总线；
+   /sys/kernel/debug/regmap/.../registers 直接 dump 全部寄存器快照 ★ */
+</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">18.8</span>深潜：pinctrl 与 ZYNQ 的关系</h3><ul>
+<li>pinctrl 子系统负责「引脚复用+电气组配置」。Zynq-7000 的 MIO 复用在 <strong>FSBL/ps7_init 阶段已由 SLCR 写死</strong>，内核 pinctrl-zynq 仅做少量补充 —— 所以你几乎不用写它；</li>
+<li>需要它的场景：MPSoC(ZU+) 时代 MIO 配置移交设备树，pinctrl 变为主战场；以及 PL 侧 EMIO 引脚的电气参数经 PL 配置而非 pinctrl；</li>
+<li>认知定位：读懂 <code class="inline">pinctrl-names/default/0</code> 属性在别的 SoC 驱动里的含义即可，Zynq7 项目不强制掌握。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">18.9</span>深潜：devres 资源全家桶（错误回滚终结者）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类别</th><th>devm 接口</th><th>非 devm 对应</th></tr>
+<tr><td>内存</td><td>devm_kzalloc</td><td>kzalloc+kfree</td></tr>
+<tr><td>IO映射</td><td>devm_platform_ioremap_resource / devm_ioremap_resource</td><td>ioremap+iounmap</td></tr>
+<tr><td>IRQ</td><td>devm_request_threaded_irq</td><td>request_irq+free_irq</td></tr>
+<tr><td>时钟</td><td>devm_clk_get(_optional)+devm_clk_enable</td><td>clk_get/put+prepare/unprepare</td></tr>
+<tr><td>GPIO</td><td>devm_gpiod_get_* </td><td>gpiod_put</td></tr>
+<tr><td>regmap</td><td>devm_regmap_init_mmio</td><td>regmap_exit</td></tr>
+</table></div>
+<p>纪律：<strong>probe 中一律用 devm 版本</strong>，remove 只处理「有顺序依赖的收尾」（如先停任务再 free IRQ）。混用时注意：devm 释放顺序晚于 remove，勿在 remove 后仍被回调。</p></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">18.10</span>深潜：写一份合格的 Binding 文档</h3><p>自定义 IP 若要交付他人使用，配套 binding 是职业素养：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># Documentation/devicetree/bindings/plc/demo,plc-io-v1.yaml? (文本版示例)
+demo,plc-io-v1 PLC IO engine
+Required properties:
+  - compatible : "demo,plc-io-v1"
+  - reg        : AXI register window (size >= 0x1000)
+  - interrupts : single SPI interrupt (level-high)
+Optional:
+  - demo,di-channels   : u32, default 8
+  - demo,debounce-ms   : u32, default 10
+Example:
+  plc_io@43c10000 { compatible="demo,plc-io-v1"; reg=&lt;0x43c10000 0x1000&gt;;
+                    interrupts=&lt;0 29 4&gt;; demo,di-channels=&lt;8&gt;; };</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch18"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>吃透 platform 设备-总线-驱动匹配模型与 probe 时序</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 devm 资源族、中断申请、设备树自定义属性读取</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用 waitqueue/poll 实现「按键到来即唤醒应用」的异步模型</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「设备树进阶与 platform 驱动」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter17.html"><span><span class="pager-label">上一章</span><b>第 17 章 · 字符设备驱动开发</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter19.html"><span><span class="pager-label">下一章</span><b>第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 18 章 · 设备树进阶与 platform 驱动 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

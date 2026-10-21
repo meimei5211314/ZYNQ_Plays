@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 38 章 · AXI-DMA 高速数据通路实战 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 38 章 · AXI-DMA 高速数据通路实战：从「读写寄存器」跃迁到「GB/s 搬运数据」—— 高性能采集产品的标配通路。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch38" data-chapter-file="chapter38.html" data-chapter-label="第 38 章 · AXI-DMA 高速数据通路实战">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 38 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>38.1 先做数据预算，再选 DMA</a>
+<a href="#sec-2"><span class="num">02</span>数据链路与 BD 搭建</a>
+<a href="#sec-3"><span class="num">03</span>38.3 Simple S2MM：状态位、复位与完成判定</a>
+<a href="#sec-4"><span class="num">04</span>38.4 DMA 地址、缓存与缓冲所有权</a>
+<a href="#sec-5"><span class="num">05</span>38.5 环形缓冲：先交接，再复用</a>
+<a href="#sec-6"><span class="num">06</span>38.6 用同一口径测吞吐、CPU 与正确性</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>38.7 SG 与循环传输：不要猜描述符位</a>
+<a href="#sec-9"><span class="num">09</span>38.8 Linux DMAengine：映射与提交各司其职</a>
+<a href="#sec-10"><span class="num">10</span>38.9 分清 PS DMAC、AXI DMA 与 AXI CDMA</a>
+<a href="#sec-11"><span class="num">11</span>深潜：吞吐调优参数清单</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 38 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 38</div>
+      <h1 id="heroTitle">第 38 章<br><span class="grad">AXI-DMA 高速数据通路实战</span></h1>
+      <p class="hero-sub">从「读写寄存器」跃迁到「GB/s 搬运数据」—— 高性能采集产品的标配通路。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">38</div>
+          <div class="console-part">进阶精通 / CH38</div>
+          <div class="console-title">AXI-DMA 高速数据通路实战</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>38 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解 GP 口与 HP 口的带宽差异及 DMA 的必要性</li>
+<li class="goal-item">掌握 AXI DMA Simple 模式的寄存器级编程与 BD 集成</li>
+<li class="goal-item">解决 Cache 一致性与连续内存两大工程难题</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,733 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">38.1 先做数据预算，再选 DMA</h3><p>DMA 把逐字搬运交给硬件，但配置、中断、缓存维护和消费数据仍要 CPU 参与。不能把“硬件搬运”写成“整个系统 CPU 占用约等于零”。GP 接口也不等同于 AXI4-Lite；本课程的自定义控制寄存器常采用 AXI4-Lite 从设备。</p><div class="table-wrap"><table class="source-table"><tr><th>用途</th><th>典型通路</th><th>先核对什么</th></tr><tr><td>控制与状态</td><td>PS M_AXI_GP → AXI-Lite 寄存器</td><td>地址、访问属性、握手、软件开销</td></tr><tr><td>批量流采集</td><td>AXI DMA S2MM → PS S_AXI_HP → DDR</td><td>背压、包尾、缓冲、一致性、持续消费能力</td></tr></table></div><p>64 bit × 100 MHz 的接口原始上限是 800 MB/s；它是<strong>算术上限，不是本板实测</strong>。有效吞吐取决于协议开销、IP 配置、DDR 竞争和软件。先完成下方带宽与缓冲模型，再测真实系统。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">38.2</span>数据链路与 BD 搭建</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">[自制 Stream 数据源]──axis──▶[AXI DMA S2MM]──S_AXI_HP0──▶ DDR 环形缓冲区
+ (如 32bit 递增计数器)          ▲ M_AXI_GP0 配置/状态寄存器
+                                ▲ irq → IRQ_F2P[1]</code></pre></div>
+<ol>
+<li>BD 中添加 <code class="inline">AXI Direct Memory Access</code>：只勾 <em>Enable Read Channel? 否——只勾 Write Channel(S2MM)</em>；Disable Scatter Gather（先用 Simple 模式）；Width of buffer length register=23（最大 8MB/次）；</li>
+<li>S_AXIS_S2MM 接你的数据源（教学可用自写的 32 位递增计数器 axis 模块：TVALID 可持续有效；数据与包计数只在 TVALID &amp;&amp; TREADY 时前进，第 4096 个接受拍携带 TLAST，背压时保持数据与 TLAST）；</li>
+<li><code class="inline">M_AXI_S2MM</code> 连到 ZYNQ 的 <strong>S_AXI_HP0</strong>（Run Connection Automation 自动加 SmartConnect）；</li>
+<li>ZYNQ PS 勾选 S_AXI_HP0；irq_s2mm → xlconcat 第二输入 → IRQ_F2P[1]；导出 XSA。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3">38.3 Simple S2MM：状态位、复位与完成判定</h3><p>先核对 IP 生成参数与 <a href="https://docs.amd.com/r/en-US/pg021_axi_dma" target="_blank" rel="noopener">PG021</a>。S2MM_DMASR 位 1 是 <b>Idle</b>，位 12 才是 <b>IOC_Irq</b>；Idle 不能单独证明你刚提交的包成功完成。DMACR 位 2 是 Reset，把整个寄存器写 0 只是停止运行，不是复位。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>Simple S2MM 的控制顺序（流程说明，不是完整驱动）：
+1. 由驱动拥有通道；需要复位时写 DMACR.Reset=1，并带超时等待该位自清。
+2. 读取 DMASR，检查 Halted 与错误状态；清除旧的 IOC/IRQ 状态（W1C）。
+3. 准备设备可访问的 DMA 缓冲，完成所有权与缓存同步。
+4. 设置 RS，写目的 DMA 地址，最后写合法的非零 LENGTH。
+5. 等待本次完成中断/IOC，同时检查 DMAIntErr、DMASlvErr、DMADecErr。
+6. 等待有截止时间；失败时停通道、收集状态，再按驱动规定恢复。
+7. CPU 接管完成的缓冲后再读数据，并核对序号、字节数与包尾。</code></pre></div><p>寄存器地址示例随本工程地址表变化。Linux 正式数据通路优先采用内核驱动/DMAengine；UIO 不自动完成缓冲分配、缓存同步和 DMA 生命周期管理。不要同时让用户程序与内核驱动操作同一通道。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">38.4 DMA 地址、缓存与缓冲所有权</h3><p><b>CPU 虚拟地址、CPU 物理地址与设备 DMA 地址是不同概念。</b>Linux 驱动应使用 DMA API 返回的 dma_addr_t；不能把 malloc 指针交给 DMA。Simple 模式的一块目标缓冲须在设备可见地址空间中连续，SG 模式则由描述符描述分段。</p><p>设备树 reserved-memory 只表达保留内存的安排，<b>不会自动把它变成可用的 UIO/DMA 缓冲</b>；映射、分配与设备绑定还需相应驱动。no-map 与 reusable 不能作为含糊的二选一伪语法留在可复制节点里。</p><p>HP 通路不提供与 A9 Cache 的自动一致性。Linux 的一致映射可用 dma_alloc_coherent；流式映射通过 dma_map_*、dma_sync_*、dma_unmap_* 交接。<b>O_SYNC 是打开标志，不能跨驱动保证映射属性或 DMA 正确性；volatile 也不能替代缓存同步。</b></p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>TX / DMA_TO_DEVICE：CPU 填充 → map 或 sync_for_device → 设备读 → 完成 → 收回所有权
+RX / DMA_FROM_DEVICE：准备/交给设备 → 设备写 → 确认完成 → unmap 或 sync_for_cpu → CPU 读取
+重复使用 streaming 映射：遵守同一设备、方向、长度和映射生命周期；设备拥有期间 CPU 不访问。
+coherent 缓冲：不等于免同步协议；描述符发布顺序仍可能需要内存屏障。</code></pre></div><p>详见 <a href="https://docs.kernel.org/core-api/dma-api-howto.html" target="_blank" rel="noopener">Linux DMA mapping Guide</a>。裸机驱动示例中的缓存维护调用也不能直接移植成 Linux 用户态操作。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">38.5 环形缓冲：先交接，再复用</h3><p>轮流写 N 个数组不等于正确环形缓冲。每个槽位都要有所有权与序列号，消费者没读完就绕回覆盖，会得到“新元数据配旧内容”或静默丢帧。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>FREE → DEVICE_OWNED → READY(seq, length, status) → CPU_OWNED → FREE
+生产者：只取 FREE 槽；提交 DMA；完成后发布 READY。
+消费者：领取 READY；完成 CPU 同步；读取并校验；归还 FREE。
+没有 FREE：实施背压，或按已声明策略丢弃并递增丢包计数。
+错误/取消：先确认设备停止访问，再回收槽位；不能直接释放仍在 DMA 中的内存。</code></pre></div><p>在下方 FIFO 模型中让消费者暂停，验证“已接受数据 = 已消费数据 + 缓冲剩余”。实际实现还需针对并发、内存可见性、设备重启和序号回绕设计同步。</p></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">38.6 用同一口径测吞吐、CPU 与正确性</h3><p>测试先固定数据宽度、时钟、包长、缓存策略、样本数和 DDR 负载。数据源用递增序号，端到端逐字校验；<b>只统计字节数无法发现重复与乱序</b>。</p><ul><li>有效吞吐 = 成功交付的 payload 字节 / 测量区间；注明十进制 MB/s 与是否含初始化。</li><li>CPU 开销包括提交、IRQ、同步与消费，分别测轮询和中断，不写“DMA = 0% CPU”。</li><li>同时报告丢包、错误、最大缓冲水位与消费者暂停恢复结果。</li><li>原稿的 600–750 MB/s 等数值无本板测量记录，改为待实验验证的目标范围，不能当成既成实测。</li></ul></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：DMA 写完数据全是旧值？</summary><div class="ans"><p>Cache 一致性问题（38.4②）。确认缓冲区 non-cacheable 映射，或在内核侧做 invalidate。这是 DMA 类问题第一嫌疑。</p></div></details>
+<details class="qa"><summary>Q2：传输卡死在 IOC 不置位？</summary><div class="ans"><p>① 数据源 tvalid 从未拉高（源头没发）；② LENGTH 为 0 或超过本 IP 配置允许的长度；③ HP 连接、时钟或复位错误导致写事务无法完成；④ 忘记先置 RS 再写 LENGTH；⑤ 缺少正确 TLAST 或接收包超容量。长度上限由生成参数决定，排查必须同时读取错误状态并设置超时。</p></div></details>
+<details class="qa"><summary>Q3：地址没对齐报错？</summary><div class="ans"><p>AXI DMA 要求目的地址按数据位宽对齐（64bit 模式 8 字节），长度同理。用 0x8 对齐分配；SG 模式描述符还有 64 字节对齐要求。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L38-1：Ping-Pong 双缓冲采集器</strong>
+<p>① 实现 8 缓冲环形 DMA 采集 + Web 页显示实时速率与最新块校验和；② 改造成 Ping-Pong 两缓冲交替，测「切换空隙」丢数据量并思考 SG 模式如何消除；③ 把数据源换成 XADC 流（每样本打包 32bit），做 1MSPS 连续录波器雏形 —— 这个框架可直接迁移到项目 P1（第41章）。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>Scatter-Gather 模式解决了 Simple 模式什么缺陷？描述符里 next_ptr 形成了什么结构？</li>
+<li>如果 DMA 目的地址落在 QSPI Flash 窗口会发生什么？硬件如何响应这种错误访问？</li>
+<li>对比「HP口+DMA」与「ACP口+CDMA」两种方案在一致性和带宽上的取舍。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">38.7 SG 与循环传输：不要猜描述符位</h3><p>SG 的描述符结构、对齐、控制位和状态位以所用 PG021/驱动版本为准。优先从官方驱动的 BD ring API 建立流程，<b>不要把 MM2S 的包控制位直接用于 S2MM</b>。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>分配并对齐 BD ring → 初始化下一描述符与缓冲 DMA 地址
+→ 填写该方向合法的控制字段 → 按驱动要求同步描述符
+→ 将一段 BD 提交硬件 → 回收完成 BD、检查状态和实际长度
+→ 处理/归还缓冲 → 重新提交空闲 BD
+普通 SG ring 与 cyclic 模式不是同一配置；不能凭“最后一项指回第一项”就假定可无限循环。</code></pre></div><p>缓冲区长度字段位宽是 IP 配置参数，最大值为 (2^width − 1)，不能把“8 MB”当作所有配置的统一上限。接收端 TLAST 必须对应合法包尾，发生在 VALID 与 READY 同时有效的接受拍。</p></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9">38.8 Linux DMAengine：映射与提交各司其职</h3><p>以下是调用流程片段，省略模块骨架；每步失败都须有回收路径，不能直接拼成可加载模块。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>chan = dma_request_chan(dev, "rx");              // 检查 IS_ERR
+map_dev = dmaengine_get_dma_device(chan);         // 映射必须使用 DMA 控制器的设备
+mapped_nents = dma_map_sg(map_dev, sgl, orig_nents, DMA_FROM_DEVICE);
+// mapped_nents == 0 表示映射失败
+// prep 使用映射返回的 mapped_nents；unmap/sync 使用原始 orig_nents
+transaction = dmaengine_prep_slave_sg(chan, sgl, mapped_nents,
+                                     DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT);
+// 检查 NULL；注册回调；submit 后检查 dma_submit_error(cookie)
+// issue_pending；带超时等待；失败先 terminate_sync，再回收映射。
+// 完成后通过 unmap 或 sync_for_cpu 交还 CPU，再读取数据。</code></pre></div><p>先读 <a href="https://docs.kernel.org/driver-api/dmaengine/client.html" target="_blank" rel="noopener">DMAengine client 文档</a>，再核对本板驱动、设备树 dma-names 与内核版本。DMA 映射不是无限生命周期的“设置一次就不用管”。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10">38.9 分清 PS DMAC、AXI DMA 与 AXI CDMA</h3><ul><li><b>PS 内置 DMAC：</b>Zynq-7000 处理系统中的 Arm PL330 控制器，是 PS 固有资源，见 UG585。</li><li><b>AXI DMA：</b>在 PL 中实例化的 IP，提供 AXI memory-mapped 与 AXI-Stream 之间的 MM2S/S2MM 传输，见 PG021。</li><li><b>AXI CDMA：</b>在 PL 中实例化的 Central DMA IP，用于 memory-mapped 到 memory-mapped 传输；不能把它称作“PS 内置 CDMA”。</li></ul><p>一致性由所接通路、事务属性、内存属性及软件维护共同决定。连接 ACP 也要满足接口的事务与配置要求，不能据 IP 名称推出“自动正确”。Linux 驱动使用 DMA API，而非直接调用未导出的私有 Cache 维护函数。</p><p>依据：<a href="https://docs.amd.com/r/en-US/ug585-zynq-7000-SoC-TRM/Arm-IP-Core" target="_blank" rel="noopener">UG585：DMAC 的 Arm IP Core</a>。</p></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">38.10</span>深潜：吞吐调优参数清单</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>旋钮</th><td>方向</td><td>说明</td></tr>
+<tr><td>DMA Cyclic/Burst length</td><td>↑</td><td>BLEN=16/64 beats 减少总线事务开销</td></tr>
+<tr><td>缓冲对齐</td><td>=cacheline(32B)×burst</td><td>避免跨行撕裂与额外填充</td></tr>
+<tr><td>Ping-Pong深度</td><td>2→N(SG)</td><td>掩盖处理抖动；水位线监控防覆盖</td></tr>
+<tr><td>HP口分配</td><td>读写分口</td><td>HP0收 HP1发 避免双向争用同一端口仲裁</td></tr>
+<tr><td>CPU亲和</td><td>taskset绑非中断核</td><td>配合39章 isolcpus 彻底隔离</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch38"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解 GP 口与 HP 口的带宽差异及 DMA 的必要性</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 AXI DMA Simple 模式的寄存器级编程与 BD 集成</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>解决 Cache 一致性与连续内存两大工程难题</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「AXI-DMA 高速数据通路实战」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter37.html"><span><span class="pager-label">上一章</span><b>第 37 章 · 内核并发与同步专题</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter39.html"><span><span class="pager-label">下一章</span><b>第 39 章 · 性能剖析：ftrace / perf / kmemleak</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 38 章 · AXI-DMA 高速数据通路实战 · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

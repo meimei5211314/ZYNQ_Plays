@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附录 D · 工业自动化术语速查表（70 条） | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="附录 D · 工业自动化术语速查表（70 条）：读文档、开评审、跑现场的「黑话词典」—— 按主题分类，建议打印贴墙。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-appendix" data-chapter-id="appd" data-chapter-file="appendix-d.html" data-chapter-label="附录 D · 工业自动化术语速查表（70 条）">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>附录 D · 面试与速查</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>D1 系统层级与角色</a>
+<a href="#sec-2"><span class="num">02</span>D2 编程与运行（IEC 61131-3）</a>
+<a href="#sec-3"><span class="num">03</span>D3 回路与过程控制</a>
+<a href="#sec-4"><span class="num">04</span>D4 功能安全（IEC 61508 族）</a>
+<a href="#sec-5"><span class="num">05</span>D5 总线与协议</a>
+<a href="#sec-6"><span class="num">06</span>D6 网络与冗余</a>
+<a href="#sec-7"><span class="num">07</span>D7 测试认证与 EMC</a>
+<a href="#sec-8"><span class="num">08</span>D8 实时性概念</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 附录 D</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">附录 · 工业速查 / Chapter D</div>
+      <h1 id="heroTitle">附录 D<br><span class="grad">工业自动化术语速查表（70 条）</span></h1>
+      <p class="hero-sub">读文档、开评审、跑现场的「黑话词典」—— 按主题分类，建议打印贴墙。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">0 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">D</div>
+          <div class="console-part">面试与速查 / APPD</div>
+          <div class="console-title">工业自动化术语速查表（70 条）</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>0</b></div>
+            <div class="console-metric"><span>TBL</span><b>8</b></div>
+            <div class="console-metric"><span>QA</span><b>0</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:67%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:8%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>D / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>8</b><span>速查表格</span></div>
+    <div class="stat"><b>0</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">能独立回答「D1 系统层级与角色」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「D2 编程与运行（IEC 61131-3）」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「D3 回路与过程控制」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「D4 功能安全（IEC 61508 族）」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「D5 总线与协议」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「D6 网络与冗余」相关问题，并说明关键取舍。</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>附录 · 工业速查</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,282 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 8 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>0 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        面试题库与术语速查，把知识转成可表达的能力。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">D1 系统层级与角色</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>PLC</td><td>Programmable Logic Controller</td><td>可编程逻辑控制器，工业控制核心</td></tr>
+<tr><td>HMI</td><td>Human Machine Interface</td><td>人机界面触摸屏/操作面板</td></tr>
+<tr><td>SCADA</td><td>Supervisory Control And Data Acquisition</td><td>上位监控系统（组态软件+数据采集）</td></tr>
+<tr><td>DCS</td><td>Distributed Control System</td><td>分布式控制系统，流程行业大型控制体系</td></tr>
+<tr><td>MES</td><td>Manufacturing Execution System</td><td>制造执行系统（生产排程/追溯），位于控制与管理之间</td></tr>
+<tr><td>OEE</td><td>Overall Equipment Effectiveness</td><td>设备综合效率 = 可用率×性能率×良品率</td></tr>
+<tr><td>SOE</td><td>Sequence Of Events</td><td>事件顺序记录（ms 级时标，事故分析依据）</td></tr>
+<tr><td>RTU</td><td>Remote Terminal Unit</td><td>远程终端单元（油气/水利等远端站）</td></tr>
+<tr><td>P&amp;ID</td><td>Piping &amp; Instrumentation Diagram</td><td>管道仪表流程图——控制点表的源头文档</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2">D2 编程与运行（IEC 61131-3）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>术语</th><th>说明</th></tr>
+<tr><td>LD / FBD / ST / IL / SFC</td><td>梯形图/功能块图/结构化文本/指令表/顺序功能图 五大语言</td></tr>
+<tr><td>Rung / Network</td><td>梯形图的"一行"逻辑单元；网络为编译与执行的最小分组</td></tr>
+<tr><td>Cycle / Scan Time</td><td>扫描周期：读输入→解算→写输出 的单轮耗时</td></tr>
+<tr><td>Retain 变量</td><td>掉电保持区变量（超电容/Flash 支持）</td></tr>
+<tr><td>Cold / Warm Restart</td><td>冷启动(清非保持量)/热启动(保留保持量继续)</td></tr>
+<tr><td>Force 强制</td><td>调试期覆盖物理 IO 值；上线前必须解除并审计！</td></tr>
+<tr><td>Task / Priority Class</td><td>任务与优先级等级（如西门子 OB 循环/中断组织块思想）</td></tr>
+<tr><td>FB / FC / DB</td><td>功能块(有实例存储)/函数(无状态)/数据块 —— TIA 体系概念</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3">D3 回路与过程控制</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>PID</td><td>Proportional-Integral-Derivative</td><td>比例积分微分调节器</td></tr>
+<tr><td>PV / SP / CV(OP)</td><td>Process Variable / Setpoint / Control Variable</td><td>过程量/设定值/控制输出</td></tr>
+<tr><td>Cascade</td><td>-</td><td>串级控制：外环输出作内环 SP</td></tr>
+<tr><td>Split Range</td><td>-</td><td>分程控制：一个 CV 分段驱动多个阀</td></tr>
+<tr><td>Deadband / Hysteresis</td><td>-</td><td>死区/回差——防执行器频繁抖动的滞环</td></tr>
+<tr><td>Two-wire Transmitter</td><td>-</td><td>两线制变送器：4~20mA 同时供电+传信</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">D4 功能安全（IEC 61508 族）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>SIL</td><td>Safety Integrity Level</td><td>安全完整性等级 SIL1~4</td></tr>
+<tr><td>SIS / SIF</td><td>Safety Instrumented System / Function</td><td>安全仪表系统/单个安全功能</td></tr>
+<tr><td>PFD / PFH</td><td>Prob. of Failure on Demand / per Hour</td><td>要求时/每小时危险失效概率（SIL 判据）</td></tr>
+<tr><td>HFT</td><td>Hardware Fault Tolerance</td><td>硬件故障裕度 N</td></tr>
+<tr><td>SFF / DC</td><td>Safe Failure Fraction / Diagnostic Coverage</td><td>安全失效分数/诊断覆盖率</td></tr>
+<tr><td>LOPA</td><td>Layer of Protection Analysis</td><td>保护层分析——SIL 定级方法</td></tr>
+<tr><td>MooN</td><td>M-out-of-N 表决</td><td>N 取 M 结构（1oo2/2oo3…）</td></tr>
+<tr><td>CCF / β 因子</td><td>Common Cause Failure</td><td>共因失效及其占比估计</td></tr>
+<tr><td>PL</td><td>Performance Level</td><td>ISO 13849 机械安全的等级(a~e)，与 SIL 对应换算</td></tr>
+<tr><td>MTTF<sub>d</sub></td><td>Mean Time To dangerous failure</td><td>平均危险失效时间（机械安全用）</td></tr>
+<tr><td>ESD / F&amp;G</td><td>Emergency Shutdown / Fire &amp; Gas</td><td>紧急停车系统/火气系统（SIS 典型应用）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">D5 总线与协议</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>MBAP</td><td>Modbus Application Protocol header</td><td>Modbus TCP 七字节报文头（47章解析）</td></tr>
+<tr><td>GSD / GSDML</td><td>Geräte Stamm Daten(设备数据库文件)</td><td>Profibus/Profinet 设备描述文件（组态导入用）</td></tr>
+<tr><td>EDS</td><td>Electronic Data Sheet</td><td>CANopen 设备电子数据表</td></tr>
+<tr><td>OD / PDO / SDO / NMT</td><td>Object Dictionary / Process- / Service-Data Object / Network Management</td><td>CANopen 四件套：字典+实时数据+配置访问+节点管理</td></tr>
+<tr><td>ESC / DC / CoE / EoE / FoE</td><td>EtherCAT Slave Controller / Distributed Clocks / CANopen over EtherCAT / EoE tunnelling / File access</td><td>EtherCAT 从站芯片/分布时钟/各应用层行规</td></tr>
+<tr><td>IRT</td><td>Isochronous Real-Time</td><td>PROFINET 硬实时档（硬件调度）</td></tr>
+<tr><td>CIP</td><td>Common Industrial Protocol</td><td>EtherNet/IP 应用层协议族</td></tr>
+<tr><td>DSCP / PCP</td><td>Differentiated Services Code Point / Priority Code Point</td><td>IP 层/以太网层 QoS 标记字段</td></tr>
+<tr><td>IO-Link</td><td>-</td><td>传感器级点对点数字接口（IEC 61131-9）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">D6 网络与冗余</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>SPAN/RSPAN</td><td>Switched Port Analyzer</td><td>交换机端口镜像（本地/远程）</td></tr>
+<tr><td>MRP / MRM / MRC</td><td>Media Redundancy Protocol / Manager / Client</td><td>环网冗余：一管理多客户（46章）</td></tr>
+<tr><td>PRP / HSR / DANP / RedBox</td><td>Parallel Redundancy Protocol / High-availability Seamless Redundancy / Double Attached Node by PRP</td><td>无缝双网/无缝环网/双口节点/普通设备接入盒</td></tr>
+<tr><td>DLR</td><td>Device Level Ring</td><td>罗克韦尔设备级环网</td></tr>
+<tr><td>gPTP / PTP</td><td>(Generalized) Precision Time Protocol</td><td>IEEE 802.1AS/1588 精确时间同步</td></tr>
+<tr><td>TSN</td><td>Time-Sensitive Networking</td><td>时间敏感网络标准族（Qbv 门控/Qbu 抢占等）</td></tr>
+<tr><td>IGMP Snooping</td><td>-</td><td>组播监听抑制泛洪（不开=风暴之源）</td></tr>
+<tr><td>SNMP</td><td>Simple Network Management Protocol</td><td>网络设备监控协议（读端口流量/告警）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">D7 测试认证与 EMC</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>缩写</th><th>全称</th><th>一句话说明</th></tr>
+<tr><td>EMC</td><td>Electro-Magnetic Compatibility</td><td>电磁兼容（发射+抗扰双达标）</td></tr>
+<tr><td>ESD / EFT / CS / RS / surge</td><td>Electro-Static discharge / Electrical Fast Transient / Conducted Susceptibility / Radiated Susceptibility</td><td>61000-4-2 静电/-4 快脉冲/-6 传导/-3 辐射/-5 浪涌 试验项</td></tr>
+<tr><td>CDF</td><td>Construction Data Form</td><td>UL 认证关键元器件清单</td></tr>
+<tr><td>DoC / NB</td><td>Declaration of Conformity / Notified Body</td><td>符合性声明/公告机构</td></tr>
+<tr><td>IP 等级</td><td>Ingress Protection</td><td>防护等级如 IP65（防尘+防喷水）</td></tr>
+<tr><td>ATEX / IECEx</td><td>-</td><td>欧盟/国际防爆认证体系（Ex 标志）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">D8 实时性概念</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>术语</th><th>说明</th></tr>
+<tr><td>WCET</td><td>Worst-Case Execution Time 最坏执行时间（可分析性的标尺）</td></tr>
+<tr><td>Jitter</td><td>抖动：周期事件实际发生时刻的波动幅度</td></tr>
+<tr><td>RMS / EDF</td><td>速率单调/最早截止期优先两种经典调度理论</td></tr>
+<tr><td>Priority Inversion / Inheritance</td><td>优先级反转与继承（互斥量的救赎机制）</td></tr>
+<tr><td>Determinism</td><td>确定性：同样输入在限定时间内产生一致结果的能力</td></tr>
+</table></div>
+
+<div class="box tip"><span class="bt">💡 使用建议</span>
+<p>把本表当作「面试前 10 分钟」的快速复习卡；遇到陌生缩写先查此表，再回到对应章节深挖（每条都可在本课程找到上下文）。持续把新遇到的行业词汇补进来 —— 你的个人版本会越来越厚。</p></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 6</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>能独立回答「D1 系统层级与角色」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>能独立回答「D2 编程与运行（IEC 61131-3）」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能独立回答「D3 回路与过程控制」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-4" type="checkbox" data-goal="3"> <span>能独立回答「D4 功能安全（IEC 61508 族）」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-5" type="checkbox" data-goal="4"> <span>能独立回答「D5 总线与协议」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-6" type="checkbox" data-goal="5"> <span>能独立回答「D6 网络与冗余」相关问题，并说明关键取舍。</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「工业自动化术语速查表（70 条）」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="appendix-c.html"><span><span class="pager-label">上一章</span><b>附录 C · 项目深挖 / 系统设计 / 行为面（18 题）</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="course.html"><span><span class="pager-label">课程终点</span><b>返回课程目录</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>附录 D · 工业自动化术语速查表（70 条） · 附录 · 工业速查</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 46 章 · 冗余设计与高可用架构 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 46 章 · 冗余设计与高可用架构：99.999% 可用性不是口号是算术 —— 从 CPU 热备到无缝环网，系统性拆解工业冗余方案。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-industrial" data-chapter-id="ch46" data-chapter-file="chapter46.html" data-chapter-label="第 46 章 · 冗余设计与高可用架构">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 46 章 · 工业自动化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>可用性的算术基础</a>
+<a href="#sec-2"><span class="num">02</span>冗余分类学与切换模式</a>
+<a href="#sec-3"><span class="num">03</span>控制器（CPU）冗余 ★核心</a>
+<a href="#sec-4"><span class="num">04</span>IO 层与传感器层冗余</a>
+<a href="#sec-5"><span class="num">05</span>电源冗余（最便宜也最容易被忽视）</a>
+<a href="#sec-6"><span class="num">06</span>网络冗余四方案对比 ★（面试高频）</a>
+<a href="#sec-7"><span class="num">07</span>软件层高可用（你的项目现在就能做）</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：冗余切换状态机（工程实现视角）</a>
+<a href="#sec-10"><span class="num">10</span>深潜：主备数据一致性协议（简化两阶段）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：商用系统对照与 KPI 测试矩阵</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 46 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第六篇 · 工业自动化 / Chapter 46</div>
+      <h1 id="heroTitle">第 46 章<br><span class="grad">冗余设计与高可用架构</span></h1>
+      <p class="hero-sub">99.999% 可用性不是口号是算术 —— 从 CPU 热备到无缝环网，系统性拆解工业冗余方案。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">46</div>
+          <div class="console-part">工业自动化 / CH46</div>
+          <div class="console-title">冗余设计与高可用架构</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>2</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:14%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>46 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 MTBF/MTTR/可用度的量化关系</li>
+<li class="goal-item">理解 CPU 冗余的状态同步与无扰切换原理、脑裂防护</li>
+<li class="goal-item">对比 RSTP/MRP/PRP/HSR 四种网络冗余的切换时间与成本</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第六篇 · 工业自动化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,419 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>2 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        PLC 硬件、功能安全、工业总线与冗余设计。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">46.1</span>可用性的算术基础</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>指标</th><th>定义</th><th>示例</th></tr>
+<tr><td>MTBF</td><td>平均无故障工作时间</td><td>电源 MTBF=50 万小时 → 年失效率 ≈1.75%</td></tr>
+<tr><td>MTTR</td><td>平均修复时间</td><td>备件在库 2h / 需等货 72h 差 36 倍</td></tr>
+<tr><td>可用度 A</td><td>A = MTBF/(MTBF+MTTR)</td><td>四个9(99.99%) = 年停机 ≤52 分钟；五个九 ≤5.3 分钟</td></tr>
+</table></div>
+<p><strong>冗余的本质</strong>：用并联结构把 MTTR 从「等维修」变成「瞬时切换」，同时多通道降失效概率。但冗余引入新失效模式（共因/切换失败）—— 设计目标是<strong>系统级</strong>最优而非堆料。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">46.2</span>冗余分类学与切换模式</h3><ul>
+<li><strong>按层次</strong>：元件级(双电容/双MCU互检) → 模块级(双电源/双网卡) → 设备级(<strong>CPU 双机热备</strong>) → 网络级(环网/双网) → 系统级(异地容灾)；</li>
+<li><strong>按热备程度</strong>：冷备(上电加载需分钟级)/温备(已运行但不接负载)/<strong>热备(实时同步，无扰接管)</strong>——工业控制只接受热备；</li>
+<li><strong>1:1 与 N:1</strong>：关键控制器 1:1 专备；大量同型 IO 模块可 N:1 共享冷备池 + 热插拔。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">46.3</span>控制器（CPU）冗余 ★核心</h3><h4>① 工作机制（以主流 PLC 冗余为例）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">        ┌─── 同步链路(光纤/背板, ≥100Mbps) ───┐
+   ┌────┴────┐                          ┌─────┴───┐
+   │ 主站 R0  │  周期性状态镜像：         │ 备站 R1  │
+   │ 执行程序 │  · 输入映像/中间变量      │ 只同步   │
+   │ 输出刷新 │  · 定时器/计数器当前值    │ 不输出   │
+   └────┬────┘  · 报文缓冲              └─────┬───┘
+        ├──────────┐     ┌──────────────────┘
+   IO网络A│      IO网络B(双网接入同一IO)
+        ▼          ▼
+   [现场设备] ← 输出仅由主站驱动，切换瞬间无扰动
+
+检测→主失联/自检失败→备站完成最后一次同步校验→接管输出→上报HMI(全程&lt;300ms典型)</code></pre></div>
+<h4>② 关键技术点</h4>
+<ul>
+<li><strong>同步内容分层</strong>：周期数据(IO映像/DB变量)每扫描镜像一次；事件数据(报警/SOE)即时推送；程序与组态版本一致性校验（不一致禁止冗余）；</li>
+<li><strong>无扰切换条件</strong>：定时器剩余值、积分器状态、步序号都必须同步 —— 否则切换后逻辑「跳变」。这正是你 PLC 项目里功能块槽表要进 RETAIN 区的原因（31章伏笔）；</li>
+<li><strong>仲裁与脑裂</strong>：两台都认为对方死了怎么办？→ 第三方仲裁（独立心跳通道/仲裁服务器/IO 层硬件互锁「只有持有使能继电器的一方允许输出」）。软件仲裁必须叠加<strong>硬件级输出互斥</strong>才是工业级答案；</li>
+<li><strong>回切策略</strong>：自动回切可能引发振荡（反复切换），工程惯例是手动确认回切。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">46.4</span>IO 层与传感器层冗余</h3><ul>
+<li><strong>双路接入</strong>：关键 DI/AI 同时进主备两个控制器的独立 IO 模块（含独立供电保险）；</li>
+<li><strong>传感器 2oo3 表决</strong>：三个独立测量点，软件取中值输出，单点漂移被自动屏蔽（呼应44章 SFF/CCF）—— 安全系统的标配；</li>
+<li>执行机构冗余：调节阀带手动旁路 + 切断阀串联的双阀门策略（机械冗余兜底）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">46.5</span>电源冗余（最便宜也最容易被忽视）</h3><ul>
+<li><strong>二极管/ MOS 解耦冗余模块</strong>：两台 24V 电源经解耦器并联储电，单台损坏零中断（如西门子 SITOP RED 系列）；</li>
+<li>上游双回路市电 + ATS 自动切换；关键负荷加 DC-UPS（缓冲模块+电池），撑过切换间隙 10s~min 级；</li>
+<li>纪律：<strong>冗余路径上的任何单点（螺栓/端子/断路器）都要审视</strong>——见过太多「双电源共用一个空开」的假冗余。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">46.6</span>网络冗余四方案对比 ★（面试高频）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方案</th><th>标准</th><th>拓扑</th><th>切换时间</th><th>节点要求</th><th>成本</th></tr>
+<tr><td>RSTP 快速生成树</td><td>802.1w</td><td>任意(阻塞口)</td><td>1~10s 级</td><td>普通交换机</td><td>低</td></tr>
+<tr><td>MRP 介质冗余</td><td>IEC 62439-2</td><td>环型(MRM定管理站)</td><td><strong>200ms 保证 / 30ms / 10ms(MRPD)</strong></td><td>支持 MRP 的交换机</td><td>中</td></tr>
+<tr><td><strong>PRP 并行冗余</strong></td><td>IEC 62439-3</td><td><strong>双独立全网</strong>(同时收发)</td><td><strong>0ms 无缝</strong></td><td>DANP 双口节点 或 RedBox 接入普通设备</td><td>高(双网设施)</td></tr>
+<tr><td>HSR 高可用无缝环</td><td>IEC 62439-3</td><td>环型，帧双向环流</td><td><strong>0ms 无缝</strong></td><td>每节点 HSR 硬件转发行口</td><td>中高</td></tr>
+</table></div>
+<ul>
+<li><strong>选型直觉</strong>：能容忍亚秒级中断的过程监控 → MRP 环网（性价比之王）；运动控制/保护类零容忍 → PRP/HSR（电力行业变电站标配 PRP）；办公融合网才考虑 RSTP 兜底；</li>
+<li>PRP 的 <em>RedBox</em> 让普通单口设备「假装」双口节点 —— 改造存量系统的关键武器；</li>
+<li>实践补充：交换机级联不要超过厂商建议跳数、组播流量开启 IGMP Snooping（否则泛洪拖垮 CPU，47章案例）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">46.7</span>软件层高可用（你的项目现在就能做）</h3><ul>
+<li>进程守护 + 三级看门狗（34章已实现）；</li>
+<li>配置/程序双分区 + 校验回滚（升级不中断思路）；</li>
+<li>Modbus/Web 服务多实例绑定不同端口，前端自动 failover；</li>
+<li>把 46.3 的「主备心跳+硬件输出互锁」做成两块开发板实验 —— 见 L46-1。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：什么叫「脑裂」？工业上怎么根治？</summary><div class="ans"><p>双主并存：两台控制器都抢输出 → 设备乱动。根治靠<strong>输出通路物理互斥</strong>（仲裁继电器/PL 层互锁），软件仲裁只能减少概率不能消除后果。任何冗余方案评审必问：「最坏情况两台同时认为自己是主，现场会发生什么？」</p></div></details>
+<details class="qa"><summary>Q2：PRP 为什么比 MRP 贵这么多？</summary><div class="ans"><p>PRP 要求节点双网口同时收发并在接收端按序列号去重（LRE 链路冗余实体），通常由 FPGA/专用芯片实现（HAT 硬件）；且基础设施要建两张平行网络。MRP 只是环上一条备份链路的通断管理，普通工业交换机即可。</p></div></details>
+<details class="qa"><summary>Q3：冗余系统怎么验收测试？</summary><div class="ans"><p>故障注入矩阵全覆盖：拔主 CPU/拔同步线/拔 A 网/拔 B 网/双网同拔/主备电源各拔/仲裁链路断/恢复顺序组合……每项记录切换时间与过程量扰动曲线。没有这张表就不算交付了冗余系统（对照35章方法论的扩展版）。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L46-1：迷你双机热备</strong>
+<p>两块领航者（或一块板双核 AMP 模拟）：① 主备心跳走以太网 UDP（20ms 周期+序号）；② 输出互锁：各自用一个 GPIO 控制「输出使能」继电器逻辑，只有持令者置位；③ 心跳丢失 3 周期即切换，LED 显示角色；④ 注入测试：拔线/杀进程/双向同时启动，记录切换时间与是否出现双主。这个实验做完，「冗余」对你不再是 PPT 名词。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>计算：单控制器 MTBF=10万h、MTTR=8h；冗余后（理想切换）系统 MTBF 提升多少？若切换成功率 99%，结论如何变化？（体会「切换机构本身成为新薄弱点」）</li>
+<li>为什么 MRP 环要求恰好一个 MRM 管理站？两个会怎样？</li>
+<li>把 44 章 2oo3 传感器表决与本章 CPU 冗余结合，画出完整 SIL2 回路的架构图并标注每个单点。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">46.8</span>深潜：冗余切换状态机（工程实现视角）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">        ┌────────┐ 心跳超时N次+自检OK ┌─────────┐
+   ┌───▶│ STANDBY│───────────────────▶│TAKING_OVER│ 同步校验→输出互锁使能
+   │    └────────┘                    └─────┬─────┘
+SYNC(镜像中)                                ▼
+   ┌────┴────┐                        ┌────────┐
+   │ ACTIVE  │◀──对端恢复→手动回切────│ PRIMARY │ 对外宣告+日志SOE
+   └─────────┘                        └────────┘
+/* 关键转移条件全部要"双确认": 通信层判据 + 应用层业务健康位 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">46.9</span>深潜：主备数据一致性协议（简化两阶段）</h3><ol>
+<li><strong>稳态镜像</strong>：主站每扫描周期把 {IO映像, FB槽表, 步序, 定时器剩余} 打包+序号 seq 发备站；备站 ACK 最近连续 seq；</li>
+<li><strong>切换窗口</strong>：备站只允许在「收到完整偶数? 对齐的周期包」后才具备接管资格 —— 避免半包状态上线；</li>
+<li><strong>事件通道</strong>：报警/操作日志走独立即时通道不进周期镜像，防大事件拖慢扫描同步。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">46.10</span>深潜：商用系统对照与 KPI 测试矩阵</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>体系</th><td>冗余形态</td><td>特色点</td></tr>
+<tr><td>西门子 S7-1500R/H</td><td>两CPU经 PROFINET 同步(R: 切换~300ms / H: 更快+双通道IO)</td><td>SYS FAIL LED、Run-Sync-Off 拨码、组态即冗余</td></tr>
+<tr><td>罗克韦尔 ControlLogix 冗余</td><td>1756-RM 背板同步模块</td><td>交叉加载、切换无扰验证向导</td></tr>
+<tr><td>横河/和利时 DCS</td><td>FCS 控制器 1:1 热备 + Vnet 双网</td><td>过程 I/O 三重化(TRUSTED? 高端型) 思想同 2oo3</td></tr>
+</table></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>KPI 用例</th><td>注入方式</td><td>通过标准</td></tr>
+<tr><td>R1 主站掉电</td><td>拔主 CPU 电源</td><td>备站接管 ≤ 规格时间；过程量扰动 &lt; 死区</td></tr>
+<tr><td>R2 同步链断</td><td>拔光纤</td><td>告警上报但双站均不得抢输出(仲裁生效)</td></tr>
+<tr><td>R3 单网故障</td><td>A网拔线×4端口轮换</td><td>零中断(MRP&lt;200ms 内业务容忍)</td></tr>
+<tr><td>R4 双主竞争</td><td>同时上电两站</td><td>唯一 Active；另一站稳定 Standby</td></tr>
+<tr><td>R5 回切风暴</td><td>主备反复插拔×20</td><td>无振荡切换；日志完整可追溯</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch46"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 MTBF/MTTR/可用度的量化关系</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解 CPU 冗余的状态同步与无扰切换原理、脑裂防护</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>对比 RSTP/MRP/PRP/HSR 四种网络冗余的切换时间与成本</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「冗余设计与高可用架构」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter45.html"><span><span class="pager-label">上一章</span><b>第 45 章 · 工业总线与工业以太网全景</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter47.html"><span><span class="pager-label">下一章</span><b>第 47 章 · 工业网络抓包解析与排故实战</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 46 章 · 冗余设计与高可用架构 · 第六篇 · 工业自动化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

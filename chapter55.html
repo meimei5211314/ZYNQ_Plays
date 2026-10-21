@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 55 章 · 跨越时钟与复位边界：CDC、RDC与握手协议 | Zynq 工程能力讲义</title><meta name="description" content="按单比特、事件和多比特数据选择同步结构，分析复位释放及独立复位后的协议恢复，建立CDC/RDC审查证据。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch55" data-chapter-file="chapter55.html" data-chapter-label="第 55 章 · 跨越时钟与复位边界：CDC、RDC与握手协议">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 55 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>亚稳态是模拟边界，不是一个X值</a>
+<a href="#s2"><span class="num">02</span>稳定电平与短脉冲采用不同策略</a>
+<a href="#s3"><span class="num">03</span>多比特一致性靠协议建立</a>
+<a href="#s4"><span class="num">04</span>Gray指针与异步FIFO的边界</a>
+<a href="#s5"><span class="num">05</span>复位也会跨域</a>
+<a href="#s6"><span class="num">06</span>把结构审查和行为审查分开</a>
+<a href="#s7"><span class="num">07</span>建立可复现的跨域实验</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 55 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 55 章<br><span class="grad">跨越时钟与复位边界：CDC、RDC与握手协议</span></h1><p class="hero-sub">按单比特、事件和多比特数据选择同步结构，分析复位释放及独立复位后的协议恢复，建立CDC/RDC审查证据。</p><div class="hero-meta"><span class="meta-chip">理论100分钟 + 实验3–5小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">为PS控制寄存器到采样时钟域的配置命令设计全握手通道，命令带序号并明确复位语义。</p></div></div><ul><li>根据变化速率和数据关联性选择双触发器、toggle、握手或异步FIFO</li><li>手算Gray编码并解释异步FIFO指针的比较边界</li><li>为每个时钟域设计复位释放及重新握手过程</li><li>结合结构检查、约束、断言与波形审查跨域可靠性</li></ul><div class="learning-links"><a href="chapter8.html">前置：第 8 章</a><a href="chapter17.html">前置：第 17 章</a><a href="chapter54.html">前置：第 54 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">亚稳态是模拟边界，不是一个X值</h3><p>异步信号在目的触发器采样窗口内变化，可能使输出暂时处于亚稳状态。双触发器链提供额外解析时间，降低故障传播概率，并不让第一级“永不亚稳”。RTL仿真通常没有真实器件的模拟时间常数，波形没有X也不能证明可靠。MTBF依赖目的时钟、异步变化率、可用解析时间与器件参数，不能随手给一个统一的安全年限。</p><p>第一级输出只应进入同步链后续级，避免向多个逻辑分叉；应用ASYNC_REG等适当属性，并检查实现后的放置和相关报告。将跨域路径设为false path只是停止某些时序检查，不会生成同步器。先列时钟源、频率范围、相位关系和可暂停条件，判断是真异步域还是有明确时序关系的同步域。约束必须描述真实关系，不能为消除报告而把所有路径切掉。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">稳定电平与短脉冲采用不同策略</h3><p>两级同步适合满足稳定时间条件的单比特电平。若100 MHz源域产生1个周期脉冲，宽10 ns，而目的时钟25 MHz、周期40 ns，脉冲可能完整落在两个采样沿之间，完全丢失。再加一级同步器只增加延迟，不会把从未采到的事件找回来。需要拉宽、toggle事件协议、握手或计数/FIFO，选择取决于能否约束连续事件间隔。</p><p>toggle方法每发生一次事件就翻转一位，目的域同步后比较新旧值产生脉冲；但目的域未观察到第一次翻转前又翻转一次，状态可能回到原值，两次事件一起消失。因此必须证明源侧最大事件率，或用确认返回限制下一次事件。单比特告警电平、稀疏命令脉冲与连续采样数据的契约不同，不应只因为都跨两根时钟线，就套同一段“两拍同步”模板。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">多比特一致性靠协议建立</h3><p>把二进制计数器的每一位分别同步，会得到混合时刻的值。例如0111变1000时四位都变，目的端可能看到并不存在的中间组合。单独给每位加两级寄存器只降低单比特亚稳传播，不能保证整组一致。低速配置总线可采用“源侧锁存数据并保持→请求跨域→目的采样→确认返回→源侧允许更新”的握手。</p><p>握手设计要明确数据从何时到何时稳定，目的端只在哪个事件采样，何时允许发下一条。2020.2的XPM_CDC_HANDSHAKE要求完整握手结束后才能开始下一次传输。握手往返耗时使吞吐量受两边同步级数和频率限制；若源无法停住或需要连续传输，应使用异步FIFO，并设计满时背压或可计数的丢弃策略。多比特载荷跨域安全来自稳定窗口与控制交接，不来自总线上的偶然“差不多同时”。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">Gray指针与异步FIFO的边界</h3><p>Gray编码g=b XOR (b&gt;&gt;1)。十进制7对应二进制0111、Gray0100；8对应1000、Gray1100，两次相邻指针只变化一位。异步FIFO通常在本地域维护二进制指针做地址计算，转换为Gray后跨域同步，再比较空满。深度8需要3位存储地址，并增加一位用于区分绕行；不能只同步低3位就判断“指针相等”。</p><p>Gray安全性还依赖实现约束：源域寄存Gray码、跨位路径偏斜和延迟受控，确保目的采样不会混合多个源增量。需要按器件/IP指南施加适当max-delay或bus-skew约束，不能把所有Gray路径一切了之。远端指针经同步延迟后较旧，导致空/满判断保守，通常会损失少量可见容量或吞吐，但不应让已满FIFO继续写。满判断的扩展位变换依具体编码设计，优先使用官方异步FIFO而非凭印象改比较式。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">复位也会跨域</h3><p>异步复位的撤销接近时钟沿时，可能违反恢复/移除时间；同一个外部复位不能未经同步就让多个时钟域同时释放。常见方案是异步置位、各域同步释放，目的时钟必须稳定运行，释放延迟由该域的同步链决定。复位极性、最小脉宽、时钟未起振与锁定信号来源都需要定义，不能把MMCM locked直接当所有逻辑的同步复位。</p><p>RDC还包括不同复位域之间的交互，即使两者用同一时钟。如果源域单独复位而目的域继续运行，握手toggle可能突然跳变，目的端误认成新事件；FIFO一侧指针归零而另一侧仍旧，也会破坏状态。应建立复位传播或重新初始化协议：停止新事务，作废未完成代次，双方确认准备好后重启。复位不是任意时刻按一下就能清除一切的软件按钮，必须规定在途数据如何处理及何时允许恢复业务。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">把结构审查和行为审查分开</h3><p>结构审查用report_cdc检查同步链、多比特重汇合与未识别结构，再核对时钟约束和例外路径。行为审查用断言检查源侧握手期间数据不变、未确认时不重复发起、目的只接收一次以及复位后不接受旧代次。CDC报告全绿不说明业务事件不会丢，握手仿真通过也不说明物理同步链放置可靠，两类证据缺一不可。</p><pre><code># Vivado Tcl控制台命令，须在已正确约束的工程中运行
+report_clocks
+report_clock_interaction
+report_cdc -details
+report_exceptions</code></pre><p>给每条waiver写出信号、协议保证、验证证据与适用版本。只有“这是状态信号”不是豁免理由；状态可能是稳定电平，也可能是短脉冲或关联总线。工具版本提供的RDC/MTBF报告能力各异，2020.2工程应核对本机命令帮助与IP文档，不把新版本命令存在当作旧版本可用。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">建立可复现的跨域实验</h3><p>先预测10 ns脉冲在40 ns采样周期中为何可丢失，再用教学交互观察短脉冲采样与保持请求的差异。交互目的采样周期固定为5个教学时间单位，握手只是保持请求的说明模型，不计算真实往返延迟。它不模拟亚稳态解析、MTBF或布局布线。硬件结论仍需器件参数、实现报告及实际协议检查，不能将“动画中没有漏事件”写成CDC通过证据。</p><p>RTL实验采用互非整数比时钟，扫描多个初始相位，给请求编号；目的接收后回送编号，scoreboard核对无重收、无跳号。分别在请求前、请求已到目的端、确认返回途中复位一侧，验证系统按约定丢弃或恢复。加入停止目的时钟再恢复的场景，检查源端能否保持数据并阻止溢出。最终提交跨域清单、每项同步方案、约束、复位恢复策略和失败波形；比一张无错误的CDC摘要截图更能支持设计复审。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 为PS控制寄存器到采样时钟域的配置命令设计全握手通道，命令带序号并明确复位语义。</strong><p>先观察离散采样与保持请求模型；再在RTL扫描时钟频率及相位，比较电平、toggle与握手并核对序号和稳定数据窗口。</p><p><b>故障练习：</b>在确认返回前让源域再次翻转toggle，或单独复位一侧，观察丢事件/伪事件并给出协议修复。</p><p><b>验收：</b>每条跨域都有数据类型、最大变化率和复位策略；无重复/无遗漏的结论含条件；CDC例外均有证据；没有用RTL动画声称MTBF。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch55"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>根据变化速率和数据关联性选择双触发器、toggle、握手或异步FIFO</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>手算Gray编码并解释异步FIFO指针的比较边界</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>为每个时钟域设计复位释放及重新握手过程</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>结合结构检查、约束、断言与波形审查跨域可靠性</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter54.html"><span><span class="pager-label">上一章</span><b>第 54 章 · 并发发布的证明：C11原子、SPSC与所有权</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter56.html"><span><span class="pager-label">下一章</span><b>第 56 章 · 让RTL自己报错：断言、覆盖与自检验证</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

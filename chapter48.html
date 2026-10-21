@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 48 章 · FreeRTOS 源码框架解析 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 48 章 · FreeRTOS 源码框架解析：不读源码的 RTOS 学习是背 API。本章带你拆开这个全球装机量最大的实时内核。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-rtos" data-chapter-id="ch48" data-chapter-file="chapter48.html" data-chapter-label="第 48 章 · FreeRTOS 源码框架解析">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 48 章 · 嵌入式 RTOS</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>定位与源码地图</a>
+<a href="#sec-2"><span class="num">02</span>list.c：全内核的地基</a>
+<a href="#sec-3"><span class="num">03</span>tasks.c：TCB 与调度骨架</a>
+<a href="#sec-4"><span class="num">04</span>48.4 通用调度机制与架构切换路径</a>
+<a href="#sec-5"><span class="num">05</span>queue.c：一个队列统一天下</a>
+<a href="#sec-6"><span class="num">06</span>内存管理 heap_1~5 怎么选</a>
+<a href="#sec-7"><span class="num">07</span>中断与配置纪律（新手三大死因）</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-9"><span class="num">09</span>48.8 任务初始栈：用实际 port 验证</a>
+<a href="#sec-10"><span class="num">10</span>深潜：临界区四件套对比</a>
+<a href="#sec-11"><span class="num">11</span>深潜：软件定时器 Daemon 机制</a>
+<a href="#sec-12"><span class="num">12</span>深潜：事件组与 Stream Buffer 速辨</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 48 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第七篇 · 嵌入式RTOS / Chapter 48</div>
+      <h1 id="heroTitle">第 48 章<br><span class="grad">FreeRTOS 源码框架解析</span></h1>
+      <p class="hero-sub">不读源码的 RTOS 学习是背 API。本章带你拆开这个全球装机量最大的实时内核。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">12 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">48</div>
+          <div class="console-part">嵌入式 RTOS / CH48</div>
+          <div class="console-title">FreeRTOS 源码框架解析</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>12</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:67%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>48 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>12</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 tasks/list/queue 三大核心文件的机制与数据结构</li>
+<li class="goal-item">理解 PendSV 上下文切换与调度点的完整链路</li>
+<li class="goal-item">能依据场景选择 heap_1~5 内存方案并遵守 FromISR 纪律</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第七篇 · 嵌入式RTOS</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,586 字 · 12 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        FreeRTOS 源码与移植，以及 SeL4 微内核视角。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">48.1</span>定位与源码地图</h3><p>选型三角：<strong>裸机</strong>（逻辑简单、极致可控）/<strong>RTOS</strong>（多任务+硬实时+小 footprint，典型 &lt;10KB）/ <strong>Linux</strong>(复杂生态但软实时)。FreeRTOS 以 MIT 许可、极简内核、丰富移植著称，是嵌入式岗位笔试面试的绝对高频。</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">FreeRTOS-Kernel/
+├── tasks.c          # 任务管理与调度器核心（最大文件）
+├── list.c           # 双向循环链表 —— 全内核唯一的"集合"数据结构 ★
+├── queue.c          # 队列/信号量/互斥量统一实现（皆基于队列）★
+├── timers.c         # 软件定时器（由 Daemon 任务驱动）
+├── event_groups.c   # 事件组
+├── stream_buffer.c  # 流/消息缓冲（单读者单写者高效通道）
+├── portable/
+│   ├── GCC/ARM_CM4F/portmacro.h + port.c   # 移植层：上下文切换汇编★
+│   └── MemMang/heap_1.c ~ heap_5.c         # 五种堆管理方案
+└── FreeRTOSConfig.h (用户侧)                # 裁剪与配置总开关</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">48.2</span>list.c：全内核的地基</h3><p>FreeRTOS 把所有「等待某事的任务」都挂在链表上。<code class="inline">List_t</code> 是带尾哨根的双向循环链表，延时列表按 <code class="inline">xItemValue</code> 排序，插入通常需遍历；检查表头可快速判断最早到期项。三张最重要的全局表：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>表</th><th>作用</th></tr>
+<tr><td><code class="inline">pxReadyTasksLists[configMAX_PRIORITIES]</code></td><td>就绪列表<strong>数组</strong>，每优先级一条 → 最高就绪优先级的查找复杂度取决于 port 优化与配置</td></tr>
+<tr><td><code class="inline">xDelayedTaskList / xOverflowDelayedTaskList</code></td><td>延时任务两条轮换（处理 tick 计数回绕），itemValue=唤醒时刻</td></tr>
+<tr><td><code class="inline">xPendingReadyList</code></td><td>调度器挂起期间的待就绪任务暂存；恢复调度器时再处理，不能概括为所有 ISR 唤醒都走这里</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">48.3</span>tasks.c：TCB 与调度骨架</h3><div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">typedef struct tskTaskControlBlock {
+    volatile StackType_t *pxTopOfStack;   /* 必须放结构体第一个成员！
+       上下文切换汇编只拿 TCB 指针即可直接取栈顶 —— 设计巧思 */
+    ListItem_t xStateListItem;            /* 挂就绪/延时/阻塞表 */
+    ListItem_t xEventListItem;            /* 挂事件(队列/信号量)等待表 */
+    UBaseType_t uxPriority;
+    StackType_t *pxStack;                 /* 已分配栈的起始地址；方向与末端检查由 port/配置决定 */
+    char pcTaskName[configMAX_TASK_NAME_LEN];
+    ...
+} tskTCB;</code></pre></div>
+<ul>
+<li><strong>调度策略</strong>：固定优先级抢占 + 同优先级时间片轮转（configUSE_TIME_SLICING）；每 tick 检查是否需要切换（<code class="inline">xYieldPending</code>）；</li>
+<li><strong>空闲任务</strong>：系统自动创建（优先级0），负责清理被删任务的内存；<code class="inline">vApplicationIdleHook</code>/tickless idle 支撑低功耗；</li>
+<li><strong>调度点全景</strong>：SysTick 到期 / vTaskDelay / 队列·信号量操作使更高优先级就绪 / vTaskPrioritySet / taskYIELD() —— 记住「<em>任何可能改变最高就绪优先级的时刻都可能触发调度评估</em>」。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">48.4 通用调度机制与架构切换路径</h3><p>vTaskSwitchContext 选择下一个任务，但保存/恢复寄存器、异常返回与中断屏蔽由 port 完成。</p><div class="table-wrap"><table class="source-table"><tr><th>架构</th><th>典型路径</th><th>不能混用的现场模型</th></tr><tr><td>Cortex-M</td><td>SysTick 提供节拍，PendSV 承载延后切换</td><td>PSP/MSP、xPSR、硬件异常堆栈</td></tr><tr><td>Cortex-A9 / ARM_CA9</td><td>平台定时器提供节拍；SVC/SWI 与 IRQ 尾部按 port 完成切换</td><td>处理器模式、SPSR、异常 LR、banked 寄存器与 GIC</td></tr></table></div><p>本课程使用第二行。阅读 <a href="https://github.com/FreeRTOS/FreeRTOS-Kernel/tree/main/portable/GCC/ARM_CA9" target="_blank" rel="noopener">ARM_CA9 的 port.c 与 portASM.S</a>，用符号和反汇编跟踪首次任务启动、主动 yield 与 IRQ 唤醒。调度用的 SVC 路径与核间 IPC 的 SGI 通知不是同一个概念。浮点上下文按 port 的配置与 API 保存，不能假定“自动惰性处理一切”。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">48.5</span>queue.c：一个队列统一天下</h3><ul>
+<li>队列/二值信号量/计数信号量/互斥量全部是 Queue_t 的不同配置（互斥量额外带优先级继承标志）；</li>
+<li><strong>拷贝传值</strong>而非传指针（消息项大小在创建时指定），天然免内存管理纠纷；大数据用指针队列 + 自管生命周期；</li>
+<li>发送/接收路径套路一致：关调度器级临界区 → 能立即完成则完成 → 否则把任务事件项挂到队列等待表 + 延时表（带超时换算）→ 触发调度；</li>
+<li><strong>FromISR 模式</strong>：<code class="inline">xQueueSendFromISR(..., &amp;xHigherPriorityTaskWoken)</code> 不真正切任务只置标志，ISR 尾部 <code class="inline">portYIELD_FROM_ISR(x)</code> 一次收口 —— 避免中断嵌套里反复切换。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">48.6</span>内存管理 heap_1~5 怎么选</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方案</th><th>特性</th><th>适用</th></tr>
+<tr><td>heap_1</td><td>只分配不释放</td><td>创建完就不再动态分配的系统（最确定）</td></tr>
+<tr><td>heap_2</td><td>释放但不合并碎片</td><td>分配尺寸恒定的场景（历史遗留）</td></tr>
+<tr><td><strong>heap_4</strong> ★</td><td>首次适应+相邻合并</td><td>绝大多数项目默认选择</td></tr>
+<tr><td>heap_5</td><td>heap_4 + 多段不连续内存</td><td>DDR 分散区域拼池</td></tr>
+<tr><td>-</td><td>静态创建 xTaskCreateStatic/队列 Static</td><td>功能安全/无堆环境（44章延伸）首选</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">48.7</span>中断与配置纪律（新手三大死因）</h3><ol>
+<li><strong>中断优先级语义陷阱</strong>：CM3/4 数值越大优先级越低！只有优先级数值 ≥ <code class="inline">configMAX_SYSCALL_INTERRUPT_PRIORITY</code>（逻辑上更低）的中断才能调用 FromISR API；比它更快的 ISR 里调用 = 断言崩溃或随机损坏。A9/GIC 移植同理有对应门槛宏。</li>
+<li><strong>栈溢出</strong>：开启 <code class="inline">configCHECK_FOR_STACK_OVERFLOW=2</code>（方法1检查保存的栈指针边界；方法2还检查栈边界填充值，细节依赖 port）+ 实现 Hook 打印任务名；每个新任务先用 ulStackHighWaterMark 观察余量再定尺寸。</li>
+<li><strong>优先级反转</strong>：互斥量自带优先级继承，但<strong>仅当用 xSemaphoreCreateMutex</strong>；用二值信号量当锁则无保护 —— 教材级事故来源（火星探路者号案例必讲）。</li>
+</ol>
+<div class="box tip"><span class="bt">💡 configASSERT 是你的第一调试武器</span>
+<p><code class="inline">#define configASSERT(x) if((x)==0) vAssertCalled(__FILE__,__LINE__)</code> —— 大量内部一致性检查依赖它。保留断言跑配置回归，并通过受控故障验证检查确实生效；覆盖率需要实测，不能凭经验给百分比。</p></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：为什么切换要用 PendSV 而不是直接在 SysTick 里切？</summary><div class="ans"><p>SysTick 可能打断正在执行的高优先级 ISR，若当场切换会嵌套破坏现场。PendSV 设为最低优先级 → 挂起后等所有 ISR 收尾才执行，保证切换原子性。「延迟到最后一刻再做切换」是分布式系统的通用智慧。</p></div></details>
+<details class="qa"><summary>Q2：vTaskDelay 与 vTaskDelayUntil 区别？</summary><div class="ans"><p>vTaskDelay 是相对睡眠（执行耗时叠加导致周期漂移，20章同款问题）；vTaskDelayUntil 用绝对节拍点，可减少相对延时积累的漂移，但仍受 tick 量化、调度延迟和任务超时影响。</p></div></details>
+<details class="qa"><summary>Q3：软件定时器回调里能调用阻塞 API 吗？</summary><div class="ans"><p>不能。回调运行在 Timer 服务(Daemon)任务上下文，阻塞会拖垮所有定时器。回调只发队列通知其他任务处理 —— 与「ISR 禁睡」同一哲学。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L48-1：画出你自己的内核地图</strong>
+<p>① 通读 list.c（仅200行），手绘 List 插入删除示意图；② 在仿真(QEMU/单步)或板上设断点跟踪一次 vTaskDelay 的完整旅程：当前任务移出就绪表→计算唤醒值→挂延时表→portYIELD→本架构 SVC/IRQ 路径→SwitchContext（PendSV 只用于 Cortex-M）；③ 统计你的最小工程 ROM/RAM 占用，逐个关闭 configUSE_* 宏观察变化，产出裁剪对照表。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 pxTopOfStack 必须是 TCB 第一个成员？如果编译器重排了结构体会怎样？</li>
+<li>互斥量的优先级继承在什么情况下失效？（提示：等待链超过一层/同优先级）</li>
+<li>对比 FreeRTOS 的 tickless idle 与 Linux 的 cpuidle 框架，设计目标有何本质不同？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9">48.8 任务初始栈：用实际 port 验证</h3><p>xTaskCreate 分配或接收 TCB/栈，初始化任务状态，再调用架构 port 构造首次恢复需要的现场。TCB 的 pxTopOfStack 供汇编访问；具体偏移、保存顺序与 FPU 上下文必须对照实际版本。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>读源码练习：
+1. 在 ARM_CA9/port.c 找 pxPortInitialiseStack 与 portINITIAL_SPSR。
+2. 在 portASM.S 找保存、恢复和首次启动入口。
+3. 标出任务参数、入口地址、返回保护与状态寄存器如何进入现场。
+4. 对照 map/反汇编，确认初始栈的对齐、范围与栈水印。
+5. 再读 ARM_CM4F，找出 PSP、xPSR 与硬件压栈带来的差异。</code></pre></div><p>A9 的 SPSR 与 Cortex-M 的 xPSR 不能互换；原稿中的 Cortex-M 假现场图不应作为本板 A9 栈布局。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">48.9</span>深潜：临界区四件套对比</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>宏</th><td>做什么</td><td>用在哪</td></tr>
+<tr><td>taskENTER_CRITICAL()/EXIT</td><td>关调度可屏蔽中断(至syscall门槛)，嵌套计数</td><td>任务上下文短临界区</td></tr>
+<tr><td>taskENTER_CRITICAL_FROM_ISR()</td><td>ISR 版，返回原掩码需传回 EXIT</td><td>中断里改共享结构</td></tr>
+<tr><td>vTaskSuspendAll()/xTaskResumeAll()</td><td>只关调度器不关中断</td><td>较长且不碰ISR共享的临界区(如flash写)</td></tr>
+<tr><td>UBaseType_t uxInterruptNesting 判断</td><td>-</td><td>通用封装里区分上下文</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">48.10</span>深潜：软件定时器 Daemon 机制</h3><ul>
+<li>定时器命令(start/stop/change)不是直接改定时器，而是<strong>发消息给 Timer 服务任务</strong>的命令队列（xTimerStart 内部即 xQueueSend）——保证定时器状态单线程管理，天然免锁；</li>
+<li>回调上下文=Daemon 任务 → 回调里禁止阻塞（48章 Q3 的机制根源）；</li>
+<li>configTIMER_TASK_PRIORITY 建议中高；队列满时 xTimerStart 返回 fail 需检查 —— 高频启停定时器的隐藏坑。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12"><span class="h3-num">48.11</span>深潜：事件组与 Stream Buffer 速辨</h3><ul>
+<li><strong>事件组</strong>：可用标志位数取决于 TickType_t 宽度与版本配置，常见 32 位 tick 下为 24 位，<code class="inline">xEventGroupWaitBits(e, BITS, xClear, xAll, timeout)</code> 支持"与/或等待"——多条件同步(等三个模块都ready再启动)的最短代码路径；</li>
+<li><strong>Stream Buffer</strong>：字节流、单读单写无锁高效（内核屏障实现），适合 UART RX→解析任务流水线；<strong>Message Buffer</strong>=其上封装定界消息。对比队列：队列保消息边界但每条有固定拷贝开销 —— 流式选 stream，报文选 queue。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch48"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 tasks/list/queue 三大核心文件的机制与数据结构</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解 PendSV 上下文切换与调度点的完整链路</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能依据场景选择 heap_1~5 内存方案并遵守 FromISR 纪律</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「FreeRTOS 源码框架解析」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter47.html"><span><span class="pager-label">上一章</span><b>第 47 章 · 工业网络抓包解析与排故实战</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter49.html"><span><span class="pager-label">下一章</span><b>第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战）</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 48 章 · FreeRTOS 源码框架解析 · 第七篇 · 嵌入式RTOS</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

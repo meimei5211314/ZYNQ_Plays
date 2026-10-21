@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 15 章 · PetaLinux 全流程实战 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 15 章 · PetaLinux 全流程实战：有了第12~14章的手工功底，现在让 PetaLinux 把整条流水线自动化 —— 这才是工业项目的日常工具。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch15" data-chapter-file="chapter15.html" data-chapter-label="第 15 章 · PetaLinux 全流程实战">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 15 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>PetaLinux 的本质</a>
+<a href="#sec-2"><span class="num">02</span>创建工程并导入硬件</a>
+<a href="#sec-3"><span class="num">03</span>四层配置入口速查</a>
+<a href="#sec-4"><span class="num">04</span>设备树定制标准姿势（PLC 篇反复使用）</a>
+<a href="#sec-5"><span class="num">05</span>加自己的应用与内核模块</a>
+<a href="#sec-6"><span class="num">06</span>构建、打包、烧写一条龙</a>
+<a href="#sec-7"><span class="num">07</span>高频命令速查表</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：BitBake 配方(.bb)解剖与 bbappend 叠加</a>
+<a href="#sec-10"><span class="num">10</span>深潜：内核/U-Boot 补丁与 devtool 工作流</a>
+<a href="#sec-11"><span class="num">11</span>深潜：镜像定制与包管理</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 15 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 15</div>
+      <h1 id="heroTitle">第 15 章<br><span class="grad">PetaLinux 全流程实战</span></h1>
+      <p class="hero-sub">有了第12~14章的手工功底，现在让 PetaLinux 把整条流水线自动化 —— 这才是工业项目的日常工具。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">15</div>
+          <div class="console-part">嵌入式 Linux / CH15</div>
+          <div class="console-title">PetaLinux 全流程实战</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>15 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 PetaLinux 工程创建→配置→定制→构建→打包全链路</li>
+<li class="goal-item">学会 system-user.dtsi / app / module 三类定制的标准姿势</li>
+<li class="goal-item">理解其 Yocto 本质，会查日志定位构建失败</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,704 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">15.1</span>PetaLinux 的本质</h3><p>PetaLinux 是包在 <strong>Yocto/OpenEmbedded</strong> 外面的工程管理器：你只维护「配置 + 少量配方(recipe)」，它负责拉源码、打补丁、编译 U-Boot/内核/rootfs、最终用 bootgen 打包。<strong>它不替代知识，只替代重复劳动</strong> —— 所以第二篇先手工后自动的路线是对的。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">15.2</span>创建工程并导入硬件</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">source /opt/pkg/petalinux/2020.2/settings.sh
+cd ~/work/plnx
+petalinux-create --type project --template zynq --name plnx_demo
+cd plnx_demo
+
+# 预下载加速（强烈建议，见4.4）：编辑 project-spec/meta-user/conf/petalinuxbsp.conf 追加：
+#   DL_DIR = "/home/user/work/downloads"
+#   SSTATE_DIR = "/home/user/work/sstate"
+
+petalinux-config --get-hw-description ~/work/fpga/ps_plc/xsa_dir/
+# 菜单：Linux Components → u-boot / kernel 版本确认 2020.2
+#       Image Packaging → Root filesystem type 先选 EXT4(SD卡默认)
+#       Yocto Settings → 确认 sstate/downloads 生效</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">15.3</span>四层配置入口速查</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>要改什么</th><th>命令</th><th>落盘位置</th></tr>
+<tr><td>硬件级(PCW)：DDR/时钟/MIO</td><td>回 Vivado 改 BD 重新导 XSA</td><td>-（PetaLinux 只消费）</td></tr>
+<tr><td>U-Boot 行为</td><td><code class="inline">petalinux-config -c u-boot</code></td><td>user config 片段叠加公版</td></tr>
+<tr><td>内核特性</td><td><code class="inline">petalinux-config -c kernel</code></td><td>config 片段（diff 可见）</td></tr>
+<tr><td>根文件系统软件包</td><td><code class="inline">petalinux-config -c rootfs</code></td><td>petalinuxbsp.conf/user-rootfsconfig</td></tr>
+<tr><td>设备树增补</td><td>直接编辑文件（见15.4）</td><td>meta-user/recipes-bsp/device-tree/files/system-user.dtsi</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">15.4</span>设备树定制标准姿势（PLC 篇反复使用）</h3><div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">/* 文件：project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi */
+/include/ "system-conf.dtsi"
+#include &lt;dt-bindings/gpio/gpio.h&gt;
+
+/ {
+    /* 第14章写的 plc_io 节点在这里落地 */
+    plc_io@43c10000 {
+        compatible = "demo,plc-io-v1";
+        reg = &lt;0x43c10000 0x1000&gt;;
+        interrupt-parent = &lt;&amp;intc&gt;;
+        interrupts = &lt;0 29 4&gt;;          /* IRQ_F2P[0] = GIC61 */
+    };
+
+    /* 关闭板卡上不存在的外设，避免无谓 probe */
+    /delete-node/ &amp;nand0;
+};
+
+/* 对已有节点做小改动：追加属性即可覆盖 */
+&amp;gem1 {
+    status = "okay";
+    phy-mode = "rgmii-id";
+    phy-handle = &lt;&amp;eth_phy&gt;;</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ 不要改自动生成区</span>
+<p><code class="inline">components/plnx_workspace/</code> 与 <code class="inline">build/</code> 下的一切都会被重建覆盖。所有手改只允许落在 <code class="inline">project-spec/meta-user/</code> 内 —— 这是 PetaLinux 给用户划的自留地。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">15.5</span>加自己的应用与内核模块</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 应用（C 模板，开机可执行文件放进镜像）
+petalinux-create -t apps --template install -n plcapp --enable
+#   替换 project-spec/meta-user/recipes-apps/plcapp/files/plcapp.c 后：
+petalinux-build -c plcapp
+
+# 内核模块（out-of-tree .ko，随镜像安装）
+petalinux-create -t modules -n plcio_drv --enable
+#   源码在 project-spec/meta-user/recipes-modules/plcio_drv/files/
+
+# rootfs 勾选常用包（menuconfig 里按 y）
+petalinux-config -c rootfs
+#   Filesystem Packages → misc-utils → gdbserver 开启（第24章要用）
+#   → network → lighttpd 开启（第33章 Web 监控要用）
+#   tcf-agent 建议关闭（省资源）</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">15.6</span>构建、打包、烧写一条龙</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">petalinux-build                          # 全量构建
+ls images/linux/
+#   zImage  system.dtb  system.dts  BOOT.BIN(fsbl+fpga+u-boot)
+#   image.ub(FIT: kernel+dtb+rootfs)  rootfs.ext4  rootfs.tar.gz ...
+
+# 方式A：SD 卡完整系统（FAT放BOOT.BIN+image.ub，ext4解包rootfs）
+cp images/linux/{BOOT.BIN,image.ub} /media/$USER/boot/
+sudo dd if=images/linux/rootfs.ext4 of=/dev/sdb2 conv=fsync
+# 或 sudo mkfs.ext4 /dev/sdb2 && 挂载后解压 rootfs.tar.gz
+
+# 方式B：NFS 开发模式（日常推荐）
+petalinux-config                         # Root FS type → NFS
+petalinux-build
+sudo rm -rf ~/work/rootfs/* && sudo tar xzf images/linux/rootfs.tar.gz -C ~/work/rootfs
+# U-Boot bootargs 用第11章 NFS 参数即可</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">15.7</span>高频命令速查表</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>场景</th><th>命令</th></tr>
+<tr><td>只重编内核</td><td><code class="inline">petalinux-build -c kernel</code></td></tr>
+<tr><td>只重打包 BOOT.BIN</td><td><code class="inline">petalinux-package --boot --format BIN --fsbl images/linux/zynq_fsbl.elf --fpga images/linux/*.bit --u-boot --force</code></td></tr>
+<tr><td>查看某包编译日志</td><td><code class="inline">build/tmp/work/&lt;arch&gt;/&lt;pkg&gt;/&lt;ver&gt;/temp/log.do_compile.*</code></td></tr>
+<tr><td>清理单包</td><td><code class="inline">petalinux-build -c &lt;pkg&gt; -x do_clean</code></td></tr>
+<tr><td>导出 SDK 给应用开发</td><td><code class="inline">petalinux-build --sdk && images/linux/sdk.sh</code></td></tr>
+<tr><td>QSPI 固化三件套</td><td><code class="inline">petalinux-package --boot --fsbl ... --fpga ... --u-boot && Program Flash</code></td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：首次构建超过 3 小时正常吗？</summary><div class="ans"><p>无 sstate 时属正常（Yocto 从零编几百个包）。务必配好离线 sstate/downloads（4.4节），二次构建同配置通常 &lt;30 分钟。增量构建只动你改过的包。</p></div></details>
+<details class="qa"><summary>Q2：构建报错 ERROR: ... Taskhash mismatch 或 do_fetch 失败？</summary><div class="ans"><p>do_fetch 多为网络问题——确认 DL_DIR 离线包路径正确或挂代理。Taskhash 类错误常见于混用了不同版本缓存：清理该包 do_clean 后重建。</p></div></details>
+<details class="qa"><summary>Q3：启动时刷屏 "macb ff0e0000.ethernet eth0: unable to generate target frequency"？或 eeprom 警告？</summary><div class="ans"><p>Xilinx 板级 EEPROM/MAC 相关告警在第三方板上是噪音，可安全忽略；真正要关注的是 gem1 PHY 是否 up（dmesg | grep eth）。PHY 地址不对则链路永远 down —— 回 DTS 修 reg。</p></div></details>
+<details class="qa"><summary>Q4：如何确认我的 dtsi 改动真的进了最终 DTB？</summary><div class="ans"><p><code class="inline">dtc -I dtb -O dts images/linux/system.dtb | less</code> 直接搜你的 compatible 字符串。养成「改树必验证」的习惯。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L15-1：完整交付一台 NFS 开发机</strong>
+<p>从空目录开始：建工程→导 XSA→开 gdbserver/lighttpd→加 plcapp（打印版本循环）→NFS 模式构建导出→U-Boot 引导进入系统。验收：① <code class="inline">which gdbserver lighttpd</code> 存在；② <code class="inline">plcapp</code> 手动运行正常；③ 在 Ubuntu 里改一行 plcapp 源码重新 build 后，板上重启应用即见新输出（体会 NFS 工作流效率）。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>对比手工链路（13~16章）与 PetaLinux：哪些环节它帮你自动化了？哪些仍必须你懂原理才能配对？</li>
+<li>为什么 meta-user 里的配方能覆盖官方同名配方？BitBake 的优先级机制是什么？</li>
+<li>若产品要求断网产线也能完整复现构建，你需要准备哪几样东西？（提示：sstate/downloads/源码镜像/XSA）</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">15.8</span>深潜：BitBake 配方(.bb)解剖与 bbappend 叠加</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># myapp_1.0.bb —— 一个配方的完整骨架
+SUMMARY = "PLC runtime application"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade6..."
+
+SRC_URI = "file://plc_runtime.c \
+           file://plc.conf"                    # 从 files/ 取源
+S = "${WORKDIR}"                                # 解包工作目录
+
+do_compile() {
+    ${CC} ${CFLAGS} plc_runtime.c -o plc_runtime
+}
+do_install() {
+    install -d ${D}${bindir}                    # D=目标根目录暂存区
+    install -m 0755 plc_runtime ${D}${bindir}
+    install -d ${D}${sysconfdir}/plc
+    install -m 0644 plc.conf ${D}${sysconfdir}/plc/
+}
+FILES_${PN} += "${sysconfdir}/plc"              # 声明产物归属(打包进主包)</code></pre></div>
+<p><strong>bbappend 追加修改官方配方</strong>（不碰上游）：如 <code class="inline">lighttpd_%.bbappend</code> 里 <code class="inline">FILESEXTRAPATHS_prepend := "${THISDIR}/files:"</code> + <code class="inline">SRC_URI += "file://my-lighttpd.conf"</code> + do_install_append 覆盖配置 —— 这是「改第三方行为」的标准姿势，升级版本不受影响。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">15.9</span>深潜：内核/U-Boot 补丁与 devtool 工作流</h3><ul>
+<li><strong>静态补丁</strong>：<code class="inline">SRC_URI += "file://0001-add-plc-dts.patch"</code> 放 meta-user 对应 .bbappend —— 构建时自动 quilt 应用；</li>
+<li><strong>交互式开发（推荐）</strong>：<code class="inline">devtool modify linux-xlnx</code> → 在 build/workspace 源码树直接改 → 编译验证 → <code class="inline">devtool finish linux-xlnx meta-user</code> 自动生成补丁回填 layer。这条链路把「改内核」变成可审计的 patch 序列。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">15.10</span>深潜：镜像定制与包管理</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># petalinuxbsp.conf 或自定义 image recipe：
+CORE_IMAGE_EXTRA_INSTALL += "gdbserver lighttpd modbus? libmodbus can-utils i2c-tools \
+                             vim strace tcpdump python3-pymodbus? openssh-sftp-server"
+# 包名查询：build/tmp/deploy/... 或 bitbake -s | grep xxx
+# 精简方向：移除 tcf-agent/openssh 换 dropbear、去 man/locale、用 musl? (PetaLinux默认glibc)</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>构建失败场景</th><th>首查位置</th><th>典型修法</th></tr>
+<tr><td>do_fetch 失败</td><td>网络/DL_DIR 路径</td><td>离线包就位或代理；URL 校验 md5 更新</td></tr>
+<tr><td>do_compile 错误</td><td>temp/log.do_compile 末尾 30 行</td><td>缺头文件→DEPENDS 加依赖包；gcc 版本警告转错误→KCFLAGS</td></tr>
+<tr><td>do_rootfs 冲突</td><td>log.do_rootfs "conflicts"</td><td>互斥包二选一（如 dropbear vs openssh-server）</td></tr>
+<tr><td>镜像缺文件</td><td>workdir/packages-split</td><td>FILES_${PN} 未声明安装路径</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch15"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 PetaLinux 工程创建→配置→定制→构建→打包全链路</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>学会 system-user.dtsi / app / module 三类定制的标准姿势</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>理解其 Yocto 本质，会查日志定位构建失败</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「PetaLinux 全流程实战」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter14.html"><span><span class="pager-label">上一章</span><b>第 14 章 · 内核编译与设备树基础</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter16.html"><span><span class="pager-label">下一章</span><b>第 16 章 · 根文件系统与 BusyBox</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 15 章 · PetaLinux 全流程实战 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

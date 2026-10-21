@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 27 章 · PL 侧 IO 引擎设计 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 27 章 · PL 侧 IO 引擎设计：本章交付软 PLC 的「硬件肌肉」：去抖 DI、自治 DO、PWM、AI 均值、中断汇聚 —— 全部封装为一个 AXI 从设备。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch27" data-chapter-file="chapter27.html" data-chapter-label="第 27 章 · PL 侧 IO 引擎设计">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 27 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>模块划分</a>
+<a href="#sec-2"><span class="num">02</span>寄存器映射 v1.0（软硬件合同，冻结！）</a>
+<a href="#sec-3"><span class="num">03</span>DI 滤波模块（核心 RTL）</a>
+<a href="#sec-4"><span class="num">04</span>PWM 发生器</a>
+<a href="#sec-5"><span class="num">05</span>中断汇聚与 AI 均值（要点）</a>
+<a href="#sec-6"><span class="num">06</span>集成与上板验证</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：IO 引擎的仿真验证与上板调试全流程 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 27 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 27</div>
+      <h1 id="heroTitle">第 27 章<br><span class="grad">PL 侧 IO 引擎设计</span></h1>
+      <p class="hero-sub">本章交付软 PLC 的「硬件肌肉」：去抖 DI、自治 DO、PWM、AI 均值、中断汇聚 —— 全部封装为一个 AXI 从设备。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">27</div>
+          <div class="console-part">软 PLC 实战 / CH27</div>
+          <div class="console-title">PL 侧 IO 引擎设计</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>5</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:36%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>27 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">完成 plc_io_engine 的模块设计与全部核心 RTL</li>
+<li class="goal-item">固化软硬件寄存器合同 v1.0</li>
+<li class="goal-item">用仿真+ILA 双重手段验证 IO 时序指标</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,887 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>5 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">27.1</span>模块划分</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">plc_io_engine/
+├── plc_io_engine.v        # 顶层：例化 AXI-Lite 从机模板(第9章方法) + 各功能块
+├── di_filter.v            # DI 去抖 + 边沿检测 + 事件锁存   (本节重点)
+├── pwm_gen.v              # 独立双路 PWM                     (本节重点)
+├── ai_avg.v               # XADC 读数滑动均值滤波
+└── irq_catch.v            # 中断源聚合 + 写1清除</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">27.2</span>寄存器映射 v1.0（软硬件合同，冻结！）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>偏移</th><th>名称</th><th>R/W</th><th>位定义</th></tr>
+<tr><td>0x00</td><td>ID</td><td>R</td><td>固定 0x504C_4331 ("PLC1")</td></tr>
+<tr><td>0x04</td><td>CTRL</td><td>R/W</td><td>bit0=全局使能, bit1=软件复位, bit8=中断使能(DI), bit9=中断使能(AI)</td></tr>
+<tr><td>0x08</td><td>DI_LEVEL</td><td>R</td><td>bit[7:0] 滤波后电平（1=有效）</td></tr>
+<tr><td>0x0C</td><td>DI_RISE</td><td>R/W1C</td><td>上升沿事件锁存，写 1 清除</td></tr>
+<tr><td>0x10</td><td>DI_FALL</td><td>R/W1C</td><td>下降沿事件锁存，写 1 清除</td></tr>
+<tr><td>0x14</td><td>DI_DEBCYCLE</td><td>R/W</td><td>[15:0] 去抖拍数（默认 500_000=10ms@50MHz）</td></tr>
+<tr><td>0x18</td><td>DO_OUT</td><td>R/W</td><td>bit[7:0] 逻辑输出值</td></tr>
+<tr><td>0x1C</td><td>DO_FORCE_EN</td><td>R/W</td><td>bit[i]=1 → 通道 i 被 FORCE_VAL 接管</td></tr>
+<tr><td>0x20</td><td>DO_FORCE_VAL</td><td>R/W</td><td>强制值</td></tr>
+<tr><td>0x24</td><td>AI_CH0</td><td>R</td><td>12bit 均值结果 &lt;&lt;4 | 有效标志</td></tr>
+<tr><td>0x28</td><td>AI_CH1</td><td>R</td><td>同上</td></tr>
+<tr><td>0x2C</td><td>PWM0_CFG</td><td>R/W</td><td>[31:16]=周期计数, [15:0]=占空比计数</td></tr>
+<tr><td>0x30</td><td>PWM1_CFG</td><td>R/W</td><td>同上</td></tr>
+<tr><td>0x34</td><td>EVT_TICKCNT</td><td>R</td><td>32bit 自由运行节拍计数（软件算周期用）</td></tr>
+<tr><td>0x38</td><td>IRQ_STATUS</td><td>R/W1C</td><td>bit0=DI事件挂起, bit1=AI就绪挂起</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">27.3</span>DI 滤波模块（核心 RTL）</h3><div class="code-block"><div class="code-head"><span class="code-lang">VERILOG</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="verilog">module di_filter #(
+    parameter WIDTH = 8,
+    parameter DEF_CYC = 500_000                 // 10ms @50MHz
+)(
+    input  wire             clk,
+    input  wire             rst_n,
+    input  wire [WIDTH-1:0] raw_in,             // 板级按键/开关（低有效已在外部处理）
+    input  wire [15:0]      deb_cycle,
+    output reg  [WIDTH-1:0] level,              // 稳定电平
+    output reg  [WIDTH-1:0] rise,               // 上升沿脉冲（同步到 clk 单周期）
+    output reg  [WIDTH-1:0] fall
+);
+    reg [WIDTH-1:0] sync_ff;                    // 两级同步（防亚稳态，22章！）
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) sync_ff &lt;= '0;
+        else        sync_ff &lt;= {sync_ff[WIDTH-2:0], raw_in};
+
+    genvar g;
+    generate for (g = 0; g &lt; WIDTH; g = g + 1) begin : CH
+        reg [15:0] cnt;
+        reg        stable;
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                cnt &lt;= '0; stable &lt;= 1'b0;
+            end else if (sync_ff[g] == stable) begin
+                cnt &lt;= '0;                      // 与当前稳态一致→清零重来
+            end else begin
+                // 输入异于稳态：持续计数，满 deb_cycle 拍才翻转
+                if (cnt >= deb_cycle - 1'b1) begin
+                    stable &lt;= sync_ff[g];       // 连续 N 拍一致才更新稳态
+                    cnt    &lt;= '0;
+                end else
+                    cnt &lt;= cnt + 1'b1;
+            end
+        end
+        assign level_bit = stable;
+    end endgenerate
+
+    wire [WIDTH-1:0] lv;
+    // ... 将各通道 stable 汇成 lv（工程上用数组端口，此处示意） ...
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            level &lt;= '0; rise &lt;= '0; fall &lt;= '0;
+        end else begin
+            level     &lt;= lv;
+            rise      &lt;=  lv &amp; ~level;          // 新旧相与出沿
+            fall      &lt;= ~lv &amp;  level;
+        end
+    end
+endmodule</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ 关于上面 generate 的写法</span>
+<p>为了版面简洁做了示意性省略（lv 汇聚与动态阈值）。<strong>请把它当伪码骨架</strong>：动手补全每通道 stable 数组化（用 <code class="inline">reg stable_arr[WIDTH-1:0]</code> + for 循环而非 generate），这正是 L27-1 的任务之一 —— 亲手补全的过程就是最好的练习。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">27.4</span>PWM 发生器</h3><div class="code-block"><div class="code-head"><span class="code-lang">VERILOG</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="verilog">module pwm_gen #(parameter DEF_PERIOD = 50_000)(   // 默认 1kHz@50MHz
+    input  wire        clk, rst_n, en,
+    input  wire [15:0] period, duty,           // 计数值：freq=clk/period
+    output reg         pwm_o
+);
+    reg [15:0] cnt;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)          cnt &lt;= '0;
+        else if (!en || period == '0) cnt &lt;= '0;
+        else if (cnt >= period - 1'b1) cnt &lt;= '0;
+        else                           cnt &lt;= cnt + 1'b1;
+    end
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)                       pwm_o &lt;= 1'b0;
+        else if (!en)                     pwm_o &lt;= 1'b0;
+        else                              pwm_o &lt;= (cnt &lt; duty);
+    end
+endmodule</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">27.5</span>中断汇聚与 AI 均值（要点）</h3><ul>
+<li><strong>irq_catch</strong>：把 DI 的 rise/fall 或非零事件 OR 起来置 <code class="inline">IRQ_STATUS.bit0</code>；AI 每 64 次采样完成置 bit1。<strong>只有 CTRL 对应使能位打开才输出到 IRQ_F2P[0]</strong>；软件写 1 清除对应挂起位后拉低中断线 —— 「电平型中断 + W1C」是 Linux 驱动最喜欢的模型。</li>
+<li><strong>ai_avg</strong>：对 XADC IP 的 AXI 读数做 16 点滑动窗均值，输出 <code class="inline">{valid, mean[11:0], 4'h0}</code> 打包进 0x24/0x28。</li>
+<li><strong>EVT_TICKCNT</strong>：自由跑的 32 位计数器，软件两次采样差即真实扫描耗时 —— R6 验收的数据源。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">27.6</span>集成与上板验证</h3><ol>
+<li>顶层把各模块接到第9章模板生成的 <code class="inline">slv_reg0..15</code>（扩展到 16 个寄存器）；对外引出 <code class="inline">di_i[7:0]/do_o[7:0]/pwm_o[1:0]</code>；</li>
+<li>BD 中：Add IP（仓库）→ S_AXI 自动连 SmartConnect/M_AXI_GP0 → <code class="inline">interrupt</code> 口连 <strong>xlconcat → IRQ_F2P[0]</strong>（ZYNQ PS 核勾选 IRQ_F2P）；di/do/pwm Make External 后 XDC 绑排针；</li>
+<li>Address Editor 记下基址（示例取 <strong>0x43C10000</strong>）→ Export XSA；</li>
+<li><strong>Vitis 裸机冒烟测试</strong>（先不上Linux）：Xil_Out32(ID)=0x504C4331 ✓ → 写 DEBCYCLE → 手按按键轮询 DI_LEVEL 变化 → 写 DO_FORCE 观察排针电平。全绿再进入第28章。</li>
+<li>ILA 复核：抓 raw_in 与 level 波形实测去抖窗口 ≈ 设定值 ±1 拍。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：DI 抖动偶尔漏事件？</summary><div class="ans"><p>检查三处：① 同步器是否两级且无中间组合逻辑；② rise/fall 锁存是否被软件清得太快导致覆盖（改为「事件置位保持直到 W1C」，即锁存器语义而非脉冲直通）；③ 去抖阈值期间发生的多次物理抖动合并为一次是设计预期，不是 bug。</p></div></details>
+<details class="qa"><summary>Q2：DO 强制功能写入后输出不变？</summary><div class="ans"><p>Force 是「每拍生效」的组合优先逻辑：<code class="inline">do_final = force_en ? force_val : do_out</code>。若写成仅在写寄存器瞬间采样就会失效。同时确认全局使能 bit0 已置位。</p></div></details>
+<details class="qa"><summary>Q3：PWM 占空比写 0 仍有一小尖峰？</summary><div class="ans"><p>duty==0 时比较恒假应恒低，出现尖峰说明 cnt==duty 相等瞬间被计入高段。修复：条件改 <code class="inline">(cnt &lt; duty) &amp;&amp; (duty != 0)</code>，或让 duty=period 表示常高。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L27-1：补全并证明它</strong>
+<p>① 补全 27.3 的 generate/汇聚省略部分，写出可综合完整版；② 编写 testbench：模拟一个带 3ms 抖动的按键波形，断言 level 仅翻转一次、rise 恰好一拍宽；③ 上板后用 devmem 冒烟（25章技能）逐寄存器核对合同表，截图归档 —— 这张「验收单」是 M1 里程碑的通关文牒。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 DI 事件要做成「锁存+W1C」而不是直接把脉冲送给 PS？（提示：扫描周期与事件到达的相位差）</li>
+<li>若把引擎时钟从 50MHz 换成 FCLK_CLK0 的 100MHz，哪些参数要联动修改？</li>
+<li>设计「看门狗喂狗信号由 PL 生成、PS 必须周期性清 EVENT_TICKCNT 才不触发硬件复位」的最小方案。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">27.7</span>深潜：IO 引擎的仿真验证与上板调试全流程 ★</h3><h4>① 分层 Testbench 结构（每个模块独立可回归）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>层级</th><td>测试对象</td><td>自检断言示例</td></tr>
+<tr><td>单元级</td><td>di_filter 单通道</td><td>注入「稳定20ms→翻转」波形，断言 rise 恰好 1 拍且时刻误差 ≤2 拍</td></tr>
+<tr><td>单元级</td><td>pwm_gen</td><td>duty=0 恒低 / duty=period 恒高 / 中途改占空比下一周期生效</td></tr>
+<tr><td>集成级</td><td>AXI 从机+全部寄存器</td><td>VIP 写读回所有 W1C 寄存器；Force 覆盖优先级矩阵（force_en×logic 值 4 组合）</td></tr>
+<tr><td>系统级</td><td>中断行为</td><td>事件→IRQ 拉高→写1清除→拉低，时序断言</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">VERILOG</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="verilog">/* 自检tb模板: 任务化激励+自动判分(5.9节风格) */
+task test_debounce(input int jitter_ns);
+    apply_key_with_jitter(jitter_ns);      /* 抖动模型: 随机毛刺+稳定段 */
+    @(posedge virt_done);
+    if (rise_cnt !== 1 || fall_seen) begin
+        $error("debounce FAIL j=%0d rises=%0d", jitter_ns, rise_cnt); err++;
+    end
+endtask
+initial begin
+    test_debounce(100_000);   /* 远小于阈值 */
+    test_debounce(9_900_000); /* 接近10ms阈值——边界! */
+    if (err==0) $display("*** IO-ENGINE TB PASS ***");
+    $finish;
+end</code></pre></div>
+
+<h4>② 上板 Bring-up 顺序（每步一条 devmem 铁证）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">Step1 时钟活: 读 TICKCNT(0x34) 两次差值 &gt;0          ← 一票否决项
+Step2 ID对:  devmem 0x43C10000 == 0x504C4331
+Step3 DI链:  手按按键, DI_LEVEL 对应位变化; DEBCYCLE 改大后响应变慢 ✓
+Step4 DO链:  FORCE 全置/全清, 万用表量排针电平
+Step5 PWM:   示波器测频率=clk/period, 占空比线性扫掠无死区
+Step6 AI:    电位器旋转 raw 单调变化, 断线标志触发
+Step7 中断:  /proc/interrupts GIC61 计数随按键增长; poll 收到事件
+/* 每一步通过才进下一步 —— 出问题立即锁定在本层, 这是 bring-up 纪律 */</code></pre></div>
+
+<h4>③ Bring-up 高频 Bug Top5（症状→根因）</h4>
+<ol>
+<li>TICK 不走 → ACLK 未连/复位极性反（低有效写成高有效）——占新工程故障 40%；</li>
+<li>ID 读回全 0 → 地址窗口错或 bitstream 是旧的（先查 Vivado 是否真的重新生成了 bit）；</li>
+<li>DI 电平反相 → 板卡按键低有效但 IP 按 high-active 设计 —— 在 XDC 或 IP 参数层统一约定；</li>
+<li>中断只来一次 → W1C 写的是「整字回写」把其他挂起位也清了 —— 必须读-改-写仅清本源位；</li>
+<li>PWM 有窄毛刺 → duty 边界比较含等号（27.4 FAQ 同源），仿真边界用例可提前拦截。</li>
+</ol></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch27"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>完成 plc_io_engine 的模块设计与全部核心 RTL</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>固化软硬件寄存器合同 v1.0</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>用仿真+ILA 双重手段验证 IO 时序指标</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「PL 侧 IO 引擎设计」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter26.html"><span><span class="pager-label">上一章</span><b>第 26 章 · 项目需求分析与总体架构</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter28.html"><span><span class="pager-label">下一章</span><b>第 28 章 · Linux 平台定制与 UIO 驱动</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 27 章 · PL 侧 IO 引擎设计 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

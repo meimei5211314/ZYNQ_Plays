@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 34 章 · 系统集成与开机自启 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 34 章 · 系统集成与开机自启：从「开发板上的程序」到「上电即用的设备」：自启、看门狗、版本化与升级通道。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch34" data-chapter-file="chapter34.html" data-chapter-label="第 34 章 · 系统集成与开机自启">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 34 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>交付物清单（Release Checklist）</a>
+<a href="#sec-2"><span class="num">02</span>开机自启与崩溃自愈</a>
+<a href="#sec-3"><span class="num">03</span>三级看门狗防线（R9 需求）</a>
+<a href="#sec-4"><span class="num">04</span>版本化与 QSPI 固化</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 34 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 34</div>
+      <h1 id="heroTitle">第 34 章<br><span class="grad">系统集成与开机自启</span></h1>
+      <p class="hero-sub">从「开发板上的程序」到「上电即用的设备」：自启、看门狗、版本化与升级通道。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">5 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">34</div>
+          <div class="console-part">软 PLC 实战 / CH34</div>
+          <div class="console-title">系统集成与开机自启</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>5</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>1</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:28%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>34 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>5</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>1</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">完成 PLC 服务的 sysvinit 自启与崩溃自愈</li>
+<li class="goal-item">落地三级看门狗防线</li>
+<li class="goal-item">掌握 QSPI 产品化固化与升级包制作</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,125 字 · 5 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 1 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">34.1</span>交付物清单（Release Checklist）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">release_v1.0/
+├── BOOT.BIN                 # fsbl + plc_io_engine.bit + u-boot（QSPI 固化）
+├── image.ub                 # kernel+dtb（含 generic-uio 节点）
+├── rootfs.tar.gz            # 含 /usr/bin/plc_runtime + gdbserver 移除版
+└── etc_plc/
+    ├── plc.conf             # 生产配置（端口/周期/安全输出策略）
+    ├── program.il           # 出厂逻辑（如星三角模板）
+    └── www/index.html       # 监控页面</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">34.2</span>开机自启与崩溃自愈</h3><div class="code-block"><div class="code-head"><span class="code-lang">SH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="sh">#!/bin/sh
+# /etc/init.d/S99plc —— PetaLinux 配方安装（16.5 方法）
+DAEMON=/usr/bin/plc_runtime
+PIDF=/var/run/plc.pid
+case "$1" in
+  start)
+    # 确保依赖就绪：uio 节点存在才启动
+    [ -d /sys/class/uio/uio0 ] || { echo "uio0 missing"; exit 1; }
+    start-stop-daemon -S -b -m -p $PIDF -x $DAEMON -- \
+        -c /etc/plc/plc.conf -p /etc/plc/program.il
+    ;;
+  stop)    start-stop-daemon -K -p $PIDF ;;
+  restart) $0 stop; sleep 1; $0 start ;;
+  *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">SH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="sh">#!/bin/sh
+# /etc/init.d/S98plcguard —— 简易守护：崩溃 3 次内自动拉起
+MAX=3; N=0
+while true; do
+    if ! [ -f /var/run/plc.pid ] || ! kill -0 $(cat /var/run/plc.pid) 2>/dev/null; then
+        N=$((N+1))
+        [ $N -gt $MAX ] && { logger "plc crash-loop, give up"; break; }
+        logger "plc down, restarting ($N/$MAX)"
+        /etc/init.d/S99plc start
+    fi
+    sleep 5
+done &</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">34.3</span>三级看门狗防线（R9 需求）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>级别</th><th>机制</th><th>响应时间</th></tr>
+<tr><td>L1 线程自检</td><td>scan 循环内检测自身 late_us 连续超限 → 记日志并自恢复（重同步 next）</td><td>1 周期内</td></tr>
+<tr><td>L2 进程级</td><td>plcguard 守护 + systemd 等价 Restart=always</td><td>~5s</td></tr>
+<tr><td>L3 硬件级</td><td>PS 硬件看门狗 /dev/watchdog + PL 心跳联合喂狗：仅当「进程活着且 PL TICK 在走」才喂</td><td>~10s 强制复位</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* L3 喂狗逻辑（独立 watchdog 线程，5s 周期）*/
+int wdt = open("/dev/watchdog", O_WRONLY);
+write(wdt, "1", 1);                       /* 启动，默认超时由设备树配置 */
+for (;;) {
+    sleep(5);
+    uint32_t tk = plcio_rd(REG_TICK);
+    if (g_running &amp;&amp; tk != g_last_tick &amp;&amp; st.fault == 0)
+        write(wdt, "w", 1);               /* 双条件满足才喂 */
+    g_last_tick = tk;
+    /* 不喂 → 硬件复位 → BOOT.BIN 重新走完整启动链（约 15s）*/
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">34.4</span>版本化与 QSPI 固化</h3><ul>
+<li>构建脚本注入版本：C 宏 <code class="inline">BUILD_TS/__DATE__</code> + bitstream 的 ID 寄存器高位编版本 → Web 页与 <code class="inline">/api/status</code> 一并上报，现场对版一目了然；</li>
+<li>QSPI 固化（13.6 流程）：BOOT.BIN 写 0x0；image.ub 与 rootfs 仍留 SD/eMMC（QSPI 32MB 放不下完整 rootfs，属正常工程取舍）；</li>
+<li>升级包 = <code class="inline">tar czf plc_update.tgz BOOT.BIN image.ub etc_plc/ install.sh</code>；U 盘插入后 install.sh 校验 md5 → 备份旧版 → 替换 → 重启。OTA 双分区方案作为 36 章展望。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：自启脚本执行了但进程不在？</summary><div class="ans"><p>① rcS 阶段 uio 尚未就绪 —— S99 序号保证晚于驱动加载，仍失败则脚本内加 udevadm settle 或重试；② start-stop-daemon -b 后台化时 stdout 丢失，日志务必走 syslog/文件；③ 工作目录假设错误 —— 一律用绝对路径。</p></div></details>
+<details class="qa"><summary>Q2：看门狗把正常运行的系统复位了？</summary><div class="ans"><p>喂狗条件写得太严（如 PL TICK 判定窗口过短）或 wdt 超时小于喂狗周期。先 <code class="inline">cat /proc/sys/kernel/watchdog? 用 /sys/class/watchdog/watchdog0/timeout</code> 核对，留 2 倍裕量。</p></div></details>
+<details class="qa"><summary>Q3：升级中途断电变砖？</summary><div class="ans"><p>单分区覆盖式升级的固有风险。缓解：A/B 分区 + uboot 启动计数回退（13章思考题方案），或至少保证 BOOT.BIN 原子写入（先写临时偏移再改启动指针超出 QSPI 简单方案能力，需 eMMC 方案）。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L34-1：整机交付演练</strong>
+<p>① 制作 release_v1.0 目录并烧写 QSPI+SD；② 断电重启验证：60 秒内 Web 可访问、Modbus 可读；③ 依次模拟三级故障（kill 运行时 / 停止喂狗线程 / 拔网线）观察自愈行为并记录时间线；④ 制作升级包在另一台「客户板」上完成升级演练。通过后进入最终验收章。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 L3 喂狗要同时检查进程存活与 PL 心跳？只查其一分别漏掉什么故障？</li>
+<li>设计「安全输出默认值」配置：RUN 停止/FAULT/断电恢复三种场景下各通道的期望状态表。</li>
+<li>若客户要求 7×24 连续运行 MTBF&gt;1 年，你会增加哪些测试项来逼近验证？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch34"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>完成 PLC 服务的 sysvinit 自启与崩溃自愈</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>落地三级看门狗防线</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 QSPI 产品化固化与升级包制作</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「系统集成与开机自启」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter33.html"><span><span class="pager-label">上一章</span><b>第 33 章 · Web 监控界面</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter35.html"><span><span class="pager-label">下一章</span><b>第 35 章 · 综合案例与验收测试</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 34 章 · 系统集成与开机自启 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

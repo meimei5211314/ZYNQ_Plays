@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附录 C · 项目深挖 / 系统设计 / 行为面（18 题） | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="附录 C · 项目深挖 / 系统设计 / 行为面（18 题）：决定 Offer 的最后一轮：项目真实性的「拷打」与系统思维的展示。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-appendix" data-chapter-id="appc" data-chapter-file="appendix-c.html" data-chapter-label="附录 C · 项目深挖 / 系统设计 / 行为面（18 题）">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>附录 C · 面试与速查</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>C1 软 PLC 项目拷问链（把本项目写上简历前必背）</a>
+<a href="#sec-2"><span class="num">02</span>C2 系统设计题（白板架构能力）</a>
+<a href="#sec-3"><span class="num">03</span>C3 行为面试与反问环节</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 附录 C</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">附录 · 面试题库 / Chapter C</div>
+      <h1 id="heroTitle">附录 C<br><span class="grad">项目深挖 / 系统设计 / 行为面（18 题）</span></h1>
+      <p class="hero-sub">决定 Offer 的最后一轮：项目真实性的「拷打」与系统思维的展示。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">3 个小节</span>
+        <span class="meta-chip">15 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">C</div>
+          <div class="console-part">面试与速查 / APPC</div>
+          <div class="console-title">项目深挖 / 系统设计 / 行为面（18 题）</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>3</b></div>
+            <div class="console-metric"><span>CODE</span><b>0</b></div>
+            <div class="console-metric"><span>TBL</span><b>0</b></div>
+            <div class="console-metric"><span>QA</span><b>15</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:39%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>C / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>3</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>0</b><span>速查表格</span></div>
+    <div class="stat"><b>15</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">能独立回答「C1 软 PLC 项目拷问链（把本项目写上简历前必背）」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「C2 系统设计题（白板架构能力）」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「C3 行为面试与反问环节」相关问题，并说明关键取舍。</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>附录 · 面试题库</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>1,944 字 · 3 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 0 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>15 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        面试题库与术语速查，把知识转成可表达的能力。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">C1 软 PLC 项目拷问链（把本项目写上简历前必背）</h3><details class="qa"><summary>Q1 你的 PLC 扫描周期 10ms 是怎么保证的？抖动多大？</summary><div class="ans"><p>【答题框架】机制（CLOCK_MONOTONIC 绝对时间睡眠防漂移）→ 数据（30min 实测 avg/max/P99，引用 L20-1/L35 报告）→ 干扰源分析（日志IO/调度/NFS）→ 兜底（看门狗+安全输出）。有数字、有归因、有兜底 = 真做过。</p></div></details>
+<details class="qa"><summary>Q2 如果上位机主站以 1ms 频率轮询你的 Modbus 从站，会发生什么？怎么改？</summary><div class="ans"><p>【要点】先算账：单请求 RTT ~3ms &gt; 1ms → 请求堆积。方案分层：①协议层并发处理（连接池）；②映像区读操作无锁快照（seqlock/RCU 思想）；③推送代替轮询（事件触发上报）；④明确告知客户物理边界 —— 工程师的价值在给出可行域而非硬扛。</p></div></details>
+<details class="qa"><summary>Q3 你的看门狗会不会误复位正常系统？如何验证？</summary><div class="ans"><p>【要点】三级防线设计回顾（34章）+ 喂狗双条件（进程活且 PL 心跳走）。验证方法：故障注入矩阵（kill/暂停调度/拔 PL 时钟），统计误动作率与漏动作率；超时留 2 倍裕量的依据。</p></div></details>
+<details class="qa"><summary>Q4 DI 输入为什么在 PL 做去抖而不是 Linux 里做？</summary><div class="ans"><p>【要点】确定性（硬件滤波不受负载影响）、事件不丢（锁存+W1C 对抗扫描相位差）、CPU 卸载。追问延伸：如果去抖参数要运行时可调怎么办？（寄存器化 DEBCYCLE —— 已实现）。</p></div></details>
+<details class="qa"><summary>Q5 双机热备怎么做？说出你最先解决的三个问题。</summary><div class="ans"><p>【要点】①状态同步（映像区周期快照+序号，冲突仲裁策略）；②切换判据与脑裂防护（心跳多路径+仲裁者）；③输出侧无缝（主从 DO 硬件互锁或 PL 层仲裁开关）。能主动说「这是设计题，我需要先问 RTO/RPO 指标」是加分项。</p></div></details>
+<details class="qa"><summary>Q6 EtherCAT 为什么比普通工业以太网快？</summary><div class="ans"><p>【要点】飞行的读写（帧过节点即处理转发，存储转发延迟消除）、分布式时钟(DC)亚微秒同步、拓扑灵活。对比 Modbus 主从轮询模型。引到自己路线图（SOEM 实验）最自然。</p></div></details></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2">C2 系统设计题（白板架构能力）</h3><details class="qa"><summary>Q7 设计一个「100 台电表数据采集网关」，要求断网不丢数。</summary><div class="ans"><p>【框架】需求澄清(协议/点表/频率/留存时长) → 南向采集池(Modbus 多会话+自适应超时) → 边缘存储(SQLite WAL 分级保留) → 北向队列(MQTT QoS1+水位补传) → 运维面(Web+OTA+看门狗) → 容量估算(写入 TPS vs SQLite 承载) → 失效模式清单。参考第41章 P2 蓝图展开。</p></div></details>
+<details class="qa"><summary>Q8 为你的 PLC 设计 OTA 升级方案。</summary><div class="ans"><p>【要点】分区布局(A/B rootfs + 独立数据区) → uboot 计数回退 → 包签名校验(防变砖+防篡改) → 断点续传 → 回滚演练流程。至少答出「绝不原地覆盖唯一系统镜像」这条底线。</p></div></details>
+<details class="qa"><summary>Q9 设计多协议转换器（Modbus↔OPC UA↔MQTT），谈谈数据建模。</summary><div class="ans"><p>【要点】核心抽象：统一信息模型（tag 字典+类型系统）居中，各协议做成可插拔南/北向适配器；语义映射表配置化；一致性由单一真源映像区保证。展示「协议是无所谓表皮，模型才是资产」的认知。</p></div></details></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3">C3 行为面试与反问环节</h3><details class="qa"><summary>Q10 讲一个你遇到的最难的技术问题。（STAR 法则示范）</summary><div class="ans"><p>【模板】S:PLC 偶发输出毛刺，现场三天两次 / T:定位并根治 / A:按五层二分——ILA 抓到 DI 锁存被 W1C 过早清除的窗口竞态 / R:改为事件置位保持语义，回归 500 次零复发，并把该模式写进团队检查清单。<strong>重点展示排查路径的可复现性</strong>，而不是玄学运气。</p></div></details>
+<details class="qa"><summary>Q11 你没有 X 经验/不是科班，凭什么胜任？</summary><div class="ans"><p>【要点】证据法回应：用课程产出物说话（6000 行代码、验收报告、性能数据）；展示学习系统的有效性（42章方法论）；承认差距并给出补齐时间表。忌辩解、忌空喊热情。</p></div></details>
+<details class="qa"><summary>Q12 你和导师/同事在技术方案上冲突过吗？</summary><div class="ans"><p>【要点】结构：分歧事实→各自的依据→用实验数据裁决（如 A/B 测试扫描抖动）→结果与关系维护。体现「对事不对人 + 数据说话」。</p></div></details>
+<details class="qa"><summary>Q13 反问环节问什么？（别浪费这个加分机会）</summary><div class="ans"><p>【推荐】①团队当前最大的技术痛点是什么？②这个岗位前三个月的成功标准？③代码评审与测试文化现状？④产品下一步架构演进方向？避免只问薪资加班 —— 问工作内容质量才显得你是来做事的。</p></div></details>
+<details class="qa"><summary>Q14 你未来 3~5 年的规划？</summary><div class="ans"><p>【要点】绑定岗位路径：1 年内独立交付模块（对应 L2→L3 能力矩阵）→ 3 年成为某子系统 owner → 5 年方向二选一（专家线：实时系统/高速接口深耕；管理线：带小型攻坚团队）。展示你用过 42 章矩阵认真规划过。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 使用提示</strong>
+<p>行为面的本质是<strong>用具体故事证明抽象品质</strong>。请提前为每个品质（坚韧/协作/学习力）准备两个真实故事并写成 STAR 卡片，面试前默演三遍。所有故事必须来自你真实做过的实验 —— 这就是本课程坚持「每章动手」的最终回报。</p><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>能独立回答「C1 软 PLC 项目拷问链（把本项目写上简历前必背）」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>能独立回答「C2 系统设计题（白板架构能力）」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能独立回答「C3 行为面试与反问环节」相关问题，并说明关键取舍。</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「项目深挖 / 系统设计 / 行为面（18 题）」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="appendix-b.html"><span><span class="pager-label">上一章</span><b>附录 B · C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="appendix-d.html"><span><span class="pager-label">下一章</span><b>附录 D · 工业自动化术语速查表（70 条）</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>附录 C · 项目深挖 / 系统设计 / 行为面（18 题） · 附录 · 面试题库</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+</body>
+</html>

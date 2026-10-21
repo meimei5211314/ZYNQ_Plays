@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 22 章 · 时序分析与时序收敛 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 22 章 · 时序分析与时序收敛：「仿真通过、上板偶发出错」的头号元凶是时序违例与跨时钟域缺陷 —— 本章给你系统化的防御工事。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-debug" data-chapter-id="ch22" data-chapter-file="chapter22.html" data-chapter-label="第 22 章 · 时序分析与时序收敛">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 22 章 · 调试验证</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>时序检查的物理本质</a>
+<a href="#sec-2"><span class="num">02</span>约束体系实战</a>
+<a href="#sec-3"><span class="num">03</span>看报告的标准动作</a>
+<a href="#sec-4"><span class="num">04</span>违例修复套路（按优先级）</a>
+<a href="#sec-5"><span class="num">05</span>CDC 专题：工业事故重灾区 ★</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：生成时钟自动识别与 input_delay 实测法</a>
+<a href="#sec-8"><span class="num">08</span>深潜：一次真实收敛案例复盘</a>
+<a href="#sec-9"><span class="num">09</span>深潜：时序收敛完整工作流与实战判例 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 22 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第三篇 · 调试验证 / Chapter 22</div>
+      <h1 id="heroTitle">第 22 章<br><span class="grad">时序分析与时序收敛</span></h1>
+      <p class="hero-sub">「仿真通过、上板偶发出错」的头号元凶是时序违例与跨时钟域缺陷 —— 本章给你系统化的防御工事。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">9 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">22</div>
+          <div class="console-part">调试验证 / CH22</div>
+          <div class="console-title">时序分析与时序收敛</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>9</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>22 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>9</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">读懂 report_timing_summary，定位 WNS 违例路径</li>
+<li class="goal-item">掌握完整约束体系：时钟/IO延迟/伪路径/多周期</li>
+<li class="goal-item">建立 CDC（跨时钟域）设计的条件反射</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第三篇 · 调试验证</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,677 字 · 9 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        ILA、时序、GDB 与内核排障，建立可验证的工程习惯。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">22.1</span>时序检查的物理本质</h3><p>寄存器到寄存器路径要求：数据在<strong>捕获沿之前</strong>提前到达并稳定（Setup 检查），且在捕获沿后保持足够时间（Hold 检查）。一条路径的时序余量 = 允许时间 − 实际耗时，其中实际耗时包括源/目的触发器时钟偏斜、组合逻辑与布线延迟。</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>指标</th><th>含义</th><th>合格标准</th></tr>
+<tr><td>WNS (Worst Negative Slack)</td><td>全设计最差建立裕量</td><td>≥ 0（越大越好）</td></tr>
+<tr><td>TNS (Total NS)</td><td>所有违例路径裕量之和</td><td>= 0（无任何违例）</td></tr>
+<tr><td>WHS</td><td>最差保持裕量</td><td>≥ 0</td></tr>
+<tr><td>Failing Endpoints</td><td>违例端点数</td><td>0</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">22.2</span>约束体系实战</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># ---------- 领航者工程通用约束模板 ----------
+# 1) 主时钟：板载 50MHz
+create_clock -period 20.000 -name sys_clk [get_ports sys_clk]
+
+# 2) PS 提供给 PL 的 FCLK 由 Vivado 自动约束（BD 工程），无需手写
+
+# 3) 输入输出延迟（按键/LED 等低速信号可简化，高速接口必须精确）
+set_input_delay  -clock sys_clk 2.0 [get_ports key*]
+set_output_delay -clock sys_clk 2.0 [get_ports led*]
+
+# 4) 跨时钟域：声明为异步组（前提：你已做同步器！）
+set_clock_groups -asynchronous \
+    -group [get_clocks sys_clk] \
+    -group [get_clocks clk_fpga_1]      # FCLK_CLK1 例
+
+# 5) 真正无需时序检查的信号（如复位异步使用）
+set_false_path -from [get_ports rst_n]
+
+# 6) 多周期路径：使能信号每 N 拍才有效一次
+# set_multicycle_path 2 -setup -from [get_pins src/Q] ...</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">22.3</span>看报告的标准动作</h3><ol>
+<li>实现完成后 <strong>Reports → Report Timing Summary</strong>；</li>
+<li>先看总览页四项指标 —— 全绿则收工；</li>
+<li>有红 → 展开 <em>Intra-Clock: sys_clk → Setup</em> → 双击最差路径打开 <strong>Path Details</strong>；</li>
+<li>读三要素：<strong>Source/Destination 寄存器名</strong>（定位代码）、<strong>Data Path Delay 构成</strong>（logic vs route 占比）、<strong>Clock Skew</strong>；</li>
+<li>右键路径 → Schematic 查看物理结构辅助判断。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">22.4</span>违例修复套路（按优先级）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><th>适用</th><th>代价</th></tr>
+<tr><td>① 流水线切割（插一级寄存器）</td><td>组合链过长（比较器/乘法级联）</td><td>+1拍延迟，改下游时序假设</td></tr>
+<tr><td>② retiming / 物理优化提示</td><td>布线拥塞主导</td><td>编译时间↑</td></tr>
+<tr><td>③ 寄存器复制（fanout过大）</td><td>高扇出控制信号</td><td>面积↑</td></tr>
+<tr><td>④ 降频或分频域</td><td>算法允许更低速率</td><td>性能↓</td></tr>
+<tr><td>⑤ pblock 物理约束</td><td>跨区长线</td><td>维护成本，最后 resort</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">22.5</span>CDC 专题：工业事故重灾区 ★</h3><p>两个异步时钟域之间的信号直接传递 = 亚稳态随机传播。<strong>规则：任何跨域信号必须有同步机制</strong>：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>传输内容</th><th>正确做法</th></tr>
+<tr><td>单 bit 电平（使能/状态）</td><td>目的域两级 FF 同步器（打两拍）</td></tr>
+<tr><td>单 bit 脉冲</td><td>源域转电平翻转(toggle) → 同步 → 目的域边沿检测还原</td></tr>
+<tr><td>多 bit 总线（如计数值）</td><td>格雷码编码 + 两级同步（仅适用于顺序变化量）；或握手(req/ack)</td></tr>
+<tr><td>成批数据流</td><td>异步 FIFO（BRAM 自带双时钟口），别自己发明轮子</td></tr>
+</table></div>
+<div class="box danger"><span class="bt">🚨 血泪守则</span>
+<p>「先跑通再说」的 CDC 在实验室温度下可能数月不出错，客户现场高温老化三天必现灵异复位。评审任何设计时，第一问永远是：<strong>你的时钟树有几棵？跨在哪里？怎么同步的？</strong></p></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：报告里几千条 unconstrained paths 警告要紧吗？</summary><div class="ans"><p>分两类：输入端口无 input_delay 的属于「未定义但可控」（补约束）；完全无时钟关系的组合输出可能真漏了 create_generated_clock。原则：<strong>让每一拍都有归属</strong>，而不是靠 set_false_path 大扫除掩盖问题。</p></div></details>
+<details class="qa"><summary>Q2：50MHz 低速设计还需要看时序吗？</summary><div class="ans"><p>需要。低频不豁免 Hold/CDC 问题；且 PL 与 AXI 互联部分工作在 100MHz+。养成每个实现都瞄一眼 Timing Summary 的习惯，成本 10 秒。</p></div></details>
+<details class="qa"><summary>Q3：为什么综合过了实现却违例？</summary><div class="ans"><p>综合用估算线载模型，布局布线后才见真实延迟。若实现阶段 WNS 为负但绝对值小，可先尝试 <code class="inline">phys_opt_design</code> 增强档位再判修复策略。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L22-1：亲手制造并治愈一次违例</strong>
+<p>写一个 32 位组合比较链（A==B 且 B&gt;C 且 …8 级串联）跑在 200MHz MMCM 上，观察 WNS 变负；依次尝试流水线切割/降频/pblock 三种方案记录效果。然后构造一个「计数器总线直接跨域」bug，观察 ILA 波形抓到的撕裂值，再用格雷码修复验证。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>Hold 违例为什么不能靠降频解决？它通常由什么引起？</li>
+<li>PS 的 FCLK_CLK0 与板载 50MHz 属于什么关系？PL 内两者交互应遵守什么规则？</li>
+<li>PLC IO 引擎中「PS 写 DO 寄存器」这条 AXI 路径如果违例，故障表现会是什么形态？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">22.6</span>深潜：生成时钟自动识别与 input_delay 实测法</h3><ul>
+<li><strong>MMCM/PLL 输出</strong>：Vivado 自动创建 generated clock（名字如 <code class="inline">clk_out1_clk_wiz</code>），无需手写；只有<strong>逻辑分频</strong>（FF 打一拍输出做时钟）才必须手动 <code class="inline">create_generated_clock -source [get_pins div/Q]</code> —— 漏写的典型症状：报告里出现 unconstrained internal clocks；</li>
+<li><strong>input_delay 怎么定</strong>？系统同步（源同步对端给时钟）：delay = Tco(max) + 板走线差；系统异步单端（按键类）：给个保守 2~3ns 即可，重点是"有约束"而非"精确"；高速源同步接口(DDR/LVDS)则必须按数据手册的 skew 规格逐项计算 —— 这是接口调试成败的分水岭。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">22.7</span>深潜：一次真实收敛案例复盘</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">现象: 100MHz 域 WNS=-0.8ns, 违例路径: cnt[31:0]比较器→状态译码→mux
+分析: DataPath Delay=10.7ns 中 logic 4.2/route 6.5 → 布线主导+级数多
+处置(按序尝试):
+ ① retiming? 无效(跨模块边界)
+ ② 切流水: 在比较结果后插一级寄存器, 下游延迟敏感点用"提前一拍使能"补偿
+    → WNS=+0.35ns ✓ 代价: 该分支输出晚一拍, 用一个"影子计数"保持语义等价
+教训: 时钟周期紧张时, "先切后修"优于死磕布线; 修改必须连带更新 tb 预期。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">22.8</span>深潜：时序收敛完整工作流与实战判例 ★</h3><h4>① 从零到收敛的四步约束清单</h4>
+<ol>
+<li><strong>时钟</strong>：所有 create_clock / 确认 MMCM 自动生成时钟出现在报告里；</li>
+<li><strong>CDC 声明</strong>：report_cdc 逐条审 —— 每条跨域路径要么有同步器（标 asynchronous 组），要么就是缺陷；</li>
+<li><strong>IO 时序</strong>：源同步接口按手册 skew 算 input/output delay；慢速 IO 给保守值；</li>
+<li><strong>例外</strong>：false_path/multicycle 逐条附注释说明"为什么安全" —— 无注释的例外=未来的事故。</li>
+</ol>
+<h4>② Multicycle 实战判例（最易写错的约束）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">场景: 使能信号每 2 拍才有效一次, 数据路径允许 2 个周期完成
+正确写法(必须成对!):
+  set_multicycle_path 2 -setup -from [get_pins en_reg/Q] -to [get_pins dst_reg/D]
+  set_multicycle_path 1 -hold  -from [get_pins en_reg/Q] -to [get_pins dst_reg/D]
+/* 忘写 -hold 是经典错误: setup 放宽的同时 hold 被隐性收紧一拍 → hold 违例!
+   口诀: setup 放 N, hold 放 N-1 */</code></pre></div>
+<h4>③ 收敛决策流程（WNS 分级处置）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">WNS ∈ (-0.1, 0)  → phys_opt_design 增强档重跑, 多半白捡
+WNS ∈ (-1.0,-0.1) → 找 Top 路径: logic占比高→切流水; route高→pblock/复制寄存器
+WNS &lt; -1.0       → 架构问题: 该域频率不现实, 回到设计层(降频/改算法)
+HOLD 违例        → 与频率无关! 只能: 加延迟单元/改布线约束/换引脚 —— 立即处理
+/* report_cdc 的 Unsafe 输出 = 强制整改项, 不允许"先跑起来再说" */</code></pre></div>
+<h4>④ report_timing_summary 精读三分钟训练</h4>
+<p>拿到报告先看四行总览（WNS/TNS/WHS/Failing Endpoints），全绿收工；有红则进 Intra-Clock 最差路径读五要素：<strong>Source/Destination 寄存器名</strong>（定位代码）、<strong>Slack 公式分解</strong>（required−arrival）、<strong>Data Path</strong> 中 logic vs route 占比、<strong>Clock Skew/Pessimism</strong>（时钟不确定性是否被重复计入）、<strong>Schematic 链接</strong>核对物理结构。把这套动作练成 3 分钟肌肉记忆。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch22"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>读懂 report_timing_summary，定位 WNS 违例路径</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握完整约束体系：时钟/IO延迟/伪路径/多周期</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立 CDC（跨时钟域）设计的条件反射</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「时序分析与时序收敛」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter21.html"><span><span class="pager-label">上一章</span><b>第 21 章 · ILA/VIO 在线逻辑调试</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter23.html"><span><span class="pager-label">下一章</span><b>第 23 章 · JTAG 裸机调试</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 22 章 · 时序分析与时序收敛 · 第三篇 · 调试验证</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

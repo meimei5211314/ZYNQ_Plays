@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 6 章 · 第一个 FPGA 工程：纯 PL 流水灯 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 6 章 · 第一个 FPGA 工程：纯 PL 流水灯：完整走通「建工程 → 写代码 → 加约束 → 综合 → 实现 → 烧写 → 验证」—— 这条流水线你将重复上百次。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch06" data-chapter-file="chapter6.html" data-chapter-label="第 6 章 · 第一个 FPGA 工程：纯 PL 流水灯">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 6 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>创建工程</a>
+<a href="#sec-2"><span class="num">02</span>设计输入</a>
+<a href="#sec-3"><span class="num">03</span>编译流水线：每个阶段在做什么？</a>
+<a href="#sec-4"><span class="num">04</span>JTAG 下载验证</a>
+<a href="#sec-5"><span class="num">05</span>固化到 QSPI Flash</a>
+<a href="#sec-6"><span class="num">06</span>认识 Vivado 工程结构（Git 必备知识）</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：工程模板化 —— 十分钟起新项目</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 6 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 06</div>
+      <h1 id="heroTitle">第 6 章<br><span class="grad">第一个 FPGA 工程：纯 PL 流水灯</span></h1>
+      <p class="hero-sub">完整走通「建工程 → 写代码 → 加约束 → 综合 → 实现 → 烧写 → 验证」—— 这条流水线你将重复上百次。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">06</div>
+          <div class="console-part">基础知识 / CH06</div>
+          <div class="console-title">第一个 FPGA 工程：纯 PL 流水灯</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>3</b></div>
+            <div class="console-metric"><span>TBL</span><b>1</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:21%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>06 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>1</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">独立完成一个 Vivado 工程从零到上板的全流程</li>
+<li class="goal-item">理解综合/实现/比特流各阶段做了什么</li>
+<li class="goal-item">掌握 JTAG 临时下载与 QSPI 固化两种烧写方式</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,055 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 1 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">6.1</span>创建工程</h3><ol>
+<li>启动 Vivado → <strong>Create Project</strong> → RTL Project，勾选 <em>Do not specify sources at this time</em>。</li>
+<li>器件选择：<code class="inline">xc7z020clg484-1</code>（领航者对应型号，Package=clg484，Speed=-1/-2 以丝印为准）。可收藏为默认部件避免每次搜索。</li>
+<li>工程名 <code class="inline">pl_flow_led</code>，路径<strong>无中文无空格</strong>（如 <code class="inline">D:\work\fpga\pl_flow_led</code>）。</li>
+</ol>
+<div class="box note"><span class="bt">📌 为什么是 -1 速度等级？</span>
+<p>Vivado 器件列表中 xc7z020clg484 有 -1/-2/-3 变体，代表速度等级。选高等级综合时序更宽松但真实芯片不支持。正点原子领航者资料通常按 <strong>-1</strong> 教学（保守稳妥），若你确认板卡为 -2 芯片也可选 -2。不确定就选 -1 —— 时序报告偏悲观总好过假乐观。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">6.2</span>设计输入</h3><p><strong>Add Sources → Add or create design sources → Create File</strong>，新建 <code class="inline">flow_led.v</code>：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">VERILOG</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="verilog">module flow_led #(
+    parameter CNT_MAX = 12_500_000        // 50MHz / 12.5M = 4Hz 移位节拍
+)(
+    input  wire       sys_clk,            // 板载 50MHz（引脚查原理图）
+    input  wire       rst_n,              // 复位按键（低有效）
+    output wire [3:0] led                 // 4 个用户 LED（引脚查原理图）
+);
+
+reg [23:0] cnt;                           // 2^24 = 16.7M &lt; 12.5M? 注意：需 24 位即可装下 1250 万
+
+always @(posedge sys_clk or negedge rst_n) begin
+    if (!rst_n)
+        cnt &lt;= 24'd0;
+    else if (cnt == CNT_MAX - 1'b1)
+        cnt &lt;= 24'd0;
+    else
+        cnt &lt;= cnt + 1'b1;
+end
+
+reg [3:0] led_r;
+
+always @(posedge sys_clk or negedge rst_n) begin
+    if (!rst_n)
+        led_r &lt;= 4'b0001;                              // 初始点亮 LED0
+    else if (cnt == CNT_MAX - 1'b1)
+        led_r &lt;= {led_r[2:0], led_r[3]};               // 循环左移
+end
+
+assign led = led_r;                       // 若板卡 LED 低电平点亮，改为 ~led_r
+
+endmodule</code></pre></div>
+
+<p><strong>Add Sources → Add or create constraints</strong>，新建 <code class="inline">flow_led.xdc</code>（引脚号务必替换为你第3章查图结果）：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># 时钟
+set_property -dict {PACKAGE_PIN N18 IOSTANDARD LVCMOS33} [get_ports sys_clk]
+create_clock -period 20.000 -name sys_clk [get_ports sys_clk]
+# 复位按键
+set_property -dict {PACKAGE_PIN C10 IOSTANDARD LVCMOS33} [get_ports rst_n]
+# 4 个 LED（示例引脚，以原理图为准）
+set_property -dict {PACKAGE_PIN H17 IOSTANDARD LVCMOS33} [get_ports {led[0]}]
+set_property -dict {PACKAGE_PIN K15 IOSTANDARD LVCMOS33} [get_ports {led[1]}]
+set_property -dict {PACKAGE_PIN J15 IOSTANDARD LVCMOS33} [get_ports {led[2]}]
+set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVCMOS33} [get_ports {led[3]}]</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">6.3</span>编译流水线：每个阶段在做什么？</h3><p>点击左侧 <strong>Flow Navigator</strong> 依次执行：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>阶段</th><th>按钮</th><th>做的事</th><th>产物</th></tr>
+<tr><td>综合 Synthesis</td><td>Run Synthesis</td><td>RTL → 门级网表（把代码翻译成 LUT/FF/BRAM 连接关系）并做首次逻辑优化</td><td>.dcp 网表</td></tr>
+<tr><td>实现 Implementation</td><td>Run Implementation</td><td>布局布线：网表放进真实 CLB 位置、在开关矩阵里连线，满足时序</td><td>.bit 所需的完整数据库</td></tr>
+<tr><td>比特流 Bitstream</td><td>Generate Bitstream</td><td>打包配置数据为 .bit 文件</td><td>flow_led.bit</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 打开时序报告的习惯</span>
+<p>实现完成后弹出对话框选择 <em>Open Implemented Design</em> → <strong>Reports → Report Timing Summary</strong>。关注 WNS（最差裕量）：正值通过，负值违例。现在这个低速设计必然轻松通过，但请从第一个工程就建立「看时序」的条件反射，第22章将深入。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">6.4</span>JTAG 下载验证</h3><ol>
+<li>USB 线连接板卡，启动模式拨码设为 <strong>JTAG</strong>，上电。</li>
+<li><strong>Open Hardware Manager → Open Target → Auto Connect</strong>，应看到 <code class="inline">xc7z020</code>。</li>
+<li>右键器件 → <strong>Program Device</strong> → 选择自动填充的 bit 文件 → Program。</li>
+<li>观察板上 4 个 LED 循环流水。按住复位键流水停止，松开恢复。</li>
+</ol>
+<div class="box warn"><span class="bt">⚠️ JTAG 下载是「易失」的</span>
+<p>FPGA 配置存储器是 SRAM：断电即丢、重新上电变空白。要产品化必须固化 —— 见下一节。调试阶段反复改代码时，JTAG 快速迭代反而是优点。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">6.5</span>固化到 QSPI Flash</h3><ol>
+<li><strong>Tools → Generate Memory Configuration File</strong>：Format 选 MCS，Size 按 32MB（0x2000000），生成 <code class="inline">flow_led.mcs</code>。（或在 Hardware Manager 中右键 Add Configuration Memory Device 直接关联 bit。）</li>
+<li>Hardware Manager 中 <strong>Add Configuration Memory Device</strong> → 搜索并选择板载 QSPI 型号（领航者为 <code class="inline">s25fl256sxxxxxx0-spi-x1_x2_x4</code> 系列，具体以手册为准；选错型号会烧写失败或无法启动）。</li>
+<li>提示关联编程文件时选择刚生成的 mcs，OK 后开始写入（几分钟）。</li>
+<li>写入完成后断电，启动模式拨到 <strong>QSPI</strong>，重新上电 —— LED 自动恢复流水灯。</li>
+</ol>
+<div class="box danger"><span class="bt">🚨 固化后启动失败的排查顺序</span>
+<p>① 启动模式拨码真的拨到 QSPI 了吗？（Top 常见原因）② 配置器件型号是否选对；③ BOOT.MODE 与 MIO 上拉是否被外设干扰；④ 用串口观察是否有 FSBL 输出（本例纯 PL 无 FSBL 属正常，LED 即是全部现象）。</p></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">6.6</span>认识 Vivado 工程结构（Git 必备知识）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">pl_flow_led/
+├── pl_flow_led.xpr          # 工程入口（XML）
+├── pl_flow_led.srcs/        # ★ 源码：sources_1(.v) + constrs_1(.xdc) + sim_1(tb)
+├── pl_flow_led.gen/         # IP/BD 输出
+├── pl_flow_led.cache/       # 综合缓存（大，可不提交）
+├── pl_flow_led.hw/          # 硬件管理器记录
+└── pl_flow_led.runs/        # ★ 综合实现结果（含 .bit）
+
+# .gitignore 建议忽略 cache/ runs/ hw/ gen/，
+# 只提交 xpr + srcs/ —— 别人 clone 后重新 Run Synthesis 即可复现。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：Generate Bitstream 报错 place/route 未跑？</summary><div class="ans"><p>Vivado 会自动串联三步，若中途报错先看 Messages 窗口第一条 <strong>ERROR</strong>（不是最后一条）。新手高频错误：XDC 引脚拼写与端口名不一致（大小写敏感）、端口名带空格、忘记 create_clock 导致后续 DRC 失败。</p></div></details>
+<details class="qa"><summary>Q2：Program Device 时找不到目标？</summary><div class="ans"><p>① 板卡电源没开或 USB 线数据芯损坏；② Windows 下 JTAG 驱动未装好（设备管理器有感叹号）；③ 虚拟机抢占了 USB 设备——在 VMware 中断开与虚拟机的连接；④ 多个 Vivado 实例争用 hw_server，任务栏结束所有 hw_server.exe 重试。</p></div></details>
+<details class="qa"><summary>Q3：为什么我的流水灯第一格亮很久才开始流动？</summary><div class="ans"><p>CNT_MAX 设得过大（如 25M 对应 0.5s 但你感觉像 2s），检查板载时钟实际频率：有的板子 PL 全局时钟是 100MHz 或 200MHz，计数上限要按实际频率换算。用ILA实测频率是最稳的办法（第21章）。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L6-1：交互式流水灯</strong>
+<p>在 6.2 工程基础上增加两个按键：<code class="inline">key_dir</code> 按下切换移位方向，<code class="inline">key_speed</code> 在 4Hz/1Hz 两档间切换（提示：参数化两个 CNT 上限 + mux 选择）。要求：按键输入先用实验 L5-1 的消抖模块处理。完成后 JTAG 下载验证，再走一遍 QSPI 固化流程巩固记忆。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>综合通过但实现失败，问题可能出在哪一类资源上？（提示：布局布线要面对物理现实）</li>
+<li>如果要把流水灯改成 8 路 PWM 呼吸灯，计数器架构需要怎么改造？估算需要多少个 FF。</li>
+<li>解释为什么 QSPI 固化文件要用 MCS 格式而不是直接写 bit？两者内容有何差别？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">6.7</span>深潜：工程模板化 —— 十分钟起新项目</h3><p>把 6.2 的源码/约束抽成模板仓库 <code class="inline">tpl-zynq-pl/</code>（含空 top、通用 XDC、tb 骨架、build.tcl），新实验三步：<code class="inline">cp -r tpl new_lab → 改模块名/引脚 → vivado -mode batch -source build.tcl</code>。配合 Git tag（lab06-pass），每个实验可复现可回溯 —— 这套模板将直接演化为第41章项目的工程底座。</p>
+<div class="box tip"><span class="bt">💡 非工程模式（Non-Project Mode）一句话</span>
+<p>不建 .xpr、全程 Tcl 手工调度 synth_design/opt_design/place_design/route_design/write_bitstream —— 灵活度最高、CI 首选；初学阶段用 Project Mode + build.tcl 足够，知道存在即可。</p></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch06"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>独立完成一个 Vivado 工程从零到上板的全流程</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解综合/实现/比特流各阶段做了什么</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握 JTAG 临时下载与 QSPI 固化两种烧写方式</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「第一个 FPGA 工程：纯 PL 流水灯」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter5.html"><span><span class="pager-label">上一章</span><b>第 5 章 · Verilog HDL 快速入门</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter7.html"><span><span class="pager-label">下一章</span><b>第 7 章 · PS 裸机开发入门：Hello ZYNQ</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 6 章 · 第一个 FPGA 工程：纯 PL 流水灯 · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

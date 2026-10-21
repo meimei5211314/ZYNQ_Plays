@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 37 章 · 内核并发与同步专题 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 37 章 · 内核并发与同步专题：驱动开发的「命门」章节 —— 90% 的偶发内核崩溃都源于对并发原语的误用。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch37" data-chapter-file="chapter37.html" data-chapter-label="第 37 章 · 内核并发与同步专题">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 37 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>竞态从哪里来（四个来源一个前提）</a>
+<a href="#sec-2"><span class="num">02</span>六大原语全景表（背下来）</a>
+<a href="#sec-3"><span class="num">03</span>选型决策树</a>
+<a href="#sec-4"><span class="num">04</span>实战：给 PLC 驱动补上并发防护</a>
+<a href="#sec-5"><span class="num">05</span>lockdep：让死锁在测试期现形</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：RCU 读多写少的终极武器</a>
+<a href="#sec-8"><span class="num">08</span>深潜：内存屏障 —— 编译器与 CPU 的双重背叛</a>
+<a href="#sec-9"><span class="num">09</span>深潜：per-CPU 与 kfifo</a>
+<a href="#sec-10"><span class="num">10</span>深潜：死锁四条件与 lockdep 报告解读</a>
+<a href="#sec-11"><span class="num">11</span>深潜：内核互斥的优先级继承</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 37 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 37</div>
+      <h1 id="heroTitle">第 37 章<br><span class="grad">内核并发与同步专题</span></h1>
+      <p class="hero-sub">驱动开发的「命门」章节 —— 90% 的偶发内核崩溃都源于对并发原语的误用。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">37</div>
+          <div class="console-part">进阶精通 / CH37</div>
+          <div class="console-title">内核并发与同步专题</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>37 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">识别驱动中的全部竞态来源（抢占/中断/SMP/编译器优化）</li>
+<li class="goal-item">掌握六大同步原语的语义、开销与选型决策树</li>
+<li class="goal-item">会用 lockdep 在编译期/运行期捕获死锁隐患</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,220 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">37.1</span>竞态从哪里来（四个来源一个前提）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>来源</th><th>场景示例</th><th>防御要点</th></tr>
+<tr><td>SMP 并行</td><td>两个核同时进入 plc_write()</td><td>所有共享数据必须加锁或原子访问</td></tr>
+<tr><td>中断抢占</td><td>ISR 打断了正在读改写的进程上下文</td><td>进程侧用 spin_lock_irqsave 或关下半部</td></tr>
+<tr><td>内核抢占</td><td>更高优先级线程抢走 CPU，打断非原子序列</td><td>临界区加锁；或 per-CPU 数据</td></tr>
+<tr><td>编译器/CPU 重排</td><td>写标志后再写数据，另一核先见标志不见数据</td><td>内存屏障 smp_wmb/rmb；锁隐含屏障</td></tr>
+<tr class="active-row"><td colspan="3"><strong>大前提：全局变量 ≠ 共享资源。</strong>只有「会被多个执行流访问且至少一个是写」的数据才需要保护 —— 过度加锁同样是 bug 之源（死锁/性能塌陷）。</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">37.2</span>六大原语全景表（背下来）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>原语</th><th>能否睡眠</th><th>开销</th><th>典型场景</th><th>禁区</th></tr>
+<tr><td><code class="inline">atomic_t / bitops</code></td><td>否</td><td>最低</td><td>计数器、标志位、统计量</td><td>不能保护多字段结构体</td></tr>
+<tr><td><code class="inline">spinlock_t</code></td><td><strong>否</strong></td><td>低</td><td>极短临界区、可中断上下文使用</td><td>临界区内禁止任何睡眠调用 ★</td></tr>
+<tr><td><code class="inline">spin_lock_irqsave</code></td><td>否</td><td>低+</td><td>与 ISR 共享的数据（进程上下文侧）</td><td>-</td></tr>
+<tr><td><code class="inline">mutex</code></td><td><strong>是</strong></td><td>中</td><td>进程上下文较长临界区</td><td>中断上下文禁用 ★</td></tr>
+<tr><td><code class="inline">semaphore</code></td><td>是</td><td>中</td><td>信号量语义（少见，多用 mutex/completion）</td><td>-</td></tr>
+<tr><td><code class="inline">completion</code></td><td>是</td><td>中</td><td>「等某事件完成」一次性同步（如等 DMA/线程退出）</td><td>-</td></tr>
+<tr><td><code class="inline">rwlock / RCU</code></td><td>RCU读不睡</td><td>读极廉</td><td>读多写少（路由表/配置表）</td><td>RCU 写侧回调复杂，入门慎用</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">37.3</span>选型决策树</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">需要保护的是单个整型/位？
+ ├─ 是 → atomic_t / set_bit/clear_bit/test_bit
+ └─ 否 ↓
+临界区会出现在中断(硬)上下文？ 或 与 ISR 共享数据？
+ ├─ 是 → spin_lock_irqsave() / spin_lock() (ISR内)
+ └─ 否 ↓
+临界区可能睡眠（拷贝用户数据/分配内存/IO）？ 或临界区较长(&gt;百纳秒)？
+ ├─ 是 → mutex
+ └─ 否 → spinlock
+「等待某个异步事件完成」而非互斥？ → completion / waitqueue
+读多写少的只读快照？ → rcu / rwsem</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">37.4</span>实战：给 PLC 驱动补上并发防护</h3><p>回看第17章驱动的隐患：<code class="inline">plc_write()</code> 的「读 CTRL→改→写回」若被两个应用同时执行会互相覆盖；DO 强制寄存器组同理。修复示范：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static DEFINE_SPINLOCK(reg_lock);        /* 保护读改写序列 */
+
+static long plc_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+{
+    unsigned long flags;
+    u32 v;
+    switch (cmd) {
+    case IOC_FORCE_ON:
+        spin_lock_irqsave(&amp;reg_lock, flags);     /* ioctl 可能与 poll 唤醒的
+                                                    其他路径并发 */
+        v = readl(regs + REG_FEN);
+        v |= arg;
+        writel(v, regs + REG_FEN);
+        spin_unlock_irqrestore(&amp;reg_lock, flags);
+        return 0;
+    }
+}
+
+/* ISR 内共享的事件计数 —— 用原子操作，零锁开销 */
+static atomic_t evt_cnt = ATOMIC_INIT(0);
+irqreturn_t plc_isr(int irq, void *d)
+{
+    atomic_inc(&amp;evt_cnt);
+    wake_up_interruptible(&amp;wq);
+    return IRQ_HANDLED;
+}</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ 三条铁律</span>
+<p>① 拿着 spinlock 绝不能调用可能睡眠的函数（kmalloc GFP_KERNEL、mutex、copy_to_user 大概率页错误、msleep）；② 锁的<strong>获取顺序</strong>全工程必须一致（A→B），否则死锁；③ 能用局部变量/栈数据解决的就不要共享 —— 最好的锁是不需要的锁。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">37.5</span>lockdep：让死锁在测试期现形</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># menuconfig 开启：
+#   Kernel hacking → Lock Debugging →
+#     [*] Lock debugging: detect incorrect freeing of live locks
+#     [*] Lock debugging: prove locking correctness   (CONFIG_PROVE_LOCKING)
+# 运行期：任何潜在死锁/中断安全违例都会在 dmesg 打出
+# "possible deadlock" 报告并给出锁依赖链 —— 上线前跑全功能回归即可扫雷。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：单核板上为什么还要加锁？</summary><div class="ans"><p>单核仍有中断抢占与内核抢占；且代码要可移植到 SMP。另外 CONFIG_PREEMPT 下进程上下文也可能被打断。「现在没出事」≠「没有竞态」，只是窗口没被踩中。</p></div></details>
+<details class="qa"><summary>Q2：volatile 能替代锁吗？</summary><div class="ans"><p>不能。volatile 只阻止编译器缓存，不提供原子性与内存序，更不阻止 CPU 重排。多核可见性靠锁/屏障/原子API。经典面试题：volatile 三适用场景（硬件寄存器指针、ISR共享标记配合原子API、setjmp）—— 但都不是互斥手段。</p></div></details>
+<details class="qa"><summary>Q3：completion 和 semaphore 有什么区别？</summary><div class="ans"><p>completion 表达「等一件事完成」（done 语义，一次唤醒确定配对）；semaphore 表达「N 个资源额度」。等线程退出、等初始化完成一律 completion，语义清晰且无历史包袱。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L37-1：亲手制造一次竞态</strong>
+<p>① 写两个内核线程同时对一个全局变量各自增 100 万次（不加锁），观察结果远小于 200 万；② 分别用 atomic/mutex/spinlock 三种方案修复并对比耗时；③ 故意构造 ABBA 死锁，开 lockdep 抓取报告截图归档。完成后你对「并发」的理解将跨过一道门槛。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>spin_lock_bh 与 spin_lock_irqsave 分别防什么？与 ISR 共享数据应该用哪个？</li>
+<li>为什么 copy_to_user 不能拿着自旋锁调用？（提示：缺页处理可能睡眠 + 用户指针恶意性）</li>
+<li>PLC 映像区的 img_lock 用 mutex 而非 spinlock，理由是什么？如果改成 spinlock 会怎样？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">37.6</span>深潜：RCU 读多写少的终极武器</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 读侧：零锁零原子（仅禁抢占），纳秒级 —— 读密集场景性能之王 */
+rcu_read_lock();
+entry = rcu_dereference(g_config_list);       /* 标注受RCU保护的指针 */
+val = entry-&gt;field;                           /* 遍历安全 */
+rcu_read_unlock();
+
+/* 写侧：复制-修改-替换-延迟释放 */
+new = kmemdup(old, sizeof *old, GFP_KERNEL);
+new-&gt;field = x;
+rcu_assign_pointer(g_config_list, new);       /* 发布：含内存屏障 */
+synchronize_rcu();                            /* 等所有读者退出旧区 */
+kfree(old);                                   /* 此刻释放才安全 */
+/* 异步版：call_rcu(&amp;old-&gt;rcu, my_free_cb) —— ISR/性能敏感写侧用 */</code></pre></div>
+<p>心智模型：读者永远看到完整旧版<strong>或</strong>完整新版，绝无中间态；写者负责新旧共存期的内存双份开销。适用：配置表/路由表/规则集这类「读爆炸、写稀疏」的数据。</p></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">37.7</span>深潜：内存屏障 —— 编译器与 CPU 的双重背叛</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>屏障</th><td>作用</td><td>典型位置</td></tr>
+<tr><td>smp_wmb()</td><td>之前的写 先于 之后的写可见</td><td>写数据→置标志 的标志前</td></tr>
+<tr><td>smp_rmb()</td><td>之前的读 先于 之后的读</td><td>读标志→读数据 的数据前</td></tr>
+<tr><td>smp_mb()</td><td>全序屏障</td><td>锁实现内部</td></tr>
+<tr><td>READ_ONCE/WRITE_ONCE</td><td>防编译器合并/重排单次访问</td><td>无锁访问共享标量必用</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 经典 Dekker 式错误：两核同时"都看不到对方" */
+/* CPU0 */ data = 42; flag0 = 1;      /* CPU1 */ data1 = 7; flag1 = 1;
+/* 无屏障时硬件可能把 flag 写先于 data 提交(store buffer)，
+   双方同时读到对方 flag==0 → 双双进入临界区！
+   修复：flag0=1 前插 smp_mb()（锁的内部就是这么做的）*/</code></pre></div>
+<p>纪律：<strong>应用层用锁/原子API（内含屏障），只有写无锁数据结构时才手写屏障</strong>；且必须配对设计（写侧wmb ↔ 读侧rmb），单侧屏障是安慰剂。</p></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">37.8</span>深潜：per-CPU 与 kfifo</h3><ul>
+<li><code class="inline">DEFINE_PER_CPU(int, stats);</code> + <code class="inline">this_cpu_inc(stats)</code> —— 每核独立副本，统计类计数零争用，读时遍历求和。SMP 性能优化的第一杠杆；</li>
+<li><code class="inline">kfifo</code>：内核自带单生产者/单消费者无锁环形队列（内存屏障保证），日志缓冲/事件流首选 —— 用户态可按同思想复刻（20.11 线程池队列的无锁化方向）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">37.9</span>深潜：死锁四条件与 lockdep 报告解读</h3><p><strong>四条件</strong>：互斥、持有并等待、不可剥夺、循环等待 —— 打破任意一条即免疫。工程化手段：锁分级(全工程统一 A&gt;B&gt;C 顺序)、trylock+回退、锁超时。</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">[ 1234.5] ======================================================
+[ 1234.5] WARNING: possible deadlock detected (lockdep)
+[ 1234.5] ------------------------------------------------------
+        possible unsafe locking scenario:
+              CPU0                    CPU1
+              ----                    ----
+         lock(&amp;A);
+                                 lock(&amp;B);
+         lock(&amp;B);          ← 已知依赖 B→A
+                                 lock(&amp;A);   ← 新依赖 A→B → 成环!
+[ 1234.5] 2 locks held by task/321:
+         #0: &amp;A  #1: trying &amp;B
+/* 解读三步：① 场景图给出成环顺序 ② "2 locks held"指出持锁现场
+   ③ 回到源码统一顺序（如规定永远先 A 后 B）后重跑回归 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">37.10</span>深潜：内核互斥的优先级继承</h3><p>RT 内核的 rt_mutex 实现优先级继承：低优先级持有者被临时「顶」到等待者最高优先级，阻断中等任务插队。对照用户态：pthread mutex 的 <code class="inline">PTHREAD_PRIO_INHERIT</code> 协议同思想 —— 这回答了 29 章 FAQ「为什么映像区用 mutex 而非自旋」的深层依据（持锁段可能较长且可睡眠）。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch37"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>识别驱动中的全部竞态来源（抢占/中断/SMP/编译器优化）</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握六大同步原语的语义、开销与选型决策树</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用 lockdep 在编译期/运行期捕获死锁隐患</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「内核并发与同步专题」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter36.html"><span><span class="pager-label">上一章</span><b>第 36 章 · 项目总结与技术展望</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter38.html"><span><span class="pager-label">下一章</span><b>第 38 章 · AXI-DMA 高速数据通路实战</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 37 章 · 内核并发与同步专题 · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

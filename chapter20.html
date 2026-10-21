@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 20 章 · Linux 应用编程 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 20 章 · Linux 应用编程：第二篇收官：把系统调用、多线程、网络、时间四类 API 打包成「软 PLC 运行时」所需的全部编程能力。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch20" data-chapter-file="chapter20.html" data-chapter-label="第 20 章 · Linux 应用编程">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 20 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>文件 IO：Linux 一切皆文件</a>
+<a href="#sec-2"><span class="num">02</span>多线程：运行时的骨架材料</a>
+<a href="#sec-3"><span class="num">03</span>精确周期任务：PLC 扫描的心脏 ★</a>
+<a href="#sec-4"><span class="num">04</span>Socket：Modbus 与 Web 的地基</a>
+<a href="#sec-5"><span class="num">05</span>mmap：应用层直访寄存器（devmem 的原理）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>第二篇通关自测</a>
+<a href="#sec-8"><span class="num">08</span>深潜：epoll LT/ET 全对比与惊群</a>
+<a href="#sec-9"><span class="num">09</span>深潜：eventfd / timerfd / signalfd 三剑客</a>
+<a href="#sec-10"><span class="num">10</span>深潜：POSIX 共享内存 IPC 实战</a>
+<a href="#sec-11"><span class="num">11</span>深潜：守护进程正确写法（double fork）</a>
+<a href="#sec-12"><span class="num">12</span>深潜：C11 原子操作与内存序速成（衔接37章屏障）</a>
+<a href="#sec-13"><span class="num">13</span>深潜：极简线程池骨架</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 20 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 20</div>
+      <h1 id="heroTitle">第 20 章<br><span class="grad">Linux 应用编程</span></h1>
+      <p class="hero-sub">第二篇收官：把系统调用、多线程、网络、时间四类 API 打包成「软 PLC 运行时」所需的全部编程能力。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 25 分钟</span>
+        <span class="meta-chip">13 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">20</div>
+          <div class="console-part">嵌入式 Linux / CH20</div>
+          <div class="console-title">Linux 应用编程</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>13</b></div>
+            <div class="console-metric"><span>CODE</span><b>11</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:72%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:79%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>20 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>13</b><span>本章小节</span></div>
+    <div class="stat"><b>25</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">熟练运用文件 IO / pthread / socket 三大 API 族</li>
+<li class="goal-item">掌握 clock_nanosleep 实现毫秒级精确周期任务</li>
+<li class="goal-item">理解 mmap 直访寄存器的原理与适用边界</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,886 字 · 13 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>11 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">20.1</span>文件 IO：Linux 一切皆文件</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;fcntl.h&gt;   #include &lt;unistd.h&gt;   #include &lt;errno.h&gt;
+#include &lt;string.h&gt;  #include &lt;stdio.h&gt;
+
+int fd = open("/dev/plcio", O_RDWR);
+if (fd &lt; 0) {                       /* 错误处理标准姿势 */
+    fprintf(stderr, "open failed: %s\n", strerror(errno));
+    return -1;
+}
+ssize_t n = read(fd, buf, sizeof(buf));     /* n&lt;0 错误；n==0 EOF */
+write(fd, cmd, len);
+close(fd);</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">20.2</span>多线程：运行时的骨架材料</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;pthread.h&gt;
+
+/* 生产者-消费者：DI 中断事件 → 逻辑解算线程 */
+typedef struct { int ch; int64_t ts_ns; } evt_t;
+static evt_t      q[64]; static int qh = 0, qt = 0;
+static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  has_evt = PTHREAD_COND_INITIALIZER;
+
+void *logic_thread(void *arg)               /* 消费者 */
+{
+    for (;;) {
+        pthread_mutex_lock(&amp;mtx);
+        while (qh == qt)                    /* 无事件则挂起等待 */
+            pthread_cond_wait(&amp;has_evt, &amp;mtx);
+        evt_t e = q[qt++ % 64];
+        pthread_mutex_unlock(&amp;mtx);
+        handle_event(&amp;e);                   /* 解算逻辑 */
+    }
+}
+
+void push_event(int ch)                     /* 生产者(如中断监听线程) */
+{
+    pthread_mutex_lock(&amp;mtx);
+    q[qh++ % 64] = (evt_t){ch, now_ns()};
+    pthread_cond_signal(&amp;has_evt);
+    pthread_mutex_unlock(&amp;mtx);
+}
+/* main 中 pthread_create(&amp;t, NULL, logic_thread, NULL); */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">20.3</span>精确周期任务：PLC 扫描的心脏 ★</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;time.h&gt;
+
+/* 关键：用绝对时间睡眠(TIMER_ABSTIME)，避免累计漂移 */
+static void scan_loop_10ms(void (*task)(void))
+{
+    struct timespec next;
+    clock_gettime(CLOCK_MONOTONIC, &amp;next);
+    for (;;) {
+        task();                                   /* 读输入→解算→写输出 */
+
+        next.tv_nsec += 10000000L;                /* +10ms */
+        if (next.tv_nsec >= 1000000000L) {
+            next.tv_nsec -= 1000000000L;
+            next.tv_sec++;
+        }
+        do {
+            int r = clock_nanosleep(CLOCK_MONOTONIC,
+                                    TIMER_ABSTIME, &amp;next, NULL);
+            if (r == EINTR) continue;             /* 被信号打断重睡剩余 */
+        } while (0);
+    }
+}</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方案</th><th>典型抖动</th><th>说明</th></tr>
+<tr><td>usleep 相对睡眠</td><td>毫秒级累计漂移</td><td>❌ 处理耗时被叠加进周期</td></tr>
+<tr><td>clock_nanosleep ABSTIME</td><td>&lt;100μs（默认内核）</td><td>✅ 本课程采用；PREEMPT_RT 可再降一个量级</td></tr>
+<tr><td>timer_create 信号/SIGEV_THREAD</td><td>类似</td><td>适合回调型架构</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">20.4</span>Socket：Modbus 与 Web 的地基</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* TCP 服务器最小骨架 —— 第32章 Modbus、33章 Web 都基于它扩展 */
+int srv = socket(AF_INET, SOCK_STREAM, 0);
+int yes = 1;
+setsockopt(srv, SOL_SOCKET, SO_REUSEADDR, &amp;yes, sizeof(yes));
+
+struct sockaddr_in addr = { .sin_family = AF_INET,
+    .sin_port = htons(502), .sin_addr.s_addr = INADDR_ANY };
+bind(srv, (struct sockaddr *)&amp;addr, sizeof(addr));
+listen(srv, 4);
+
+for (;;) {
+    int cli = accept(srv, NULL, NULL);          /* 可 fork/pthread 处理 */
+    handle_client(cli);                          /* 收发见第32章帧解析 */
+    close(cli);
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">20.5</span>mmap：应用层直访寄存器（devmem 的原理）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;sys/mman.h&gt;
+int mfd = open("/dev/mem", O_RDWR | O_SYNC);
+volatile uint32_t *regs = mmap(NULL, 4096, PROT_READ|PROT_WRITE,
+                               MAP_SHARED, mfd, 0x43C10000);
+uint32_t v = regs[1];                            /* 偏移 0x04 */
+regs[0] = 1;                                     /* 偏移 0x00 */
+munmap((void*)regs, 4096); close(mfd);</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ mmap 调试用，产品慎用</span>
+<p>/dev/mem 绕过了驱动的并发保护与权限管理。开发期快速验证寄存器行为很香（等价 devmem 命令），但正式架构请走驱动/UIO —— 第28章会给出完整对比。</p></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：10ms 循环实测周期忽长忽短？</summary><div class="ans"><p>抖动来源排查顺序：① 是否用了相对睡眠（漂移）；② printf/日志在循环内（串口阻塞可达百 ms！）；③ 内核调度干扰 —— 提升线程优先级 sched_setscheduler(SCHED_FIFO)；④ NFS/网络操作混入循环。工业级要求再上 PREEMPT_RT。</p></div></details>
+<details class="qa"><summary>Q2：服务器重启后 bind 报 Address already in use？</summary><div class="ans"><p>TCP TIME_WAIT 状态残留，SO_REUSEADDR 已在代码中解决；若仍报错检查是否有旧进程存活（ps/netstat -ltnp）。</p></div></details>
+<details class="qa"><summary>Q3：子线程崩溃整个程序退出？</summary><div class="ans"><p>POSIX 线程共享进程地址空间，任何线程段错误都终止进程。对策：关键线程入口包 pthread_cleanup 与信号处理；上线前用 -fsanitize=address 在主机侧预演内存错误。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L20-1：三线程迷你运行时</strong>
+<p>实现 <code class="inline">mini_rt.c</code>：① 扫描线程 10ms 周期读 /dev/plcled 状态并维护计数；② 通信线程 TCP 9999 端口接收 "GET\r\n" 返回 JSON 计数；③ 监控线程每秒打印各线程 CPU 占用（getrusage）。测量 30 分钟内扫描周期最大/平均抖动并记录 —— 这就是你的第一个「运行时」原型。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">第二篇通关自测</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>能力项</th><th>达标标准</th></tr>
+<tr><td>启动链路</td><td>能徒手写出 boot.bif 并解释五级火箭每一级的交接物</td></tr>
+<tr><td>PetaLinux</td><td>NFS 开发模式下改一行代码到板上生效 ≤3 分钟</td></tr>
+<tr><td>驱动开发</td><td>能独立完成 DT 节点→platform 驱动→字符设备接口→用户测试 全链路</td></tr>
+<tr><td>外设复用</td><td>spidev/i2c-tools/IIO 三板斧信手拈来</td></tr>
+<tr><td>应用编程</td><td>能写出带互斥队列的 10ms 周期多线程程序并量化其抖动</td></tr>
+</table></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么扫描线程与通信线程之间必须用互斥队列而不是全局变量直接交换数据？（提示：可见性与撕裂读）</li>
+<li>CLOCK_MONOTONIC 与 CLOCK_REALTIME 的区别是什么？PLC 计时为何必须用前者？</li>
+<li>如果要给扫描线程做看门狗（卡死自动重启进程），你会怎么设计？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">20.6</span>深潜：epoll LT/ET 全对比与惊群</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><td>LT 水平触发(默认)</td><td>ET 边沿触发</td></tr>
+<tr><td>通知时机</td><td>只要可读/写就持续通知</td><td>状态<strong>变化</strong>仅通知一次</td></tr>
+<tr><td>编程要求</td><td>可分次读</td><td>必须循环 read 到 EAGAIN ★</td></tr>
+<tr><td>适用</td><td>常规业务（推荐默认）</td><td>高吞吐代理/追求少唤醒</td></tr>
+<tr><td>坑</td><td>-</td><td>漏读到残留→"假死"；非阻塞fd是前提</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* ET 正确姿势 */
+for (;;) {
+    ssize_t n = read(fd, buf, sizeof buf);
+    if (n > 0) { handle(buf, n); continue; }
+    if (n == 0) { peer_closed(); break; }
+    if (errno == EAGAIN || errno == EWOULDBLOCK) break;  /* 读完 */
+    die("read");
+}
+/* accept 惊群：多进程/线程共享监听 fd 时新连接唤醒全部
+   解法：EPOLLEXCLUSIVE 标记(4.5+) / SO_REUSEPORT 内核分流 / 单accept线程分发 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">20.7</span>深潜：eventfd / timerfd / signalfd 三剑客</h3><p>把「信号、定时器、事件通知」全部变成 <strong>普通文件描述符</strong>，从而统一进 epoll —— 现代事件驱动架构的基石：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">int efd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);   /* 跨线程唤醒管道 */
+uint64_t one = 1; write(efd,&amp;one,8);                /* 通知方 */
+epoll_ctl(ep, ADD, efd, ...);                       /* 监听方统一等待 */
+
+int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+struct itimerspec its = { .it_value={1,0}, .it_interval={0,100*1000000L} };
+timerfd_settime(tfd, 0, &amp;its, NULL);               /* 100ms 周期 → 可poll的定时器 */
+
+sigset_t mask; sigemptyset(&amp;mask); sigaddset(&amp;mask,SIGTERM);
+sigprocmask(SIG_BLOCK,&amp;mask,NULL);
+int sfd = signalfd(-1,&amp;mask,SFD_NONBLOCK);          /* 优雅退出也进 epoll 循环 */</code></pre></div>
+<div class="box tip"><span class="bt">💡 架构启示</span>
+<p>PLC 运行时的通信线程用「epoll + (listen_fd + rpmsg? tcp连接们 + timerfd + signalfd)」即可实现零锁单线程高并发 —— 与第29章多线程模型互为补充：IO密集走单reactor，计算密集才开worker。</p></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">20.8</span>深潜：POSIX 共享内存 IPC 实战</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 多进程共享 PLC 映像区（替代 pthread mutex 的跨进程版）*/
+int fd = shm_open("/plc_image", O_CREAT|O_RDWR, 0666);
+ftruncate(fd, sizeof(image_t));
+image_t *img = mmap(NULL, sizeof(image_t), PROT_READ|PROT_WRITE,
+                    MAP_SHARED, fd, 0);
+
+pthread_mutexattr_t attr; pthread_mutexattr_init(&amp;attr);
+pthread_mutexattr_setpshared(&amp;attr, PTHREAD_PROCESS_SHARED);   /* 关键！ */
+pthread_mutex_init(&amp;img-&gt;mtx, &amp;attr);      /* 锁放共享区首部，各进程直接用 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">20.9</span>深潜：守护进程正确写法（double fork）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">pid_t p = fork();  if (p &gt; 0) exit(0);        /* 父退出→被init收养 */
+setsid();                                     /* 新会话，脱离终端控制 */
+signal(SIGHUP, SIG_IGN);
+p = fork(); if (p &gt; 0) exit(0);               /* 二次fork:永不获得tty */
+umask(027); chdir("/");
+int n = open("/dev/null", O_RDWR);
+dup2(n,0); dup2(n,1); dup2(n,2);              /* 三标准流重定向，防意外阻塞 */
+openlog("plc", LOG_PID, LOG_DAEMON);          /* 之后统一 syslog */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12"><span class="h3-num">20.10</span>深潜：C11 原子操作与内存序速成（衔接37章屏障）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>序</th><td>保证</td><td>典型用途</td></tr>
+<tr><td>relaxed</td><td>仅原子性，无顺序</td><td>统计计数</td></tr>
+<tr><td>acquire / release</td><td>配对使用建立 happens-before（发布数据）</td><td>发布-订阅标志+数据包 ★</td></tr>
+<tr><td>acq_rel / seq_cst</td><td>读改写全序</td><td>自旋锁、全局序列化点</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 经典发布模式：先写数据，后置标志(release)；读者 acquire 后必见完整数据 */
+data->payload = compute();                       /* 普通 写 */
+atomic_store_explicit(&amp;ready, 1, memory_order_release);
+if (atomic_load_explicit(&amp;ready, memory_order_acquire))
+    use(data-&gt;payload);                          /* 保证可见 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-13" aria-labelledby="h-13"><h3 id="h-13"><span class="h3-num">20.11</span>深潜：极简线程池骨架</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">typedef void (*job_t)(void *arg);
+static struct { job_t fn; void *arg; } jobs[64];
+static int jh=0, jt=0; static volatile int running=1;
+static pthread_cond_t cv=PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t m=PTHREAD_MUTEX_INITIALIZER;
+
+static void *worker(void *a){
+    for(;;){
+        pthread_mutex_lock(&amp;m);
+        while(jh==jt && running) pthread_cond_wait(&amp;cv,&amp;m);
+        if(!running && jh==jt){ pthread_mutex_unlock(&amp;m); return NULL; }
+        struct { job_t fn; void *arg; } j = jobs[jt++ % 64];
+        pthread_mutex_unlock(&amp;m);
+        j.fn(j.arg);
+    }
+}
+void pool_submit(job_t f,void *a){ pthread_mutex_lock(&amp;m);
+    jobs[jh++]=(typeof(jobs[0])){f,a}; pthread_cond_signal(&amp;cv); pthread_mutex_unlock(&amp;m);}
+/* 初始化：创建 N 个 worker；退出：running=0 + broadcast + join */</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch20"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>熟练运用文件 IO / pthread / socket 三大 API 族</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 clock_nanosleep 实现毫秒级精确周期任务</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>理解 mmap 直访寄存器的原理与适用边界</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Linux 应用编程」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter19.html"><span><span class="pager-label">上一章</span><b>第 19 章 · 常用外设驱动：UART / SPI / I2C / IIO</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter21.html"><span><span class="pager-label">下一章</span><b>第 21 章 · ILA/VIO 在线逻辑调试</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 20 章 · Linux 应用编程 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

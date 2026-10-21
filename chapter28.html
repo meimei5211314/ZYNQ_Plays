@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 28 章 · Linux 平台定制与 UIO 驱动 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 28 章 · Linux 平台定制与 UIO 驱动：M2 里程碑：让用户态程序读写 IO 引擎全部寄存器、并稳定收到硬件中断。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch28" data-chapter-file="chapter28.html" data-chapter-label="第 28 章 · Linux 平台定制与 UIO 驱动">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 28 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>为什么选 UIO</a>
+<a href="#sec-2"><span class="num">02</span>设备树与内核配置</a>
+<a href="#sec-3"><span class="num">03</span>用户态库 plcio.h / plcio.c（运行时地基）</a>
+<a href="#sec-4"><span class="num">04</span>冒烟测试程序</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 28 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 28</div>
+      <h1 id="heroTitle">第 28 章<br><span class="grad">Linux 平台定制与 UIO 驱动</span></h1>
+      <p class="hero-sub">M2 里程碑：让用户态程序读写 IO 引擎全部寄存器、并稳定收到硬件中断。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">5 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">28</div>
+          <div class="console-part">软 PLC 实战 / CH28</div>
+          <div class="console-title">Linux 平台定制与 UIO 驱动</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>5</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>1</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:28%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>28 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>5</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>1</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 UIO(generic-uio) 机制的原理与设备树配置</li>
+<li class="goal-item">封装 plcio 用户态库：寄存器 API + 中断等待线程</li>
+<li class="goal-item">理解 UIO 与自写字符驱动的工程取舍</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,361 字 · 5 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 1 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">28.1</span>为什么选 UIO</h3><p>UIO（Userspace I/O）内核框架只做三件事：<strong>mmap 物理寄存器窗口、挂接 IRQ、把「等中断」变成对 <code class="inline">/dev/uioX</code> 的阻塞 read</strong>。业务逻辑全在用户态 —— 对 PL 自定义 IP 这类「私有协议寄存器堆」是最省心的方案：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><th>UIO 方案</th><th>自写字符驱动（17/18章）</th></tr>
+<tr><td>开发量</td><td>仅 DTS + 用户态库</td><td>完整内核模块 + 维护内核版本兼容</td></tr>
+<tr><td>实时性</td><td>中断→唤醒约 10~50μs，足够 PLC 扫描</td><td>相当（ISR 更快但差异对本项目无感）</td></tr>
+<tr><td>安全性</td><td>用户态崩溃不连累内核 ★</td><td>驱动 bug = 系统级风险</td></tr>
+<tr><td>适用边界</td><td>寄存器型简单交互；无 DMA</td><td>需要内核服务（DMA/子系统接入）时必选</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">28.2</span>设备树与内核配置</h3><div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">/* system-user.dtsi */
+/ {
+    plc_io@43c10000 {
+        compatible   = "generic-uio";        /* 触发 uio_pdrv_genirq 绑定 */
+        reg          = &lt;0x43c10000 0x1000&gt;;
+        interrupt-parent = &lt;&amp;intc&gt;;
+        interrupts   = &lt;0 29 4&gt;;             /* IRQ_F2P[0] → GIC61 */
+    };
+};</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 内核确认（14章 menuconfig 已开）：
+CONFIG_UIO=y
+CONFIG_UIO_PDRV_GENIRQ=y
+# PetaLinux rootfs 里让节点名固定为 uio0 而非 uio1：
+# 追加到 system-user.dtsi 根节点：
+#   chosen { ... } 同级加：
+#   uio_alias: alias 无需 —— 直接用 by-name 查找更稳（见28.3库代码）
+# 板上验证：
+dmesg | grep -i uio          # generic-uio: probe 成功
+ls -l /dev/uio*              # 出现设备节点
+cat /sys/class/uio/uio0/name # "generic-uio"
+cat /sys/class/uio/uio0/maps/map0/addr   # 0x43c10000 ✓</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">28.3</span>用户态库 plcio.h / plcio.c（运行时地基）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* plcio.h —— 寄存器合同(27.2)的软件投影 */
+#include &lt;stdint.h&gt;
+enum {
+    REG_ID=0x00, REG_CTRL=0x04, REG_DI=0x08, REG_DIRISE=0x0C, REG_DIFALL=0x10,
+    REG_DEBCYC=0x14, REG_DO=0x18, REG_FEN=0x1C, REG_FVAL=0x20,
+    REG_AI0=0x24, REG_AI1=0x28, REG_PWM0=0x2C, REG_PWM1=0x30,
+    REG_TICK=0x34, REG_IRQST=0x38,
+};
+int  plcio_open(const char *uioname);        /* 按 name 匹配 /sys/class/uio */
+void plcio_close(void);
+uint32_t plcio_rd(uint32_t off);
+void     plcio_wr(uint32_t off, uint32_t val);
+int      plcio_wait_irq(int timeout_ms);     /* &gt;0 收到中断; 0 超时 */
+
+/* plcio.c 关键实现节选 */
+static int uio_fd = -1;
+static volatile uint32_t *regs;
+
+int plcio_open(const char *want)
+{
+    char path[256];
+    for (int i = 0; i &lt; 8; i++) {            /* 按 name 找，避免编号漂移 */
+        snprintf(path, sizeof path,
+                 "/sys/class/uio/uio%d/name", i);
+        FILE *f = fopen(path, "r");
+        if (!f) continue;
+        char nm[64] = {0}; fgets(nm, sizeof nm, f); fclose(f);
+        if (strncmp(nm, want, strlen(want))) continue;
+
+        snprintf(path, sizeof path, "/dev/uio%d", i);
+        uio_fd = open(path, O_RDWR | O_SYNC);
+        int mfd = open(path, O_RDWR | O_SYNC);   /* mmap 用同一 fd 即可 */
+        regs = mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, mfd, 0);
+        return (regs == MAP_FAILED) ? -1 : 0;
+    }
+    return -1;
+}
+
+int plcio_wait_irq(int timeout_ms)
+{
+    struct pollfd p = { .fd = uio_fd, .events = POLLIN };
+    int r = poll(&amp;p, 1, timeout_ms);
+    if (r &gt; 0) {
+        uint32_t nread; read(uio_fd, &amp;nread, 4);/* 读走触发次数(必需！) */
+        return 1;                                /* 下次中断自动重新使能 */
+    }
+    return r;                                    /* 0=超时, &lt;0=错误 */
+}</code></pre></div>
+<div class="box note"><span class="bt">📌 generic-uio 中断语义</span>
+<p>使用 <code class="inline">uio_pdrv_genirq</code> 时，内核 handler 会屏蔽 IRQ。<b>read() 返回累计事件计数，不会自动重新使能 IRQ</b>。处理并清除设备的中断源后，向 UIO fd 写入 32 位值 1，由 irqcontrol 重新使能。其他 UIO 驱动可能有不同约定，先核对驱动实现。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">28.4</span>冒烟测试程序</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">#!/bin/sh
+# smoke.sh —— M2 验收脚本（25章方法论落地）
+devmem 0x43C10004 32 0x1              # CTRL.EN
+echo "ID   = $(devmem 0x43C10000)"   # 期望 0x504C4331
+echo "DI   = $(devmem 0x43C10008)"
+devmem 0x43C1001C 32 0xFF             # 全通道强制
+devmem 0x43C10020 32 0xA5             # 强制值 A5
+echo "DO   = $(devmem 0x43C10018)"   # 期望 0xA5
+# 中断计数对照：
+cat /proc/interrupts | grep 61        # 按键前后各看一次，计数应增长
+echo "TICK = $(devmem 0x43C10034)"</code></pre></div>
+<p>全部符合预期 → <strong>M2 达成</strong>。若 ID 读回 0 或总线挂死，回到第9章 FAQ Q1 的四步排查。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：/dev/uio0 没出现？</summary><div class="ans"><p>① compatible 不是 generic-uio（或内核没开 CONFIG_UIO_PDRV_GENIRQ）；② DTS 改了没重新构建/旧 dtb 在板上；③ 地址与 bitstream 不符导致 probe 失败 —— dmesg 找 uio 相关报错。</p></div></details>
+<details class="qa"><summary>Q2：poll 一直不返回？</summary><div class="ans"><p>逐级验证：CTRL 的中断使能位（bit8/bit9）是否置位；<code class="inline">/proc/interrupts</code> 对应 GIC61 计数是否增长（不涨=PL侧没发）；只收到一次时，重点检查设备中断源是否清除，以及是否按 irqcontrol 约定写 1 重新使能；read 计数不是清设备源。</p></div></details>
+<details class="qa"><summary>Q3：mmap 后读写错乱？</summary><div class="ans"><p>UIO 的 mmap 文件偏移用 map_index × page_size 选择映射，map0 通常为 0；还要读取 sysfs 的 maps/mapN/size 和 offset，在映射内加设备偏移。它不是 /dev/mem 的物理地址偏移规则。访问位宽、对齐与顺序以设备/驱动约定为准，volatile 不能代替屏障。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L28-1：plcio_test 工具</strong>
+<p>基于 plcio 库写一个命令行工具：<code class="inline">plcio_test rd &lt;off&gt; / wr &lt;off&gt; &lt;val&gt; / irqtest / loop 100</code>。其中 irqtest 连续等待 100 次 DI 中断并统计平均延迟（用 REG_TICK 差值换算）。输出格式化表格 —— 它将成为后续每章联调的标准仪器。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>UIO 模型下如果 PL 发出中断后 1ms 内用户态没 read，第二次中断会丢失吗？对你的 DI 事件设计意味着什么？（提示：27.3 锁存语义的价值）</li>
+<li>什么信号必须放弃 UIO 回归内核驱动？给出两条硬性判据。</li>
+<li>设计「寄存器访问审计」：在库层记录最近 64 条读写日志供 Web 页展示，评估其对实时性的影响。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch28"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 UIO(generic-uio) 机制的原理与设备树配置</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>封装 plcio 用户态库：寄存器 API + 中断等待线程</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>理解 UIO 与自写字符驱动的工程取舍</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Linux 平台定制与 UIO 驱动」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter27.html"><span><span class="pager-label">上一章</span><b>第 27 章 · PL 侧 IO 引擎设计</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter29.html"><span><span class="pager-label">下一章</span><b>第 29 章 · 软 PLC 运行时内核设计</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 28 章 · Linux 平台定制与 UIO 驱动 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 45 章 · 工业总线与工业以太网全景 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 45 章 · 工业总线与工业以太网全景：一张地图看清 RS485 到 TSN 的全部主流技术 —— 协议选型是自动化工程师的必修决策课。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-industrial" data-chapter-id="ch45" data-chapter-file="chapter45.html" data-chapter-label="第 45 章 · 工业总线与工业以太网全景">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 45 章 · 工业自动化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>工业通信的金字塔</a>
+<a href="#sec-2"><span class="num">02</span>传统串行总线精要</a>
+<a href="#sec-3"><span class="num">03</span>工业以太网三大流派 ★（核心考点）</a>
+<a href="#sec-4"><span class="num">04</span>OPC UA 与 TSN：下一代信息主线</a>
+<a href="#sec-5"><span class="num">05</span>选型决策树（实战版）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：CAN 错误处理机制全景</a>
+<a href="#sec-8"><span class="num">08</span>深潜：EtherCAT 状态机 INIT→OP</a>
+<a href="#sec-9"><span class="num">09</span>深潜：CoE 对象字典到 PDO 的映射链</a>
+<a href="#sec-10"><span class="num">10</span>深潜：Modbus ASCII 帧（冷知识但会考）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：PTP/BMCA 三行原理</a>
+<a href="#sec-12"><span class="num">12</span>深潜：POWERLINK 协议原理 ★</a>
+<a href="#sec-13"><span class="num">13</span>深潜：openPOWERLINK 在 ZYNQ 上的实现与应用</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 45 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第六篇 · 工业自动化 / Chapter 45</div>
+      <h1 id="heroTitle">第 45 章<br><span class="grad">工业总线与工业以太网全景</span></h1>
+      <p class="hero-sub">一张地图看清 RS485 到 TSN 的全部主流技术 —— 协议选型是自动化工程师的必修决策课。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 25 分钟</span>
+        <span class="meta-chip">13 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">45</div>
+          <div class="console-part">工业自动化 / CH45</div>
+          <div class="console-title">工业总线与工业以太网全景</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>13</b></div>
+            <div class="console-metric"><span>CODE</span><b>5</b></div>
+            <div class="console-metric"><span>TBL</span><b>5</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:72%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:36%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:42%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>45 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>13</b><span>本章小节</span></div>
+    <div class="stat"><b>25</b><span>预计分钟</span></div>
+    <div class="stat"><b>5</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 RS485/CAN/Profibus 等传统总线的电气与协议要点</li>
+<li class="goal-item">理解工业以太网三大流派的实时机制差异</li>
+<li class="goal-item">建立面向场景的总线选型方法论</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第六篇 · 工业自动化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,209 字 · 13 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>5 段 · 5 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        PLC 硬件、功能安全、工业总线与冗余设计。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">45.1</span>工业通信的金字塔</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">        ┌──────────────────────┐
+        │  MES/ERP 管理层       │  OPC UA / 数据库 / 云
+        ├──────────────────────┤
+        │  SCADA/HMI 监控层     │  Modbus TCP / OPC UA / PROFINET
+        ├──────────────────────┤
+        │  控制层 PLC↔PLC/驱动   │  PROFINET / EtherCAT / CANopen
+        ├──────────────────────┤
+        │  设备层 传感器/执行器  │  IO-Link / 4-20mA+HART / DI/DO硬线
+        └──────────────────────┘</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">45.2</span>传统串行总线精要</h3><h4>① RS-485 物理层（无数协议的载体）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>参数</th><th>规范/惯例</th><th>工程备注</th></tr>
+<tr><td>电气</td><td>差分 A/B，±200mV 阈值；共模 -7~+12V</td><td>差分抗共模干扰是长距离的根基</td></tr>
+<tr><td>速率×距离</td><td>10Mbps@15m ~ 100kbps@1200m</td><td>「速率距离积」近似守恒</td></tr>
+<tr><td>拓扑/节点</td><td>手拉手总线型 ≤32 单位负载（1/8 收发器可到256）</td><td>星型接法=反射灾难，必须避免</td></tr>
+<tr><td>终端匹配</td><td>两端 120Ω 终端 + 偏置电阻(A上拉B下拉 560~680Ω)</td><td>空闲态电平不确定 → 错误起始位（排故高频点）</td></tr>
+<tr><td>隔离</td><td>工业品标配磁耦/光耦隔离 + 瞬态防护</td><td>两地电位差烧 485 口是最常见事故</td></tr>
+</table></div>
+<h4>② Modbus RTU 要点补全（32章之外的现场视角）</h4>
+<ul>
+<li>一主多从，从站地址 1~247；广播（0）只写不答；</li>
+<li>帧间静默 ≥3.5 字符 = 帧边界；字符间 &gt;1.5 字符即帧错 —— 波特率越低窗口越宽；</li>
+<li>诊断三板斧：CRC 校验失败率、异常码分布（02 越界=点表配错）、响应超时统计（从站忙/掉线）。</li>
+</ul>
+<h4>③ CAN 与 CANopen</h4>
+<ul>
+<li><strong>CAN 帧结构</strong>：SOF + 11/29 位仲裁 ID + 控制段 + 0~8B 数据 + 15 位 CRC + ACK/EOF；显性 0 覆盖隐性 1 → <strong>ID 小者胜出的非破坏仲裁</strong>；</li>
+<li>错误管理：发送错误计数器 TEC/接收 REC，&gt;128 error passive，&gt;255 <strong>bus-off 关闭自身</strong>（需软件复位恢复）—— 排故必查项；</li>
+<li><strong>CANopen</strong>：对象字典 OD（索引/子索引寻址参数）+ NMT 网络管理 + SDO（配置，分段传）+ PDO（实时过程数据，映射可配）；伺服/IO 模块的事实标准之一；</li>
+<li>CAN FD：数据段扩至 64B、速率最高 5~8Mbps —— 新一代驱动器在迁移。</li>
+</ul>
+<h4>④ Profibus-DP 与 HART 一句话画像</h4>
+<p>Profibus-DP：主从+令牌混合，DB9 接头内置终端电阻开关，DP-V0 周期数据 / V1 带参数通道，12Mbps 经典；HART：在 4~20mA 上叠加 1200/2200Hz FSK 数字信号，仪表调试利器（配手持终端读变送器参数）。</p></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">45.3</span>工业以太网三大流派 ★（核心考点）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>流派/机制</th><th>代表协议</th><th>实时原理</th><th>周期/抖动</th><th>同步精度</th></tr>
+<tr><td>标准以太网+优先级调度</td><td>Modbus TCP、EtherNet/IP(CIP)</td><td>TCP/UDP + QoS，靠交换缓存容忍延迟</td><td>10ms级/无保证</td><td>NTP 级</td></tr>
+<tr><td>软实时 RT 帧</td><td>PROFINET RT(Class 1)</td><td>VLAN 优先级+专用协议栈绕过 TCP/IP</td><td>250μs~ms 级</td><td>~ms</td></tr>
+<tr><td>硬实时（时间同步+旁路处理）</td><td>EtherCAT、POWERLINK、PROFINET IRT、SERCOS III</td><td>见下文 EtherCAT 原理</td><td>≤100μs / &lt;1μs 抖动</td><td>&lt;1μs(EtherCAT DC)</td></tr>
+<tr><td>确定性网络标准</td><td>TSN(802.1 Qbv/Qbu/AS)</td><td>时间门控调度+帧抢占+gPTP 全网同步</td><td>μs 级可控</td><td>±1μs 内</td></tr>
+</table></div>
+<h4>EtherCAT 为什么快？（面试高频）</h4>
+<ul>
+<li><strong>「飞行读写」</strong>：一个以太网帧穿越所有从站，每个从站用专用硬件(FPGA ESC)在帧经过时<strong>纳秒级就地提取/插入</strong>自己的数据并转发 —— 不存储转发、不解析完整帧；</li>
+<li>100 台设备仍只需一帧 → 帧利用率极高，典型周期 50~500μs；</li>
+<li><strong>分布式时钟 DC</strong>：参考时钟随帧传播，各站测量传播延迟补偿偏移，同步误差 ≪1μs —— 多轴插补的基础；</li>
+<li>代价：从站需专用 ESC 芯片/核（ET1100/LAN9252/ZYNQ 可软实现），主站栈（SOEM 开源）跑在普通网卡即可。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">45.4</span>OPC UA 与 TSN：下一代信息主线</h3><p><strong>OPC UA</strong> 解决「语义」：信息模型（变量类型/方法/事件）+ 安全内建（证书/加密）+ 传输无关（二进制/HTTP/PubSub）。<strong>TSN</strong> 解决「管道」：802.1Qbv 时间门控给关键流留时隙、Qbu 帧抢占防大帧阻塞、AS(gPTP) 全网 ±1μs 同步。两者组合 <em>OPC UA over TSN</em> 是控制器↔控制器、跨厂商互操作的战略方向 —— 学习顺序建议：先吃透 EtherCAT 模型，再理解 TSN 是其思想的标准化泛化。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">45.5</span>选型决策树（实战版）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">需要多轴 μs 级同步运动控制？
+ ├─ 是 → EtherCAT（生态最广）/ PROFINET IRT（西门子系）
+ └─ 否 ↓
+只是慢变量采集+启停？预算敏感？现场有 485 仪表存量？
+ ├─ 是 → Modbus RTU/TCP 完全够用（本课程方案）
+ └─ 否 ↓
+需要跨厂商互操作/上云语义模型？
+ ├─ 是 → OPC UA 为主干 + 底层任选
+ └─ 否 → CANopen(驱动/车辆) / CC-Link IE(日系产线) / EtherNet/IP(北美)
+通用原则：<strong>跟随主导设备的生态</strong>——选了某品牌伺服，它的总线就是你的总线。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：485 总线挂上第三台设备就不通了？</summary><div class="ans"><p>按概率：① 星型分支造成反射（改手拉手或加中继）；② 第三台地址冲突；③ 终端电阻过多（只在物理两端装，中间设备禁止启用）；④ 某设备收发器损坏拉死总线（逐一拔除定位）。示波器看 A-B 差分波形立判物理层好坏。</p></div></details>
+<details class="qa"><summary>Q2：CAN 通信偶发中断后自动恢复又复发？</summary><div class="ans"><p>查 dmesg/寄存器 TEC/REC 计数：反复 bus-off 说明线上持续错误帧。根因 Top3：波特率采样点不一致（统一 87.5%）、线缆过长未降速、某节点地电位漂移（测对地电压）。恢复策略应指数退避而非立即重启。</p></div></details>
+<details class="qa"><summary>Q3：EtherCAT 和办公网能不能共用交换机？</summary><div class="ans"><p>不能直接混接。EtherCAT 帧被普通交换机会「存储转发」破坏实时性且无法通过。正确做法：物理分网，或在支持协议感知的边缘做受控网关。VLAN 隔离只能防广播不能保实时。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L45-1：三种总线手感训练</strong>
+<p>① 用 USB-485 把你的 PLC 与 PC 组网，故意去掉终端电阻观察波形振铃（示波器）；② 若有两块 CAN 板（或 MCP2515 模块），做双节点收发并把一台波特率设错观察错误帧计数飙升；③ Wireshark 抓一次 PROFINET/EtherCAT 公开样例包（网上 pcaps），对照本章表格识别帧类型。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>推导「速率×距离积」守恒的物理原因（提示：传输线损耗与上升沿带宽）。</li>
+<li>EtherCAT 的 DC 补偿算法如何测量传播延迟？为什么写读偏移后残余误差仍存在？</li>
+<li>为你的软 PLC 增加 CANopen 从站能力的最小改造清单是什么？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">45.6</span>深潜：CAN 错误处理机制全景</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>要素</th><td>说明</td></tr>
+<tr><td>位填充</td><td>5个同极性位后自动插反极性位(保证同步沿)；错误帧/过载帧不填充——解码器需识别</td></tr>
+<tr><td>错误类型</td><td>位错误/填充错/CRC错/形式错/ACK错 → 任一节点检测到即发<strong>错误标志</strong>(6个显性位)</td></tr>
+<tr><td>主动 vs 被动</td><td>TEC/REC≤127 主动错误(发显性标志); &gt;128 被动(发隐性标志,不破坏总线) —— 新入网设备从被动起步? 实际上电为主动，异常降级</td></tr>
+<tr><td>Bus-off 恢复</td><td>TEC&gt;255 强制脱离；标准恢复=检测128×11连续隐性位后复位发送逻辑（软件可加速但勿立即重入）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">45.7</span>深潜：EtherCAT 状态机 INIT→OP</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">INIT ──▶ PRE-OP ──▶ SAFE-OP ──▶ OP
+        │读身份/邮箱SDO│过程数据映射配置│输出有效
+  ↑失败回退并报 AL 状态码(如 0x001B 同步失配)
+/* 主站(SOEM)典型流程: 初始化枚举→配置时钟DC→设置SM/PDO映射
+   →逐站写AL Control切态→轮询AL Status确认→进入OP周期交换。
+   排障锚点: 卡在SAFEOP→OP 多为输出PDO长度与从站期望不符 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">45.8</span>深潜：CoE 对象字典到 PDO 的映射链</h3><ol>
+<li>对象字典 OD：0x1000 通信参数 / <strong>0x6000+厂商 profile</strong>（如 CiA402 伺服：0x6040 控制字、0x607A 目标位置）；</li>
+<li>TX/RX PDO 映射对象（0x1A00/0x1600）声明「本周期数据由哪些 OD 条目打包」；</li>
+<li>SM 通道分配 PDO → ESC 硬件按 SM 配置在帧中就地读写；</li>
+<li>运行期改映射必须先退 SAFE-OP —— 与 47 章 EtherCAT 抓包对照阅读，帧内每个字节都能溯源到 OD 条目。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">45.9</span>深潜：Modbus ASCII 帧（冷知识但会考）</h3><p><code class="inline">':' + 冒号起始 + 每字节两位ASCII十六进制 + LRC(8位累加和取补) + CR/LF</code>。效率只有 RTU 一半，现存于老仪表。LRC 计算 = 所有字节和取负再取低8位 —— 面试区分度题。</p></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">45.10</span>深潜：PTP/BMCA 三行原理</h3><p>gPTP/1588 通过 <strong>Best Master Clock Algorithm</strong> 选出全网最优时钟（优先级/时钟精度/路径跳数比较），随后 Sync/Follow_Up 与 Delay_Req 测量各链路传播延迟并补偿 —— EtherCAT DC 是其硬件化特例。理解「测量延迟→补偿偏移」这一对动作，即可通吃所有时间同步协议。</p></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12"><span class="h3-num">45.11</span>深潜：POWERLINK 协议原理 ★</h3><p>POWERLINK（EPSG 维护，openPOWERLINK 为 BSD 开源实现）是与 EtherCAT 齐名的硬实时工业以太网，其最大特色：<strong>基于标准以太网帧、纯软件可实现、无需专用芯片</strong>。</p>
+
+<h4>① 体系结构与节点角色</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>概念</th><td>说明</td></tr>
+<tr><td>MN (Managing Node)</td><td>管理节点=主站（PLC/控制器），发起轮询、分配时隙</td></tr>
+<tr><td>CN (Controlled Node)</td><td>受控节点=从站（IO/驱动），被动响应</td></tr>
+<tr><td>对象字典 OD</td><td>复用 CANopen 行规体系（EDS 描述设备）——迁移 CANopen 应用成本极低</td></tr>
+</table></div>
+
+<h4>② 一个通信周期的帧序列（核心机制）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">│SoC│ PReq1→CN1 │←Pres1│ PReq2→CN2 │←Pres2│ ... │ 异步段(ASnd/UDP) │SoA│
+ ▲                                                                 ▲
+ └ MN 广播同步起始(所有CN以此对齐时钟)        MN 广播下一周期参数/轮询计划 ┘
+/* 关键设计:
+· Pres(Poll Response) 是"广播"——CN1 的响应全体可见, 生产者消费者模型,
+  N 节点数据在 N+1 帧内全部流转, 帧利用率随规模线性优
+· 多路复用(Multiplexed): 慢速 CN 每 K 个周期才被轮询一次 → 周期内可挂更多节点
+· 异步段承载标准 TCP/IP(诊断/组态) —— 与实时流共享同一网线但时分隔离 */
+时间指标: 周期典型 200μs~10ms; 抖动 &lt;1μs; 同步精度 ≈&lt;&lt;1μs(SoC 对齐)
+EthType = 0x88AB (Wireshark 原生解析)</code></pre></div>
+
+<h4>③ 与 EtherCAT 对照表（选型必背）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><td>POWERLINK</td><td>EtherCAT</td></tr>
+<tr><td>开放性</td><td><strong>BSD 开源栈</strong>, 无授权费</td><td>主站开源, 从站需 ESC 芯片/授权技术</td></tr>
+<tr><td>从站硬件门槛</td><td><strong>任意 MCU+标准 MAC 可软实现</strong></td><td>必须 ESC 硬件(FPGA 或专用芯片)</td></tr>
+<tr><td>最小周期/规模上限</td><td>~200μs / 数百节点(复用后更多)</td><td>~30-100μs / 65535 节点</td></tr>
+<tr><td>同步机制</td><td>SoC 时间对齐(精度&lt;&lt;1μs)</td><td>DC 分布式时钟(±&lt;1μs)</td></tr>
+<tr><td>拓扑</td><td>星型经交换机 / HUB? 支持环冗余(MN/CN 冗余+双网)</td><td>线型菊花链天然, 分支需分支器</td></tr>
+<tr><td>生态代表</td><td>贝加莱(B&R 主导)、部分国产中型 PLC</td><td>倍福主导, 生态最广</td></tr>
+<tr><td>本质差异一句话</td><td colspan="2">EtherCAT 把智能放<strong>从站芯片</strong>；POWERLINK 把智能放<strong>软件栈</strong>——前者性能极致, 后者门槛极低。</td></tr>
+</table></div>
+<p>「等协议」速览：SERCOS III（光纤环、伺服血统）、CC-Link IE Field（三菱系 GB 千兆）、FL-net（日系互操作）——掌握 POWERLINK 与 EtherCAT 两套模型后，这些只需对照帧结构差异即可快速上手。</p></div>
+<div class="lesson-block reveal" id="sec-13" aria-labelledby="h-13"><h3 id="h-13"><span class="h3-num">45.12</span>深潜：openPOWERLINK 在 ZYNQ 上的实现与应用</h3><h4>① 栈分层与三种部署形态</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">openPOWERLINK v2.x 分层:
+┌────────────────────────────────────┐
+│ 应用层 API (process image 交换接口)  │
+├────────────────────────────────────┤
+│ 协议内核 DLL (Data Link Layer)      │ ← NMT状态机/OD/PDO映射/SDO
+├────────────────────────────────────┤
+│ 驱动层: 内核态驱动 | 用户态直驱 | PL侧 │
+└────────────────────────────────────┘
+ZYNQ 三种形态:
+A) 全软件: PS GEM + 用户态栈          → 周期 ~1ms   (入门/验证)
+B) PL openMAC + 内核驱动              → 200~500μs  (推荐教学路线)★
+C) PL 完整硬件加速(控制+MAC)          → &lt;100μs     (产品形态)</code></pre></div>
+
+<h4>② 形态 B 移植要点（领航者实战路径）</h4>
+<ol>
+<li>PL 工程加入 openMAC IP（openPOWERLINK 附带）+ 双端口 RAM 存取驱动层交换区；</li>
+<li>PS 编译 openPOWERLINK 内核驱动模块（配置 <code class="inline">CFG_DEMO_BOARD=zynq? DEMO_ZYNQ_ARM</code> 模板），加载后经 /dev/powerlink? 字符通道与用户态 API 库交互；</li>
+<li>MN 应用：调用 <code class="inline">oplk_create()→oplk_execNmtState? oplk_execNmtCommand</code> 系列，过程映像用 <code class="inline">oplk_linkProcessImage?</code> 绑定；CN 应用更简：初始化→回调收发；</li>
+<li>Linux 侧与本课程 PLC 运行时集成：把 POWERLINK 过程映像桥接到 g_img 映像区（29章）——你的软 PLC 即获得 POWERLINK 主站能力。</li>
+</ol>
+
+<h4>③ 应用与调试</h4>
+<ul>
+<li><strong>应用版图</strong>：B&R 全线控制器、国内多家中型 PLC 与伺服厂；适合「想自研实时总线又不想被芯片绑定」的团队 —— 与本课程自研精神高度契合；</li>
+<li><strong>调试</strong>：Wireshark 直接解析 SoC/PReq/Pres 帧（对照②的帧序列读时序）；openPOWERLINK 自带 trace/event 日志；CN 掉线先看 NMT 状态与 Pres 超时计数；</li>
+<li><strong>验收实验 L45-2</strong>：MN(ZYNQ)+CN(PC 双网卡软 CN) 组网，示波器测 SoC 周期抖动 ≤1μs；故意拔 CN 观察隔离与恢复流程。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch45"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 RS485/CAN/Profibus 等传统总线的电气与协议要点</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解工业以太网三大流派的实时机制差异</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立面向场景的总线选型方法论</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「工业总线与工业以太网全景」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter44.html"><span><span class="pager-label">上一章</span><b>第 44 章 · 标准体系与功能安全认证</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter46.html"><span><span class="pager-label">下一章</span><b>第 46 章 · 冗余设计与高可用架构</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 45 章 · 工业总线与工业以太网全景 · 第六篇 · 工业自动化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

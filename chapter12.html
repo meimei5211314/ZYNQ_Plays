@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 12 章 · 启动流程深度剖析 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 12 章 · 启动流程深度剖析：嵌入式工程师的分水岭：能不能对着一屏串口输出，立刻判断系统死在哪一级。本章给你这张「排障地图」。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch12" data-chapter-file="chapter12.html" data-chapter-label="第 12 章 · 启动流程深度剖析">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 12 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>五级火箭总览</a>
+<a href="#sec-2"><span class="num">02</span>第①级：BootROM（不可修改的地基）</a>
+<a href="#sec-3"><span class="num">03</span>第②级：FSBL 与 BOOT.BIN 打包</a>
+<a href="#sec-4"><span class="num">04</span>第③级：U-Boot —— 万能瑞士军刀</a>
+<a href="#sec-5"><span class="num">05</span>第④级：内核启动关键节点</a>
+<a href="#sec-6"><span class="num">06</span>第⑤级：用户态初始化</a>
+<a href="#sec-7"><span class="num">07</span>启动排障地图（背下来！）</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：一份真实启动日志逐行精讲 ★</a>
+<a href="#sec-10"><span class="num">10</span>深潜：安全启动（Secure Boot）概念链</a>
+<a href="#sec-11"><span class="num">11</span>深潜：FSBL 内部阶段表 与 XIP 概念</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 12 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 12</div>
+      <h1 id="heroTitle">第 12 章<br><span class="grad">启动流程深度剖析</span></h1>
+      <p class="hero-sub">嵌入式工程师的分水岭：能不能对着一屏串口输出，立刻判断系统死在哪一级。本章给你这张「排障地图」。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">12</div>
+          <div class="console-part">嵌入式 Linux / CH12</div>
+          <div class="console-title">启动流程深度剖析</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>12 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">完整掌握 BootROM → FSBL → U-Boot → Kernel → 用户态 五级链条</li>
+<li class="goal-item">理解 BOOT.BIN 的构成与 bootgen 打包机制</li>
+<li class="goal-item">能根据串口现象秒级定位启动失败阶段</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,233 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">12.1</span>五级火箭总览</h3><figure class="fig">
+<svg viewBox="0 0 920 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ZYNQ启动流程">
+<style>.s{fill:#eef2f7;stroke:#94a3b8}.x{font:11px sans-serif;fill:#1f2937}.y{font:bold 12px sans-serif}</style>
+<defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#333"/></marker></defs>
+<rect class="s" x="20" y="40" width="150" height="90"/><text x="95" y="65" text-anchor="middle" class="x y">① BootROM</text><text x="95" y="84" text-anchor="middle" class="x">128KB 固化代码</text><text x="95" y="100" text-anchor="middle" class="x">采样 BOOT 引脚</text><text x="95" y="116" text-anchor="middle" class="x">读首镜像→OCM</text>
+<rect class="s" x="210" y="40" width="150" height="90"/><text x="285" y="65" text-anchor="middle" class="x y">② FSBL</text><text x="285" y="84" text-anchor="middle" class="x">OCM 内运行</text><text x="285" y="100" text-anchor="middle" class="x">ps7_init 时钟/DDR</text><text x="285" y="116" text-anchor="middle" class="x">加载bit+U-Boot</text>
+<rect class="s" x="400" y="40" width="150" height="90"/><text x="475" y="65" text-anchor="middle" class="x y">③ U-Boot</text><text x="475" y="84" text-anchor="middle" class="x">DDR 内运行</text><text x="475" y="100" text-anchor="middle" class="x">env/bootcmd</text><text x="475" y="116" text-anchor="middle" class="x">载内核+DTB</text>
+<rect class="s" x="590" y="40" width="150" height="90"/><text x="665" y="65" text-anchor="middle" class="x y">④ Linux Kernel</text><text x="665" y="84" text-anchor="middle" class="x">解析设备树</text><text x="665" y="100" text-anchor="middle" class="x">驱动 initcall</text><text x="665" y="116" text-anchor="middle" class="x">挂载 rootfs</text>
+<rect class="s" x="780" y="40" width="120" height="90"/><text x="840" y="65" text-anchor="middle" class="x y">⑤ 用户态</text><text x="840" y="84" text-anchor="middle" class="x">init/systemd</text><text x="840" y="100" text-anchor="middle" class="x">服务脚本</text><text x="840" y="116" text-anchor="middle" class="x">login / 应用</text>
+<line x1="170" y1="85" x2="202" y2="85" stroke="#333" stroke-width="2" marker-end="url(#a2)"/>
+<line x1="360" y1="85" x2="392" y2="85" stroke="#333" stroke-width="2" marker-end="url(#a2)"/>
+<line x1="550" y1="85" x2="582" y2="85" stroke="#333" stroke-width="2" marker-end="url(#a2)"/>
+<line x1="740" y1="85" x2="772" y2="85" stroke="#333" stroke-width="2" marker-end="url(#a2)"/>
+<rect class="s" x="20" y="170" width="200" height="70"/><text x="120" y="195" text-anchor="middle" class="x y">存储介质</text><text x="120" y="213" text-anchor="middle" class="x">QSPI Flash / SD/eMMC</text><text x="120" y="229" text-anchor="middle" class="x">BOOT.BIN · zImage · dtb · rootfs</text>
+<rect class="s" x="260" y="170" width="290 " height="70"/><text x="405" y="195" text-anchor="middle" class="x y">PL bitstream 加载时机</text><text x="405" y="213" text-anchor="middle" class="x">FSBL 经 PCAP 写入 PL（PCAP 模式）</text><text x="405" y="229" text-anchor="middle" class="x">或开发期由 PCAP/JTAG 单独下载</text>
+<rect class="s" x="590" y="170" width="310" height="70"/><text x="745" y="195" text-anchor="middle" class="x y">JTAG 启动模式特例</text><text x="745" y="213" text-anchor="middle" class="x">BootROM 空转等待，全部由主机接管：</text><text x="745" y="229" text-anchor="middle" class="x">Vitis/XSCT 逐个加载 fsbl→bit→elf</text>
+<text x="460" y="300" text-anchor="middle" class="x" fill="#57606a">每一级的「交接物」：ROM→FSBL：控制权 + OCM；FSBL→U-Boot：初始化好的 DDR + PCAP 完成的 PL；</text>
+<text x="460" y="320" text-anchor="middle" class="x" fill="#57606a">U-Boot→Kernel：内存中的 zImage/dtb + bootargs；Kernel→init：就绪的驱动框架与根文件系统。</text>
+</svg>
+<figcaption>图12-1 ZYNQ Linux 启动五级链</figcaption>
+</figure></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">12.2</span>第①级：BootROM（不可修改的地基）</h3><ul>
+<li>芯片内部固化，上电后 CPU0 从 <code class="inline">0xFFFF0000</code> 开始执行；核1 自旋等待被唤醒（Linux SMP 时才启动）。</li>
+<li>读取 MIO 上的 <strong>BOOT_MODE[4:0]</strong> 电平决定启动设备：<code class="inline">QSPI / NOR / NAND / SD(eMMC) / JTAG</code> —— 对应板上拨码开关。</li>
+<li>从介质<strong>固定偏移</strong>读取 boot 镜像头（字节数、目标地址、执行入口、镜像数），把第一个镜像（必须是 FSBL）搬进 <strong>OCM</strong> 并跳转。</li>
+<li>JTAG 模式下 BootROM 不读任何介质，等待主机通过 JTAG 下发一切 —— 调试救砖的最后手段。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">12.3</span>第②级：FSBL 与 BOOT.BIN 打包</h3><p>FSBL（First Stage Boot Loader，通常由 Vitis 模板生成）在 OCM 里依次完成：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* FSBL main() 逻辑骨架（简化）*/
+ps7_init();                    /* 执行 ps7_init.c：PLL/时钟/MIO/DDR 初始化 */
+LoadBitstreamFromFlash();      /* 若 boot.bin 含 .bit → 经 DevC/PCAP 配置 PL */
+FsblHandoffJtagExit();         /* 关闭 DAP */
+HandoffAddress = 读镜像表中下一个条目(如 u-boot.elf 入口);
+FuncPtr = HandoffAddress; FuncPtr();   /* 跳交控制权 */</code></pre></div>
+<p><strong>BOOT.BIN 由 bootgen 按 BIF 描述打包</strong>：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">/* boot.bif —— 镜像清单 */
+all:
+{
+    [bootloader] fsbl.elf        /* 必须第一，带 bootloader 属性 */
+    design_1_wrapper.bit         /* PL 比特流（可选） */
+    u-boot.elf                   /* 第三阶段 */
+}
+/* 命令行打包 */
+bootgen -image boot.bif -arch zynq -o BOOT.BIN -w on</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ 三个高频翻车点</span>
+<p>① <code class="inline">[bootloader]</code> 标记丢失 → BootROM 无法识别首镜像；② 改了 PL 设计忘记更新 .bit 进 BIF → 板子跑的还是旧逻辑；③ FSBL 与 XSA 版本不配套 → DDR 参数错乱，随机死机。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">12.4</span>第③级：U-Boot —— 万能瑞士军刀</h3><p>U-Boot 运行于 DDR，提供交互 shell（倒计时按任意键进入）。核心概念只有两个环境变量：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>变量</th><th>职责</th><th>示例</th></tr>
+<tr><td><code class="inline">bootcmd</code></td><td>自动启动时执行什么</td><td><code class="inline">run sdboot / run jtagspi / tftp+bootz 序列</code></td></tr>
+<tr><td><code class="inline">bootargs</code></td><td>传给内核的命令行</td><td><code class="inline">console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootwait</code></td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># U-Boot 常用调试命令速查
+printenv                     # 查看全部环境变量
+setenv ipaddr 192.168.2.30 && setenv serverip 192.168.2.20
+tftpboot 0x10000000 zImage   # 网络加载内核
+mmcinfo && fatls mmc 0:1     # 查看 SD 卡 FAT 分区文件
+md 0xE0001000 10             # 直读寄存器(UART1)，裸机直觉延续
+sf probe 0 && sf read ...    # QSPI 操作
+saveenv                      # 保存环境变量到 flash
+reset                        # 复位</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">12.5</span>第④级：内核启动关键节点</h3><ol>
+<li>自解压 → 使能 MMU/cache → <strong>earlycon</strong> 极早期打印；</li>
+<li>根据 r2 寄存器传入的 <strong>设备树(DTB)</strong> 匹配机器、枚举外设；</li>
+<li>按链接段顺序执行各驱动 <code class="inline">initcall</code>（你未来写的 platform 驱动在此 probe）；</li>
+<li>挂载 rootfs（NFS 或块设备），找 PID 1；</li>
+<li>打印 <em>"Run /sbin/init as init process"</em> 进入用户态。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">12.6</span>第⑤级：用户态初始化</h3><p>PetaLinux 默认 sysvinit + BusyBox：<code class="inline">/etc/inittab</code> 决定运行级别与 getty；<code class="inline">/etc/rcS.d/S*</code> 顺序执行服务脚本（第34章我们把 PLC 服务加进这里）；systemd 发行版则由 unit 文件管理。登录提示出现 = 五级火箭全部点火成功。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">12.7</span>启动排障地图（背下来！）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>串口现象</th><th>死亡阶段</th><th>排查方向（按概率排序）</th></tr>
+<tr><td>完全无任何输出</td><td>①之前</td><td>供电/拨码模式错误（最常见）/串口选错UART或波特率/BootROM找不到有效镜像（QSPI空白）</td></tr>
+<tr><td>FSBL banner 后停止</td><td>①→②</td><td>.bit 损坏导致 PCAP 卡住 / 下一镜像缺失 / DDR 初始化参数错</td></tr>
+<tr><td>U-Boot 倒计时后卡死</td><td>③→④</td><td>zImage 未加载成功（tftp/mmc 路径错）/ bootargs 错误</td></tr>
+<tr><td>Starting kernel... 后黑屏</td><td>④早期</td><td>console=ttyPS0 写成 ttyPS1 或 ttyS0（Top 错误！）/ DTB 与实际硬件不符 / earlycon 可用于确认是否真死</td></tr>
+<tr><td>Kernel panic - not syncing: VFS</td><td>④末尾</td><td>root= 路径不存在（分区号错）/ NFS 导出未生效 / 缺根文件系统内容</td></tr>
+<tr><td>有 login 却登不上</td><td>⑤</td><td>/etc/passwd shadow 异常 / inittab 无 getty / 控制台权限</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：为什么 FSBL 必须放 OCM 且是第一个镜像？</summary><div class="ans"><p>此刻 DDR 尚未初始化，唯一可用的 RAM 是 OCM；BootROM 的搬运目标地址也固定为 OCM 起点。这是硬件契约，所有 Zynq 平台一致。</p></div></details>
+<details class="qa"><summary>Q2：能不用 U-Boot 直接引导内核吗？</summary><div class="ans"><p>技术上可行（FSBL 直接跳 zImage 或用 Falcon Mode），但会失去网络加载、多方案启动、交互救援能力。教学与产品默认保留 U-Boot。</p></div></details>
+<details class="qa"><summary>Q3：PL 的 bitstream 能不能晚一点再加载？</summary><div class="ans"><p>可以。方案A：从 boot.bin 中移除 .bit，系统起来后由应用经 <code class="inline">/dev/fpga0</code>（fpgamanager）或 devcfg 驱动加载；好处是升级逻辑无需动 BOOT.BIN。本课程 PLC 采用 FSBL 阶段加载，简单可靠。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L12-1：绘制自己的启动时序图</strong>
+<p>用 SD 卡正常启动一次 PetaLinux（第15章完成后补做亦可），开启串口时间戳（MobaXterm 支持 timestamp），记录每级 banner 出现时刻，计算：BootROM→FSBL、FSBL→U-Boot、U-Boot→login 各耗时。然后故意制造三种故障（改错 console 参数 / 拔掉 SD / 清空 QSPI），对照 12.7 地表写出诊断结论。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>双核 A9 在 BootROM 与 FSBL 阶段分别处于什么状态？核1 是何时、由谁唤醒的？</li>
+<li>如果要求「按键 S1 按住时强制进入 JTAG 救援模式」，应该在 FSBL 还是 U-Boot 实现？为什么？</li>
+<li>对比 NFS root 与 eMMC root 在研发期与量产期的优缺点，给出你的选型策略。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">12.8</span>深潜：一份真实启动日志逐行精讲 ★</h3><p>下面是 SD 卡启动的典型串口输出（节选），<strong>逐行读懂它 = 排障能力质变</strong>：</p>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">Xilinx First Stage Boot Loader               ← ②FSBL banner（编译时间戳可核对版本）
+Release 2020.2  ...
+PMU? no——PS 已初始化完毕，以下为 FSBL 行为日志：
+Loading image at 0x08000000 ...              ← 正在搬运下一镜像(U-Boot)到DDR
+Successfully loaded FPGA image.              ← .bit 经 PCAP 写入 PL 成功
+Handoff Address = 0x10000000                 ← 跳交控制权地址=U-Boot入口
+
+U-Boot 2020.01-g... (Jan 01 2024)            ← ③U-Boot banner
+DRAM: 1 GiB                                  ← DDR 自检容量
+Flash: 32 MiB                                ← QSPI 探测成功
+MMC:   sdhci@e0100000: 0                     ← TF卡控制器枚举
+In: serial Out: serial Err: serial           ← 三路标准IO绑定到UART1
+Net:   eth0: ethernet@e000b000               ← GEM0 网卡(注意与板卡实际口对应)
+Hit any key to stop autoboot: 0              ← bootdelay 倒计时
+reading zImage ... OK                        ← bootcmd 第一步：FAT 读内核
+## Loading kernel from FIT Image? no——bootz 直启：
+Starting kernel ...                          ← ④交接！之后是内核接管
+
+Booting Linux on physical CPU 0x0            ← 内核第一行（解压后）
+Linux version 5.4.0-xilinx...                ← 版本串与主机构建信息
+CPU: ARMv7 Processor [413fc090] ...          ← A9 识别、特性寄存器
+Memory: 1023768K available                   ← memblock 统计后可用内存
+clocksource/arch_timer? (省略大量子系统初始化)
+Serial: AMBA PL011 UART driver? → xuartps    ← 你的 console 驱动上线
+...
+Run /sbin/init as init process               ← ⑤内核谢幕，用户态登场
+INIT: version 2.88 booting                   ← busybox init 开始跑 rcS
+Starting network: eth0 ... udhcpc? 或静态IP  ← 服务逐个启动
+PetaLinux System? login prompt:              ← getty 就绪
+navigator login:</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>日志特征</th><th>所处阶段</th><th>卡住时的怀疑点</th></tr>
+<tr><td>无任何输出</td><td>①之前/①</td><td>供电·拨码·波特率·BootROM找不到有效镜像（12.7地表）</td></tr>
+<tr><td>FSBL banner 后停</td><td>②→③</td><td>.bit损坏(PCAP挂)/下一镜像缺失/DDR参数错</td></tr>
+<tr><td>Starting kernel 后黑屏</td><td>④早期</td><td>console=ttyPS0 参数错(Top1!)/DTB不匹配 → 加 earlycon 抢救</td></tr>
+<tr><td>panic: VFS unable to mount</td><td>④末</td><td>root= 分区号错/NFS导出未生效</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">12.9</span>深潜：安全启动（Secure Boot）概念链</h3><ul>
+<li><strong>目标</strong>：确保 BOOT.BIN 未被篡改且来自授权方 —— 防克隆+防植入；</li>
+<li><strong>机制三层</strong>：① <strong>签名</strong>：bootgen 用 RSA-2048 私钥对各分区签名，BootROM 用公钥哈希（烧录在 eFUSE 的 PPK hash）验证；② <strong>加密</strong>：AES-256-GCM 对 bitstream/分区加密，密钥存 eFUSE 或 OCM（BBRAM）；③ <strong>eFUSE 一次性编程</strong>锁死安全策略；</li>
+<li><strong>工程现实</strong>：启用前先在开发期用未加固流程稳定量产逻辑；eFUSE 编程不可逆，操作前务必双签审批。学习层面掌握「信任根 Root of Trust → 逐级验签」模型即可迁移到任何 SoC。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">12.10</span>深潜：FSBL 内部阶段表 与 XIP 概念</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>FSBL 阶段</th><th>动作</th><th>失败现象</th></tr>
+<tr><td>P1 平台初始化</td><td>执行 ps7_init：MIO/PLL/DDRC 时序训练</td><td>无后续任何日志；LED 心跳异常</td></tr>
+<tr><td>P2 镜像解析</td><td>读 boot 头部表，遍历分区属性(O_EXEC/O_BOOTLOADER…)</td><td>"Invalid Boot Header"</td></tr>
+<tr><td>P3 PL 配置</td><td>PCAP 写 .bit，等待 PCAP_DONE 置位</td><td>卡死在 "Loading FPGA..."</td></tr>
+<tr><td>P4 下一镜像加载</td><td>FAT/裸区读取 U-Boot 至 DDR</td><td>"Can't read image"</td></tr>
+<tr><td>P5 交接</td><td>关 DAP/JTAG 安全设置→函数指针跳转</td><td>直接跳过③banner</td></tr>
+</table></div>
+<p><strong>XIP（eXecute In Place）</strong>：QSPI 支持 memory-mapped 直读执行，U-Boot SPL 可配置从 QSPI XIP 运行以省拷贝时间；代价是 SPI 带宽限制执行速度。理解 XIP 有助于读懂部分产品的「快速上电」设计。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch12"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>完整掌握 BootROM → FSBL → U-Boot → Kernel → 用户态 五级链条</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解 BOOT.BIN 的构成与 bootgen 打包机制</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能根据串口现象秒级定位启动失败阶段</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「启动流程深度剖析」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter11.html"><span><span class="pager-label">上一章</span><b>第 11 章 · 嵌入式 Linux 开发环境准备</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter13.html"><span><span class="pager-label">下一章</span><b>第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 12 章 · 启动流程深度剖析 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

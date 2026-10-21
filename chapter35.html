@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 35 章 · 综合案例与验收测试 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 35 章 · 综合案例与验收测试：用工程化的方式宣布胜利：需求追踪矩阵 + 可复现测试用例 + 性能实测报告。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch35" data-chapter-file="chapter35.html" data-chapter-label="第 35 章 · 综合案例与验收测试">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 35 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>需求追踪矩阵（节选）</a>
+<a href="#sec-2"><span class="num">02</span>关键性能实测方法</a>
+<a href="#sec-3"><span class="num">03</span>综合演示场景：「微型灌装产线」</a>
+<a href="#sec-4"><span class="num">04</span>验收报告模板</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：联调排障手册——集成期 Top10 问题（症状→层→根因→解法）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 35 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 35</div>
+      <h1 id="heroTitle">第 35 章<br><span class="grad">综合案例与验收测试</span></h1>
+      <p class="hero-sub">用工程化的方式宣布胜利：需求追踪矩阵 + 可复现测试用例 + 性能实测报告。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">4 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">35</div>
+          <div class="console-part">软 PLC 实战 / CH35</div>
+          <div class="console-title">综合案例与验收测试</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>3</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:21%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>35 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">建立需求→用例→证据的完整追溯链</li>
+<li class="goal-item">量化验证全部性能指标（R6 等）</li>
+<li class="goal-item">产出规范的《项目验收报告》</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,743 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">35.1</span>需求追踪矩阵（节选）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>需求</th><th>用例组</th><th>方法/仪器</th><th>通过判据</th></tr>
+<tr><td>R1 DI</td><td>V-DI-01..04</td><td>信号发生器/按键 + Web 观察 + ILA</td><td>10ms±20% 去抖；事件零丢失</td></tr>
+<tr><td>R2 DO+Force</td><td>V-DO-01..03</td><td>万用表/LED + Modbus 写</td><td>Force 即时生效；解除后逻辑恢复</td></tr>
+<tr><td>R3 AI</td><td>V-AI-01..02</td><td>电位器 5 点标定 vs 万用表</td><td>线性误差 ≤2% FS</td></tr>
+<tr><td>R4 PWM</td><td>V-PWM-01..03</td><td>示波器测频宽</td><td>100Hz~10kHz ±0.5%；占空比线性</td></tr>
+<tr><td>R5 逻辑</td><td>V-LD 三案例</td><td>标准程序行为比对</td><td>启保停/星三角/交通灯全过</td></tr>
+<tr><td>R6 扫描</td><td>V-RT-01</td><td>30min 连续运行统计</td><td>avg≤10ms 抖动 max&lt;11ms</td></tr>
+<tr><td>R7 Modbus</td><td>V-MB 自动化</td><td>pymodbus pytest 32章脚本</td><td>全部断言绿；异常码正确</td></tr>
+<tr><td>R8 Web</td><td>V-WB 手册</td><td>双浏览器并发操作</td><td>状态一致；错误输入有提示</td></tr>
+<tr><td>R9 可靠性</td><td>V-SR 故障注入</td><td>kill -9 / 断网 / 断电循环 ×50</td><td>自愈成功率 100%</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">35.2</span>关键性能实测方法</h3><h4>① 扫描周期抖动（V-RT-01）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 板上后台采集 30 分钟：
+plcio_test loop 180000 &gt; scan_stat.log
+# 统计列：avg/max/min/p99 —— 期望 avg≈10.00ms, max&lt;11ms
+# 同时 Web 页曲线确认无趋势性劣化（内存泄漏的旁证）</code></pre></div>
+<h4>② DI 端到端响应延迟</h4>
+<p>示波器 CH1 接按键物理引脚，CH2 接对应 DO 输出；逻辑里做「DI 直通 DO」测试程序。测量<strong>按键沿→输出沿</strong>总延迟 = PL 去抖(10ms) + 扫描采样等待(0~10ms) + 解算 + 输出。理论最大 ≈21ms，实测应落在 15~21ms 区间且分布可解释。</p>
+<h4>③ Modbus 吞吐</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">PYTHON</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="python">import time, statistics
+from pymodbus.client import ModbusTcpClient
+c = ModbusTcpClient('192.168.2.30'); c.connect()
+lat = []
+for _ in range(1000):
+    t0 = time.perf_counter()
+    c.read_holding_registers(0, 8, slave=1)
+    lat.append((time.perf_counter()-t0)*1000)
+print(f"avg={statistics.mean(lat):.2f}ms p95={sorted(lat)[950]:.2f}ms")
+# 参考值：百兆内网 avg 1~3ms —— 足够 SCADA 500ms 轮询场景</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">35.3</span>综合演示场景：「微型灌装产线」</h3><p>把所有 IO 编成一个故事，作为答辩演示脚本：</p>
+<ol>
+<li><strong>上电自检</strong>：Web 显示版本/自检绿灯（34章）；</li>
+<li><strong>启动条件</strong>：安全门 %IX0.6 闭合 + 启动按钮 %IX0.0（启保停骨架）；</li>
+<li><strong>灌装节拍</strong>：TP 触发阀门 DO0 冲刷 300ms（31章 TP）；</li>
+<li><strong>计数剔除</strong>：CTU 统计瓶数，每满 10 个 TON 500ms 停带提醒（功能块组合）；</li>
+<li><strong>温度联锁</strong>：%IW0 &gt; 阈值(%MW50 由 Modbus 下发) → 强制停机 + 蜂鸣 PWM（AI 联动）；</li>
+<li><strong>远程监控</strong>：SCADA(mbpoll) 与 Web 双端同步观察全流程；</li>
+<li><strong>故障演练</strong>：现场 kill 运行时 → 5s 自愈 → 产线自动恢复待机态（R9 实证）。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">35.4</span>验收报告模板</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">ZYNQ7020 软 PLC 项目验收报告 v1.0
+1. 交付物清单（对照 34.1，含 md5）
+2. 环境说明：板卡批次/Vivado 版本/构建时间戳
+3. 需求追踪矩阵：逐项 PASS/FAIL + 证据链接（截图/log/波形文件）
+4. 性能数据汇总表（扫描/延迟/吞吐/资源占用 top/free）
+5. 已知限制与风险（Web 无认证等 —— 诚实是工程师的美德）
+6. 结论与签核：开发___ 复核___ 日期___</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：扫描统计偶发 15ms 尖峰，算 FAIL 吗？</summary><div class="ans"><p>先归因再判定：单次 NFS/日志 IO 引起的孤立尖峰（p99 仍 &lt;11ms）可接受并记录；趋势性超限必须修。验收的意义是给出<strong>可解释的边界</strong>，不是追求绝对完美。</p></div></details>
+<details class="qa"><summary>Q2：测试用例太多做不完？</summary><div class="ans"><p>优先级排序：安全相关(R9/DO互锁) &gt; 核心功能(R5/R6) &gt; 边界(R7异常码) &gt; 体验(R8)。自动化脚本(32章 pytest)一次编写反复运行 —— 手工只留演示项。</p></div></details>
+<details class="qa"><summary>Q3：答辩时被问「和真实西门子 PLC 差距」怎么答？</summary><div class="ans"><p>坦诚框架：认证(IEC61131-3 一致性等级/功能安全 SIL)、鲁棒性(多年老化验证)、生态(TIA Portal 工具链)是差距；差异化在开放性(Linux 生态/自研深度/成本)。展示你清楚差距本身就是能力证明。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 DI 端到端延迟的「分布」比「平均值」更重要？画出你实测的直方图并解释双峰来源。</li>
+<li>为 V-SR 设计自动化故障注入脚本（kill/断网/断电模拟），如何判定「自愈成功」？</li>
+<li>如果验收指标改为「扫描 1ms」，你的架构哪些环节先崩？给出改造路线优先级。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">35.5</span>深潜：联调排障手册——集成期 Top10 问题（症状→层→根因→解法）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>症状</th><th>层</th><th>根因</th><th>解法/预防</th></tr>
+<tr><td>1</td><td>功能全变回旧版</td><td>PL</td><td>改了 RTL 忘记重新 Export XSA/下载 bit</td><td>版本寄存器(0x0C)带构建时间戳，启动自检打印 ★</td></tr>
+<tr><td>2</td><td>读 IP 寄存器总线挂死</td><td>地址</td><td>DTS reg 与 Vivado 分配不一致</td><td>以 Address Editor 为唯一真源；脚本自动生成宏头文件</td></tr>
+<tr><td>3</td><td>/dev/uio0 不存在</td><td>内核</td><td>compatible 不匹配或 CONFIG 缺失</td><td>dtc 反编译验证 + dmesg grep uio</td></tr>
+<tr><td>4</td><td>insmod Invalid format</td><td>内核</td><td>vermagic 不一致</td><td>模块与内核同一棵源码树编译(17章)</td></tr>
+<tr><td>5</td><td>中断计数不涨</td><td>硬件</td><td>IRQ_F2P 未勾选/concat 未连/xlconcat 位序错</td><td>ILA 直接探 IRQ 线，二分定位在 PL 还是 GIC</td></tr>
+<tr><td>6</td><td>偶发扫描尖刺</td><td>应用</td><td>锁内格式化/NFS 写日志（29.5 案例）</td><td>锁粒度纪律+异步日志架构</td></tr>
+<tr><td>7</td><td>NFS 根随机卡死数秒</td><td>网络</td><td>交换机节能/网卡协商抖动</td><td>ethtool 关 autoneg? 固定速率+关 EEE；关键数据走本地分区</td></tr>
+<tr><td>8</td><td>Modbus 偶发连接拒绝</td><td>应用</td><td>backlog 满/线程创建失败未处理</td><td>listen backlog≥16 + accept 失败重试+连接数上限</td></tr>
+<tr><td>9</td><td>长时间运行后 Web 无响应但 PLC 正常</td><td>应用</td><td>Web 线程被慢客户端阻塞(半开连接)</td><td>读写超时+心跳断连+连接表巡检回收</td></tr>
+<tr><td>10</td><td>重启后时间回到 1970, SOE 全乱</td><td>系统</td><td>无 RTC 电池且 NTP 未就绪即开始记录</td><td>时间未同步标志置位, SOE 缓冲延后打戳; 加 RTC 模块(43章)</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 手册使用法</span>
+<p>每次联调新问题解决后，强制追加一行到本手册（症状≤20字）。三个月后它就是你团队最值钱的知识资产——面试时「你踩过什么坑」的答案全部出自这里。</p></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch35"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>建立需求→用例→证据的完整追溯链</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>量化验证全部性能指标（R6 等）</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>产出规范的《项目验收报告》</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「综合案例与验收测试」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter34.html"><span><span class="pager-label">上一章</span><b>第 34 章 · 系统集成与开机自启</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter36.html"><span><span class="pager-label">下一章</span><b>第 36 章 · 项目总结与技术展望</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 35 章 · 综合案例与验收测试 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

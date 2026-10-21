@@ -1,0 +1,49 @@
+name: Course and reference labs
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Rebuild static senior chapters and check drift
+        run: |
+          node tools/build-senior.cjs
+          git diff --exit-code -- '*.html'
+      - name: Check links, curriculum and numerical models
+        run: |
+          node tools/verify.cjs
+          node --test --test-isolation=none tests/*.test.cjs
+      - name: Execute Python fault-injection reference labs
+        run: |
+          python -m unittest discover -s labs/tests -v
+          python -m labs.reference.capstone
+          python -m labs.reference.recovery
+      - name: Compile and run C11 SPSC selfcheck
+        run: |
+          mkdir -p labs/.build
+          gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic labs/c/spsc.c -o labs/.build/spsc
+          labs/.build/spsc
+          gcc -std=c11 -O2 -Wall -Wextra -Werror -pedantic -DSPSC_DEPTH=3 labs/c/spsc.c -o labs/.build/spsc3
+          labs/.build/spsc3
+      - name: Install RTL simulator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog
+      - name: Simulate AXI-Stream reset and backpressure
+        run: |
+          iverilog -g2012 -Wall -s tb_axis_source -o labs/.build/axis.vvp labs/rtl/axis_source.sv labs/rtl/tb_axis_source.sv
+          vvp labs/.build/axis.vvp
+          iverilog -g2012 -Wall -s tb_axis_source -Ptb_axis_source.FRAME_BEATS=1 -o labs/.build/axis1.vvp labs/rtl/axis_source.sv labs/rtl/tb_axis_source.sv
+          vvp labs/.build/axis1.vvp

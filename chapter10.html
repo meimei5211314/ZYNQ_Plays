@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 10 章 · PS+PL 协同设计综合实验 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 10 章 · PS+PL 协同设计综合实验：第一篇毕业项目 —— 把第6~9章的全部技能拧成一台「可交互数字控制原型」，它就是第四篇软 PLC 的骨架预演。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch10" data-chapter-file="chapter10.html" data-chapter-label="第 10 章 · PS+PL 协同设计综合实验">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 10 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>项目定义</a>
+<a href="#sec-2"><span class="num">02</span>Vivado 侧实施清单</a>
+<a href="#sec-3"><span class="num">03</span>软件分层架构（工业代码雏形）</a>
+<a href="#sec-4"><span class="num">04</span>验证清单（逐项打勾）</a>
+<a href="#sec-5"><span class="num">05</span>第一篇通关自测</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 10 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 10</div>
+      <h1 id="heroTitle">第 10 章<br><span class="grad">PS+PL 协同设计综合实验</span></h1>
+      <p class="hero-sub">第一篇毕业项目 —— 把第6~9章的全部技能拧成一台「可交互数字控制原型」，它就是第四篇软 PLC 的骨架预演。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">5 个小节</span>
+        <span class="meta-chip">1 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">10</div>
+          <div class="console-part">基础知识 / CH10</div>
+          <div class="console-title">PS+PL 协同设计综合实验</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>5</b></div>
+            <div class="console-metric"><span>CODE</span><b>1</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>1</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:28%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:8%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>10 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>5</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>1</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">独立完成多 IP 协同的 BD 设计与地址规划</li>
+<li class="goal-item">实践「中断驱动 + 主循环状态机」的标准裸机软件架构</li>
+<li class="goal-item">建立软硬件联调的系统级验证思维</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,107 字 · 5 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>1 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>1 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">10.1</span>项目定义</h3><p><strong>需求</strong>：构建一个「定时采集 - 逻辑处理 - 输出执行」闭环：</p>
+<ul>
+<li>KEY0~KEY3 作为 4 路数字输入（DI），经 AXI GPIO 读入；</li>
+<li>PS 每 200ms（AXI Timer 中断）扫描一次输入；</li>
+<li><strong>业务逻辑</strong>（模拟 PLC 程序）：KEY0=启动，KEY1=停止 —— 按下 KEY0 后 LED 组开始流水（运行态），按下 KEY1 停止并全灭（待机态）；KEY2 切换速度档位，KEY3 记录事件次数；</li>
+<li>LED0~3 由第9章 led_ctrl IP 驱动（走 AXI 寄存器而非 EMIO）；</li>
+<li>串口打印运行日志（状态迁移、事件计数、扫描节拍）。</li>
+</ul>
+
+<figure class="fig">
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="协同设计系统框图">
+<style>.b{fill:#eef2f7;stroke:#94a3b8}.t{font:11px sans-serif;fill:#1f2937}.h{font:bold 12px sans-serif;fill:#fff}</style>
+<rect x="20" y="60" width="240" height="180" rx="10" fill="#f0fdf4" stroke="#107c10" stroke-width="2"/>
+<rect x="20" y="60" width="240" height="28" rx="10" fill="#107c10"/><text x="140" y="79" text-anchor="middle" class="h">PS (Cortex-A9 ×2)</text>
+<rect class="b" x="40" y="104" width="200" height="34"/><text x="140" y="125" text-anchor="middle" class="t">应用层：状态机 + 日志</text>
+<rect class="b" x="40" y="150" width="96 " height="34"/><text x="88" y="171" text-anchor="middle" class="t">GIC 中断</text>
+<rect class="b" x="144" y="150" width="96" height="34"/><text x="192" y="171" text-anchor="middle" class="t">私有定时器 200ms</text>
+<rect x="420" y="60" width="460" height="180" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<rect x="420" y="60" width="460" height="28" rx="10" fill="#7c3aed"/><text x="650" y="79" text-anchor="middle" class="h">PL (FPGA)</text>
+<rect class="b" x="445" y="106" width="130" height="44"/><text x="510" y="124" text-anchor="middle" class="t">SmartConnect</text><text x="510" y="141" text-anchor="middle" class="t">(M_AXI_GP0)</text>
+<rect class="b" x="600" y="100" width="120" height="50"/><text x="660" y="120" text-anchor="middle" class="t">led_ctrl IP</text><text x="660" y="137" text-anchor="middle" class="t">0x43C0_0000</text>
+<rect class="b" x="740" y="100" width="110" height="50"/><text x="795" y="120" text-anchor="middle" class="t">AXI GPIO</text><text x="795" y="137" text-anchor="middle" class="t">按键 CH1 输入</text>
+<line x1="260" y1="128" x2="437" y2="128" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ar)"/><text x="350" y="118" text-anchor="middle" class="t" font-weight="bold">AXI4-Lite 配置/读数</text>
+<text x="510" y="185" text-anchor="middle" class="t">LED0~3 ◀── led_ctrl</text>
+<text x="795" y="185" text-anchor="middle" class="t">KEY0~3 ──▶ GPIO</text>
+<text x="450" y="278" text-anchor="start" class="t" fill="#57606a">数据流：按键→GPIO寄存器→CPU读取→状态机判决→写 led_ctrl 寄存器→LED 变化</text>
+</svg>
+<figcaption>图10-1 综合实验系统框图</figcaption>
+</figure></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">10.2</span>Vivado 侧实施清单</h3><ol>
+<li>BD 中已有 ZYNQ7 PS（第7章配置基础上，勾选 <strong>M AXI GP0</strong> 接口）；</li>
+<li>添加 <code class="inline">led_ctrl_v1.0</code>（IP 仓库）与 <code class="inline">AXI GPIO</code>（双通道关闭，单通道 Input only，宽度 4，勾选中断可选）；</li>
+<li>Run Connection Automation 一键互联所有 S_AXI → SmartConnect → M_AXI_GP0；led_ctrl 的 <code class="inline">led_o[3:0]</code> Make External 并 XDC 约束到 LED 引脚；AXI GPIO 的 <code class="inline">gpio_io_i[3:0]</code> 约束到按键引脚（板载按键多为低有效，逻辑里取反）；</li>
+<li>Address Editor 核对两个基地址不重叠；Validate → Export XSA（含 bitstream）；Vitis 更新平台。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">10.3</span>软件分层架构（工业代码雏形）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;xparameters.h&gt;
+#include &lt;xil_io.h&gt;
+#include &lt;xscutimer.h&gt;
+#include &lt;xscugic.h&gt;
+#include &lt;xil_printf.h&gt;
+
+/* ===== 硬件抽象层 HAL：把"合同"(第9章寄存器表)固化为一组宏 ===== */
+#define LED_REG_CTRL     (*(volatile u32 *)(XPAR_LED_CTRL_0_S0_AXI_BASEADDR+0x00))
+#define LED_REG_SPEED    (*(volatile u32 *)(XPAR_LED_CTRL_0_S0_AXI_BASEADDR+0x04))
+#define LED_REG_STATUS   (*(volatile u32 *)(XPAR_LED_CTRL_0_S0_AXI_BASEADDR+0x08))
+#define KEY_REG_DATA     (*(volatile u32 *)(XPAR_AXI_GPIO_0_BASEADDR))
+
+#define KEY_MASK   0xF
+#define SCAN_MS    200
+
+typedef enum { ST_IDLE = 0, ST_RUN } state_t;
+
+static volatile int g_scan_flag;                 /* 定时器 ISR 置位 */
+static state_t      g_state = ST_IDLE;
+static int          g_speed_idx, g_events;
+
+static const char *speed_name[] = {"slow", "fast"};
+
+void timer_isr(void *p){ static XScuTimer *t = p;
+    XScuTimer_ClearInterruptFlag(t); g_scan_flag = 1; }
+
+static void app_init(void)
+{
+    LED_REG_SPEED = (g_speed_idx ? 4000000 : 12500000);
+    LED_REG_CTRL  = 0x0;                         /* 上电默认待机 */
+}
+
+static void logic_scan(void)                     /* 业务逻辑：纯函数式 */
+{
+    static int prev = 0xF;
+    int key = KEY_REG_DATA &amp; KEY_MASK;           /* 低有效 → 取反为按下 */
+    int press = prev &amp; ~key;                     /* 下降沿检测 */
+    prev = key;
+
+    if (press &amp; 0x1) {                           /* KEY0: 启动 */
+        if (g_state != ST_RUN) {
+            g_state   = ST_RUN;
+            LED_REG_CTRL = 0x1;                  /* 使能 · 流水模式 */
+            xil_printf("[%6d] RUN\r\n", g_events);
+        }
+    }
+    if (press &amp; 0x2) {                           /* KEY1: 停止 */
+        g_state = ST_IDLE; LED_REG_CTRL = 0x0;
+        xil_printf("[%6d] IDLE\r\n", g_events);
+    }
+    if (press &amp; 0x4) {                           /* KEY2: 速度切换 */
+        g_speed_idx ^= 1;
+        LED_REG_SPEED = (g_speed_idx ? 4000000 : 12500000);
+        xil_printf("speed=%s\r\n", speed_name[g_speed_idx]);
+    }
+    if (press &amp; 0x8) {                           /* KEY3: 事件计数 */
+        xil_printf("events=%d\r\n", ++g_events);
+    }
+}
+
+int main(void)
+{
+    intc_timer_init();                           /* 复用第8章代码 */
+    app_init();
+    while (1) {                                  /* 前后台架构 */
+        if (g_scan_flag) {
+            g_scan_flag = 0;
+            logic_scan();
+        }
+        /* WFI 省电可加：asm("wfi"); */
+    }
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">10.4</span>验证清单（逐项打勾）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>用例</th><th>预期现象</th><th>结果</th></tr>
+<tr><td>V1</td><td>上电初始</td><td>LED 全灭，串口无异常刷屏</td><td>☐</td></tr>
+<tr><td>V2</td><td>按 KEY0</td><td>LED 开始流水 + 打印 RUN</td><td>☐</td></tr>
+<tr><td>V3</td><td>按 KEY2</td><td>流水速度立即切换</td><td>☐</td></tr>
+<tr><td>V4</td><td>按 KEY1</td><td>LED 全灭 + 打印 IDLE</td><td>☐</td></tr>
+<tr><td>V5</td><td>快速连按 KEY0/KEY1</td><td>状态正确翻转无死锁（200ms 扫描容忍丢键属正常，思考为什么）</td><td>☐</td></tr>
+<tr><td>V6</td><td>调试器暂停 CPU</td><td>LED 保持当前帧不变（验证 PL 自治性）</td><td>☐</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 V6 的深意</span>
+<p>暂停 CPU 后 LED 冻结 —— 因为 led_ctrl 是自治时序逻辑。这正是 PLC 架构的精髓：<strong>实时输出由 PL 保证，CPU 只负责「决策」</strong>。第四篇会把这条边界划得更清晰：IO 采样与输出在 PL，梯形图解算在 Linux。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">第一篇通关自测</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>能力项</th><th>达标标准</th></tr>
+<tr><td>Verilog</td><td>能默写三段式状态机与消抖模块</td></tr>
+<tr><td>Vivado 流程</td><td>从空工程到 bitstream ≤15 分钟且不看教程</td></tr>
+<tr><td>裸机开发</td><td>能独立完成「外设初始化四步法」与中断四级使能排查</td></tr>
+<tr><td>自定义 IP</td><td>能独立完成「映射表→模板改造→打包→集成→测试」闭环</td></tr>
+<tr><td>系统思维</td><td>能解释任一信号从引脚到 CPU 变量经过的完整路径</td></tr>
+</table></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>若把扫描周期从 200ms 改为 5ms，前后台架构会遇到什么问题？有哪些改造方向？</li>
+<li>V6 中如果想让 CPU 暂停时 LED 继续呼吸，硬件上应如何修改 led_ctrl？</li>
+<li>为本项目补充一个「掉电前状态保存」功能：利用 OCM 或 DDR 保留区存储 g_state 与 g_events，重新上电恢复。（提示：裸机下没有文件系统，直接约定内存地址）</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch10"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>独立完成多 IP 协同的 BD 设计与地址规划</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>实践「中断驱动 + 主循环状态机」的标准裸机软件架构</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立软硬件联调的系统级验证思维</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「PS+PL 协同设计综合实验」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter9.html"><span><span class="pager-label">上一章</span><b>第 9 章 · AXI 总线与自定义 IP 设计</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter11.html"><span><span class="pager-label">下一章</span><b>第 11 章 · 嵌入式 Linux 开发环境准备</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 10 章 · PS+PL 协同设计综合实验 · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

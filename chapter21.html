@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 21 章 · ILA/VIO 在线逻辑调试 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 21 章 · ILA/VIO 在线逻辑调试：把「示波器」长进 FPGA 内部 —— 观察任意内部信号，按条件触发，不占一个外部引脚。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-debug" data-chapter-id="ch21" data-chapter-file="chapter21.html" data-chapter-label="第 21 章 · ILA/VIO 在线逻辑调试">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 21 章 · 调试验证</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>原理三十秒</a>
+<a href="#sec-2"><span class="num">02</span>标准流程：Netlist Insertion（推荐）</a>
+<a href="#sec-3"><span class="num">03</span>触发技巧速查</a>
+<a href="#sec-4"><span class="num">04</span>VIO：无缓存的实时旋钮</a>
+<a href="#sec-5"><span class="num">05</span>实战案例：验证消抖模块</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：Capture Control 与存储限定（只录想要的）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：ILA 高阶调试模式与波形分析方法 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 21 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第三篇 · 调试验证 / Chapter 21</div>
+      <h1 id="heroTitle">第 21 章<br><span class="grad">ILA/VIO 在线逻辑调试</span></h1>
+      <p class="hero-sub">把「示波器」长进 FPGA 内部 —— 观察任意内部信号，按条件触发，不占一个外部引脚。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">21</div>
+          <div class="console-part">调试验证 / CH21</div>
+          <div class="console-title">ILA/VIO 在线逻辑调试</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>21 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 mark_debug → Set Up Debug → 触发分析的完整 ILA 流程</li>
+<li class="goal-item">会用 VIO 实时强制/观测信号</li>
+<li class="goal-item">理解采样深度、时钟域选择对调试结果的影响</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第三篇 · 调试验证</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,464 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        ILA、时序、GDB 与内核排障，建立可验证的工程习惯。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">21.1</span>原理三十秒</h3><p><strong>ILA（Integrated Logic Analyzer）</strong>= 片上逻辑分析仪：用 BRAM 当采样缓存，按你选的时钟逐拍记录目标信号，满足触发条件后经 JTAG 上传到 Hardware Manager 显示波形。<strong>VIO（Virtual IO）</strong>则没有缓存，提供「实时读写」——相当于虚拟的按键与 LED。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">21.2</span>标准流程：Netlist Insertion（推荐）</h3><h4>Step 1 · 标记信号</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">VERILOG</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="verilog">(* mark_debug = "true" *) reg [23:0] cnt;      // 想看谁就标谁
+(* mark_debug = "true" *) reg        tick;
+(* mark_debug = "true" *) wire [3:0] led_r;</code></pre></div>
+<h4>Step 2 · 综合后配置</h4>
+<ol>
+<li><strong>Run Synthesis</strong> 完成 → 打开 Synthesized Design；</li>
+<li>菜单 <strong>Tools → Set Up Debug...</strong> 向导自动发现全部 marked 信号；</li>
+<li>为每核指定<strong>时钟域</strong>（必须与信号同源，选 sys_clk）；采样深度 Buffer Depth：1024 起步（BRAM 富余可 4096）；</li>
+<li>Finish 自动生成 debug core 约束（dbg_hub + ila），重新 Implement + Generate Bitstream + 上板 Program。</li>
+</ol>
+<h4>Step 3 · 抓取与分析</h4>
+<ol>
+<li>Hardware Manager 中出现 <strong>hw_ila_1</strong>；波形窗口添加信号组；</li>
+<li>设置触发：<em>Immediate</em> 立即采一窗 / 条件触发如 <code class="inline">tick == Rising Edge</code>；</li>
+<li>点击 Run Trigger，命中后分析波形 —— 与仿真波形完全同款的交互体验。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">21.3</span>触发技巧速查</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>想抓什么</th><th>触发设置</th></tr>
+<tr><td>随机快照</td><td>Trigger mode: Immediate</td></tr>
+<tr><td>tick 脉冲出现瞬间前后</td><td>Basic: tick = R 边沿；Position 控制前段占比</td></tr>
+<tr><td>cnt 计到特定值</td><td>Value 比较 cnt == 24'd12500_000-1</td></tr>
+<tr><td>组合条件</td><td>Advanced 触发表达式：tick &amp;&amp; (led_r==4'b0010)</td></tr>
+<tr><td>罕见事件前的历史</td><td>大深度 + Trigger Position 拉高（90%记录触发前）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">21.4</span>VIO：无缓存的实时旋钮</h3><p>BD 里例化 <code class="inline">VIO v3.0</code>：probe_in 连状态信号（如 IP 的 STATUS 寄存器值），probe_out 连控制信号（如强制 speed 参数）。上板后在 Hardware Manager 面板直接点按钮改 probe_out —— <strong>不用重写比特流就能改变 FPGA 行为</strong>，是参数化实验的利器。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">21.5</span>实战案例：验证消抖模块</h3><p>标记 L5-1 消抖模块的 <code class="inline">key_sync/key_stable/cnt</code> 三信号，ILA 深度 2048，触发设为 key_stable 边沿。抓取后应看到：</p>
+<ul>
+<li>key_in 抖动区（若干毛刺）→ key_stable 保持旧电平约 20ms（50MHz 下计数百万级，需降低滤波常数便于观察或用大深度+分频采样）；</li>
+<li>稳定后 key_pulse 单周期脉冲输出。</li>
+<li>若毛刺穿过滤波器 → 检查同步器是否两级 FF、阈值计数是否被复位条件误清。</li>
+</ul>
+<div class="box tip"><span class="bt">💡 低频事件的省资源技巧</span>
+<p>20ms@50MHz = 100 万拍，直接采要海量 BRAM。工程做法：ILA 时钟换接 <strong>clk_div1000（50kHz）</strong>，等效时间窗放大 1000 倍，代价是单拍分辨率变粗 —— 抓慢事件足够。</p></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：波形数据看起来「错乱」或信号跳变诡异？</summary><div class="ans"><p>九成是时钟域选错：ILA 用 A 时钟采 B 时钟域信号必然亚稳态假象。Set Up Debug 时确认每个探针的 clock 与其源逻辑一致。</p></div></details>
+<details class="qa"><summary>Q2：加了 ILA 后功能反而正常了？</summary><div class="ans"><p>经典「Heisenbug」：ILA 改变了布线与时序，掩盖了真实违例或 CDC 缺陷。定位思路：先做时序报告确认无负裕量；再审查跨时钟路径是否缺同步器（第22章）。产品发布前务必移除 debug core 重跑全流程验证。</p></div></details>
+<details class="qa"><summary>Q3：触发一直等不到？</summary><div class="ans"><p>① 条件永假（信号名选错/位宽截断）；② 事件发生在窗口外（加大深度）；③ dbg_hub 时钟未运行（检查所选时钟源）。先用 Immediate 模式确认通路，再上条件触发。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L21-1：给第10章系统装眼睛</strong>
+<p>为综合实验的 logic_scan 链路加 ILA：标记 KEY_REG 读入值、g_state、LED_REG_CTRL 写值。任务：① 抓一次「KEY0→RUN」迁移全过程；② 用 Advanced 触发抓「非法状态迁移」（state==ST_RUN 且 ctrl==0）；③ 用 VIO 强制 speed 分频值验证切换逻辑。保存 .wdb 波形文件归档进 Git。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 dbg_hub 需要一个时钟？它和 JTAG TCK 是什么关系？</li>
+<li>估算：32 位信号 × 4096 深度需要多少 BRAM36？这对你的设计预算意味着什么？</li>
+<li>对比外部逻辑分析仪（Saleae/DSLogic）与 ILA 的适用场景边界。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">21.6</span>深潜：Capture Control 与存储限定（只录想要的）</h3><ul>
+<li><strong>Storage Qualification 存储限定</strong>：设置条件（如 <code class="inline">we==1</code>）后，ILA 只在条件为真时才写入 BRAM —— 等效把采样深度放大 N 倍，专抓写事务/罕见事件；</li>
+<li><strong>Capture Mode Basic vs Advanced</strong>：Basic 用单信号门控；Advanced 允许 16 状态比较器组合表达式做采集使能；</li>
+<li><strong>多 ILA 协同</strong>：跨时钟域两核可设主从触发（core A 触发→经 dbg_hub 联动 core B 开始采），定位跨域握手问题利器；</li>
+<li>资源账：深度×位宽÷36Kb=BRAM 数，先查 Utilization 余量再定深度 —— 避免布线拥塞。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">21.7</span>深潜：ILA 高阶调试模式与波形分析方法 ★</h3><h4>① 高级触发序列器（Sequencer）——抓"复杂时序事件"</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>原语</th><td>语义</td><td>应用举例</td></tr>
+<tr><td>goto t N</td><td>条件命中后跳到触发状态 N</td><td>先等 idle，再等 start</td></tr>
+<tr><td>repeat t N</td><td>同一条件连续满足 N 拍才算</td><td>抓"持续 ≥8 拍的使能"过滤毛刺</td></tr>
+<tr><td>Trigger Out / In</td><td>核间联动触发信号</td><td>多 ILA 级联/与示波器同步</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">例: 只在"第二次进入 RUN 态"时触发:
+  State1: state==RUN → goto State2(且 Trigger=0)
+  State2: state==IDLE → goto State3
+  State3: state==RUN → TRIGGER ✓
+/* 复杂事件一次命中, 免去反复人工筛波形 */</code></pre></div>
+<h4>② 双 ILA 跨时钟域联合调试</h4>
+<p>CDC 问题（22章）的实证手段：ILA_A 挂源时钟域、ILA_B 挂目的域，设置 <strong>A 主 B 从</strong>（A 触发经 dbg_hub 联动 B 启动采集）。分析时对齐两窗波形，直接观测两级同步器的实际延迟拍数 —— 「教科书上的 CDC」第一次变成看得见的证据。</p>
+<h4>③ 用 ILA 监控 AXI 总线（协议级取证）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">mark_debug 五通道关键信号: AWVALID/AWADDR/AWPROT? AWLEN | WVALID/WDATA/WLAST |
+BVALID/BRESP | ARVALID/ARADDR | RVALID/RDATA/RLAST
+/* 触发: AWADDR==IP基址+偏移 → 观察 CPU 写寄存器全过程
+典型违例现场: VALID 拉起后不等 READY 就撤销(违反AXI规范) /
+WLAST 丢失导致从机状态机卡死 —— 抓包定责, 谁的问题一目了然 */</code></pre></div>
+<h4>④ 波形分析五步法 + 仿真实测差异清单</h4>
+<ol>
+<li>定位事件沿 → 2. 测量时间间隔（用标尺而非肉眼）→ 3. 检查因果顺序（谁先谁后）→ 4. 对照预期时序找偏差 → 5. 截图归档进实验笔记。</li>
+</ol>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>仿真通过上板异常</th><td>常见根因</td></tr>
+<tr><td>偶发数据错乱</td><td>CDC 未同步（仿真无亚稳态模型！）→ 22章审计</td></tr>
+<tr><td>首次运行正常复位后死</td><td>寄存器缺初值/复位树未覆盖全部 FF</td></tr>
+<tr><td>边界值行为不同</td><td>X 态被仿真当 0 处理，真实硬件随机 → 初值纪律</td></tr>
+<tr><td>高速接口误码</td><td>IDELAY/ISERDES 未校准或约束缺失 → 时序报告复核</td></tr>
+</table></div>
+<h4>⑤ hw_vio 脚本化自动测试</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TCL</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="tcl"># Hardware Manager Tcl 控制台 —— VIO 自动化回归
+refresh_hw_vio [get_hw_vios {hw_vio_1}]
+set_property PROBE_VALUE {0x5} [get_hw_probes vio_duty -of_objects [get_hw_vios *]]
+commit_hw_vio [get_hw_probes vio_duty]
+set duty [get_property PROBE_VALUE [get_hw_probes vio_status]]
+puts "status=$duty"     ;# 断言即回归脚本 —— 配合 CI 做板上自测</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch21"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 mark_debug → Set Up Debug → 触发分析的完整 ILA 流程</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>会用 VIO 实时强制/观测信号</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>理解采样深度、时钟域选择对调试结果的影响</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「ILA/VIO 在线逻辑调试」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter20.html"><span><span class="pager-label">上一章</span><b>第 20 章 · Linux 应用编程</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter22.html"><span><span class="pager-label">下一章</span><b>第 22 章 · 时序分析与时序收敛</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 21 章 · ILA/VIO 在线逻辑调试 · 第三篇 · 调试验证</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

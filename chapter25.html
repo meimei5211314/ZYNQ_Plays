@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 25 章 · 内核调试与软硬件联合验证方法论 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 25 章 · 内核调试与软硬件联合验证方法论：第三篇收官：内核级排障工具箱 + 一套「五层二分定位」思维框架 —— 让任何疑难杂症都有章可循。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-debug" data-chapter-id="ch25" data-chapter-file="chapter25.html" data-chapter-label="第 25 章 · 内核调试与软硬件联合验证方法论">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 25 章 · 调试验证</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>printk 与动态调试</a>
+<a href="#sec-2"><span class="num">02</span>Oops 解析实战</a>
+<a href="#sec-3"><span class="num">03</span>用户态观测三件套</a>
+<a href="#sec-4"><span class="num">04</span>五层二分定位法 ★（背下来）</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>第三篇通关自测</a>
+<a href="#sec-7"><span class="num">07</span>深潜：完整 Oops 逐行解码练习（对照真实输出）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：dynamic debug 实战扩展</a>
+<a href="#sec-9"><span class="num">09</span>深潜：内核级故障工具箱与诊断决策树 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 25 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第三篇 · 调试验证 / Chapter 25</div>
+      <h1 id="heroTitle">第 25 章<br><span class="grad">内核调试与软硬件联合验证方法论</span></h1>
+      <p class="hero-sub">第三篇收官：内核级排障工具箱 + 一套「五层二分定位」思维框架 —— 让任何疑难杂症都有章可循。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">9 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">25</div>
+          <div class="console-part">调试验证 / CH25</div>
+          <div class="console-title">内核调试与软硬件联合验证方法论</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>9</b></div>
+            <div class="console-metric"><span>CODE</span><b>7</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>25 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>9</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">会用 printk/dynamic-debug/devmem/strace 组合观测内核与应用</li>
+<li class="goal-item">能独立解析 Oops 报告并用 addr2line 定位到源码行</li>
+<li class="goal-item">建立「分层二分」的系统级排障方法论</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第三篇 · 调试验证</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,229 字 · 9 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>7 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        ILA、时序、GDB 与内核排障，建立可验证的工程习惯。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">25.1</span>printk 与动态调试</h3><div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;linux/printk.h&gt;
+dev_dbg(dev,  "di=%08x\n", di);   /* 需开 DEBUG 或动态调试 */
+dev_info(dev, "probe ok\n");
+dev_warn/dev_err(...);
+
+/* 动态调试：不重编内核，运行期开关指定文件/函数的 dbg */
+echo 'module plc_io +p' &gt; /sys/kernel/debug/dynamic_debug/control
+cat    /sys/kernel/debug/dynamic_debug/control        # 查看已启用项</code></pre></div>
+<div class="box tip"><span class="bt">💡 控制台看不到日志？三级检查</span>
+<p>① <code class="inline">cat /proc/sys/kernel/printk</code> 当前等级低于消息等级 → <code class="inline">echo 8 &gt; /proc/sys/kernel/printk</code>；② 日志进了环形缓冲但控制台未绑定 → <code class="inline">dmesg | tail</code> 总能看到；③ earlycon 缺失导致最早期日志丢失。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">25.2</span>Oops 解析实战</h3><p>驱动解引用空指针时串口吐出的典型报告：</p>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">Unable to handle kernel NULL pointer dereference at virtual address 00000004
+pgd = ...(cut)
+PC is at plc_read+0x24/0x60 [plc_io]
+LR is at vfs_read+0xa0/0x160
+...
+[&lt;bf010024&gt;] [plc_read+0x24] from [&lt;c01a3b70&gt;] (vfs_read+...)
+[&lt;c01a3b70&gt;] ... from [&lt;c00a1234&gt;] (ret_fast_syscall+0x0/0x1c)</code></pre></div>
+<p>读法四步：</p>
+<ol>
+<li><strong>第一行定性</strong>：NULL deref @ 0x00000004 —— 某结构体成员偏移 4 被访问，而基址是 0（指针未初始化）；</li>
+<li><strong>定位函数+offset</strong>：<code class="inline">plc_read+0x24</code>；</li>
+<li><strong>换算源码行</strong>：
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">arm-xilinx-linux-gnueabi-addr2line -e plc_io.ko -f -i 0x24
+# 输出：plc_led.c:58   —— 直达案发现场！</code></pre></div></li>
+<li><strong>回溯调用链</strong>：from 列表说明是谁调进来的（此处用户 read 系统调用）。</li>
+</ol>
+<div class="box warn"><span class="bt">⚠️ Oops ≠ 必死</span>
+<p>进程上下文 Oops 通常只杀死触发者（shell 还活着）——但内核状态可能已被污染，<strong>复现后尽快重启再继续实验</strong>。中断上下文的坏 Oops 才会直接 panic。</p></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">25.3</span>用户态观测三件套</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>工具</th><th>用途</th><th>示例</th></tr>
+<tr><td>devmem</td><td>命令行直读寄存器（mmap /dev/mem 封装）</td><td><code class="inline">devmem 0x43C10008</code> 验证 PL 状态</td></tr>
+<tr><td>strace</td><td>追踪应用全部系统调用与耗时</td><td><code class="inline">strace -Ttt ./plcapp</code> 看 open 哪个设备失败</td></tr>
+<tr><td>/proc 与 sysfs</td><td>内核状态窗口</td><td><code class="inline">/proc/interrupts</code> 计数验证中断是否来过 ★</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 /proc/interrupts 是中断问题的「心电图」</span>
+<p>按一次按键后对比两次 cat 输出：计数涨 = 中断到达 GIC（硬件侧 OK，查驱动处理）；不涨 = 信号根本没到（查 IP 触发配置/DTS flags）。一行命令完成半层二分。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">25.4</span>五层二分定位法 ★（背下来）</h3><figure class="fig">
+<svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="分层定位模型">
+<style>.L{fill:#eef2f7;stroke:#94a3b8}.T{font:11px sans-serif;fill:#1f2937}.H{font:bold 12px sans-serif}</style>
+<rect class="L" x="40"  y="20"  width="800" height="42"/><text x="70" y="46" class="T H">① 应用层</text><text x="640" y="46" class="T">gdb · strace · 日志</text>
+<rect class="L" x="40" y="72" width="800" height="42"/><text x="70" y="98" class="T H">② 内核子系统层</text><text x="640" y="98" class="T">printk · ftrace · Oops 解析</text>
+<rect class="L" x="40" y="124" width="800" height="42"/><text x="70" y="150" class="T H">③ 驱动层</text><text x="640" y="150" class="T">/proc/interrupts · reg dump · devmem</text>
+<rect class="L" x="40" y="176" width="800" height="42"/><text x="70" y="202" class="T H">④ PL 逻辑层</text><text x="640" y="202" class="T">ILA/VIO · 仿真 · 版本核对</text>
+<rect class="L" x="40" y="228" width="800" height="42"/><text x="70" y="254" class="T H">⑤ 硬件物理层</text><text x="640" y="254" class="T">示波器 · 逻辑分析仪 · 万用表 · 温度/电源</text>
+<line x1="440" y1="62" x2="440" y2="270" stroke="#dc2626" stroke-width="2" stroke-dasharray="7 4"/>
+<text x="450" y="290" class="T" fill="#dc2626">自上而下逐层验证边界契约：每层先证明"我收到了正确输入"，再排查"我是否产出正确输出"</text>
+</svg>
+<figcaption>图25-1 五层二分定位模型</figcaption>
+</figure>
+<p>配套「证据矩阵」习惯：每个问题记录<strong>现象截图 / 复现步骤 / 已排除层 / 怀疑点</strong>四栏 —— 三轮以内必收敛。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：addr2line 出来全是 ?? ？</summary><div class="ans"><p>.ko 编译时没带 -g 或用了 strip 过的部署副本。保留带符号版本用于调试（部署可另出精简版）；确认 addr2line 用的是交叉版工具。</p></div></details>
+<details class="qa"><summary>Q2：devmem 写了寄存器没反应？</summary><div class="ans"><p>① 该地址在 PS 侧被内核驱动占用，写操作被仲裁或无效；② 寄存器有写保护序列（如 SLCR 的 unlock 0xF8000008 写 DF0D）；③ 位域需要读改写而你整字覆盖。</p></div></details>
+<details class="qa"><summary>Q3：strace 显示大量 EAGAIN？</summary><div class="ans"><p>非阻塞 fd 上资源暂不可用的正常返回。关注点应是业务逻辑是否把 EAGAIN 当错误处理了 —— 这本身就是一类经典 bug。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L25-1：制造→解析→修复闭环</strong>
+<p>① 在 plc 驱动里故意加一行 <code class="inline">*(int *)0 = 1;</code> 触发 Oops；② 完整保存串口输出，用 addr2line 定位；③ 移除 bug 后用同样的五层框架排障一次 L18-1 的按键延迟问题，写出完整《排障报告》。这份报告将作为第四篇联调的标准模板。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">第三篇通关自测</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>能力项</th><th>达标标准</th></tr>
+<tr><td>在线调试</td><td>15 分钟内为任意信号组配好 ILA 并命中条件触发</td></tr>
+<tr><td>时序工程</td><td>能读懂 WNS 报告并给出两种以上修复方案及代价评估</td></tr>
+<tr><td>CDC 防御</td><td>看到跨域信号第一反应是问同步机制</td></tr>
+<tr><td>远程调试</td><td>VSCode F5 直达板卡断点，多线程现场一目了然</td></tr>
+<tr><td>系统排障</td><td>能用五层二分法在 30 分钟内把问题锁定到单层</td></tr>
+</table></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>ftrace 相比 printk 的优势是什么？什么场景值得为它付出学习成本？</li>
+<li>设计「PLC 扫描超时看门狗」的三层防线：线程内自检 → 进程级 watchdog → 硬件 WDT 复位。</li>
+<li>为什么说「没有复现路径的问题等于没有问题」？如何把偶发问题转化为必现？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">25.5</span>深潜：完整 Oops 逐行解码练习（对照真实输出）</h3><div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">Unable to handle kernel paging request at virtual address befff000
+   ↑ 判性: paging request(访问了未映射/权限不符), 地址 befff000 是用户态段!
+   → 八成是把用户指针直接解引用了(漏 copy_from_user)
+pgd = e1234000
+[befff000] *pgd=3e114801, *pte=?, *ppte=?    ← 页表走查: pgd有项但pte无效
+Internal error: Oops: 805 [#1] PREEMPT ARM     ← 805: 位域解码见下表
+Modules linked in: plc_io(+)                    ← 崩溃时已加载模块(+表示正在加载)
+CPU: 0 PID: 412 Comm: test_app Tainted: G      ← 触发进程名! 直接定位测试程序
+PC is at plc_read+0x18/0x4c [plc_io]
+LR is at vfs_read+0x84/0x130
+flags: Nzcv IRQs on FIQs? off ... svc mode? usr? —看CPSR模式位确认上下文
+[&lt;bf010018&gt;] (plc_read) from [&lt;c01a2b40&gt;] (vfs_read...)
+/* 解码 Oops:805 = 二进制 1000 0000 0101:
+   bit0=1 用户态地址访问? bit2=1 读操作, bit11=1? —— 按内核 oops.txt 位表逐位对。
+   三步收口: PC+offset → addr2line; 访问地址归属判断; 调用链确认入口。 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">25.6</span>深潜：dynamic debug 实战扩展</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 精细控制: 只开某文件的某函数, 并带行号前缀
+echo 'func plc_probe +pfl' &gt; /sys/kernel/debug/dynamic_debug/control
+#  f=func名 l=行号 m=模块 p=打印 —— 组合字母即格式开关
+grep plc /sys/kernel/debug/dynamic_debug/control   # 查看生效清单
+# 批量开关整个子系统:
+echo 'module uio +p' &gt; .../control</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">25.7</span>深潜：内核级故障工具箱与诊断决策树 ★</h3><h4>① 三种"系统不动了"的鉴别</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类型</th><td>现象特征</td><td>内核证据</td><td>典型根因</td></tr>
+<tr><td>Soft Lockup</td><td>该核内核态死循环, 其他核/中断仍活</td><td>"BUG: soft lockup - CPU#1 stuck for 22s"</td><td>驱动内无限循环/自旋漏解锁</td></tr>
+<tr><td>Hard Lockup</td><td>连 NMI 中断都喂不上, 整机假死</td><td>NMI watchdog 报 hard lockup(需开)</td><td>关中断后死循环/自旋锁递归</td></tr>
+<tr><td>Hung Task</td><td>任务 D 状态 &gt;120s, 系统其余正常</td><td>"task blocked for more than 120 seconds" + 任务栈</td><td>等 IO/等锁永不返回</td></tr>
+</table></div>
+<h4>② SysRq 魔术键 —— 死机现场的最后一根稻草</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 前提: kernel.sysrq=1; 串口触发: Ctrl+A f? (minicom) 或:
+echo t &gt; /proc/sysrq-trigger    # dump 全部任务栈 → dmesg 尾部 = "谁把CPU占死了"
+echo m &gt; /proc/sysrq-trigger    # 内存快照
+echo w &gt; /proc/sysrq-trigger    # 只列阻塞(D)任务栈
+echo b &gt; /proc/sysrq-trigger    # 立即重启(取证后再用!)
+/* 典型流程: 系统卡死 → 串口 echo t → 抓栈 → 发现某驱动自旋 → 定位 */</code></pre></div>
+<h4>③ 内核内存破坏检测器（进阶）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>工具</th><td>抓什么</td><td>代价</td></tr>
+<tr><td>SLUB debug</td><td>slab 对象越界/已释放后访问</td><td>~10-20%, 测试期开</td></tr>
+<tr><td>KASAN</td><td>越界/UAF 的精确行号报告</td><td>2×慢+3×内存, CI 专用 ★</td></tr>
+<tr><td>DEBUG_LIST</td><td>链表节点损坏/重复添加</td><td>&lt;5%</td></tr>
+<tr><td>kmemleak</td><td>泄漏(39章)</td><td>常驻可接受</td></tr>
+</table></div>
+<h4>④ 诊断决策树（贴墙版）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">系统异常?
+├─ 完全死死? ─→ hard lockup路径: 接JTAG halt看PC / 开NMI watchdog复现
+├─ 单核卡死? ─→ soft lockup: sysrq t 找占核任务 → oops式解码
+├─ 某任务D状态? ─→ hung_task栈 + /proc/PID/stack(等在哪个内核函数)
+├─ 崩溃带Oops? ─→ 25.5 五步解码法
+├─ 数据损坏无崩溃? ─→ SLUB debug/KASAN + watchpoint思路迁移
+└─ 只是慢? ─→ 切换到第51章性能方法论(on/off-CPU)
+/* 铁律: 每类问题先问"我有什么证据", 再选工具; 工具服务于假设验证 */</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch25"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>会用 printk/dynamic-debug/devmem/strace 组合观测内核与应用</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>能独立解析 Oops 报告并用 addr2line 定位到源码行</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立「分层二分」的系统级排障方法论</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「内核调试与软硬件联合验证方法论」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter24.html"><span><span class="pager-label">上一章</span><b>第 24 章 · Linux 应用远程调试：GDB + VSCode</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter26.html"><span><span class="pager-label">下一章</span><b>第 26 章 · 项目需求分析与总体架构</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 25 章 · 内核调试与软硬件联合验证方法论 · 第三篇 · 调试验证</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

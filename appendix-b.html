@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附录 B · C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题） | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="附录 B · C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）：嵌入式软件岗位的必答题区 —— 每一题都在课程中实战过。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-appendix" data-chapter-id="appb" data-chapter-file="appendix-b.html" data-chapter-label="附录 B · C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>附录 B · 面试与速查</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>B1 C 语言与编程基础</a>
+<a href="#sec-2"><span class="num">02</span>B2 Linux 系统编程</a>
+<a href="#sec-3"><span class="num">03</span>B3 设备驱动专项</a>
+<a href="#sec-4"><span class="num">04</span>B4 FreeRTOS / RTOS / 微内核专项（12 题）★第48~50章配套</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 附录 B</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">附录 · 面试题库 / Chapter B</div>
+      <h1 id="heroTitle">附录 B<br><span class="grad">C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）</span></h1>
+      <p class="hero-sub">嵌入式软件岗位的必答题区 —— 每一题都在课程中实战过。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">4 个小节</span>
+        <span class="meta-chip">39 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">B</div>
+          <div class="console-part">面试与速查 / APPB</div>
+          <div class="console-title">C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>4</b></div>
+            <div class="console-metric"><span>CODE</span><b>0</b></div>
+            <div class="console-metric"><span>TBL</span><b>0</b></div>
+            <div class="console-metric"><span>QA</span><b>39</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:22%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:100%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>B / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>4</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>0</b><span>速查表格</span></div>
+    <div class="stat"><b>39</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">能独立回答「B1 C 语言与编程基础」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「B2 Linux 系统编程」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「B3 设备驱动专项」相关问题，并说明关键取舍。</li>
+<li class="goal-item">能独立回答「B4 FreeRTOS / RTOS / 微内核专项（12 题）★第48~50章配套」相关问题，并说明关键取舍。</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>附录 · 面试题库</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,118 字 · 4 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 0 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>39 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        面试题库与术语速查，把知识转成可表达的能力。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">B1 C 语言与编程基础</h3><details class="qa"><summary>Q1 volatile 关键字的作用与三个典型场景？能替代锁吗？</summary><div class="ans"><p>【考察点】编译器优化边界。<br>【要点】禁止编译器对该变量缓存/重排优化，每次强制真实访存。场景：①MMIO 寄存器指针；②ISR 与主循环共享标志；③多执行流可见性基元。不能提供原子性与内存序 → 不能替代锁（对应37章）。</p></div></details>
+<details class="qa"><summary>Q2 static 的三种用法？</summary><div class="ans"><p>【要点】①函数内 static 变量：静态存储、只初始化一次、作用域不变生命周期变；②文件级 static 函数/全局变量：内部链接，隐藏实现；③C++ 类成员另说。工程价值：模块化封装 + 避免命名污染。</p></div></details>
+<details class="qa"><summary>Q3 判断大小端并写转换函数。</summary><div class="ans"><p>【要点】联合体或指针强转看低地址字节：<code class="inline">int x=1; *(char*)&amp;x==1 ? 小端 : 大端</code>。ARM 默认小端，网络字节序大端 → htonl/ntohl 或手写移位交换。Modbus 寄存器字节序坑正源于此（32章）。</p></div></details>
+<details class="qa"><summary>Q4 结构体对齐规则？为什么需要对齐？</summary><div class="ans"><p>【要点】成员按自身大小对齐、整体按最大成员对齐、可 packed 改变。原因：总线访问效率与原子性，非对齐访问在部分 ARM 配置直接异常。协议解析常用 <code class="inline">__attribute__((packed))</code> + memcpy 而非强转指针。</p></div></details>
+<details class="qa"><summary>Q5 写宏：置位/清位/翻转/测试第 n 位。</summary><div class="ans"><p>【要点】<code class="inline">#define BIT(n) (1u&lt;&lt;(n))</code>；SET: <code class="inline">x |= BIT(n)</code>；CLR: <code class="inline">x &amp;= ~BIT(n)</code>；TGL: <code class="inline">x ^= BIT(n)</code>；TEST: <code class="inline">(x&gt;&gt;n)&amp;1</code>。加分点：u 后缀防 int 溢出、多重求值陷阱说明。</p></div></details>
+<details class="qa"><summary>Q6 memcpy 与 memmove 区别？手写一个安全拷贝。</summary><div class="ans"><p>【要点】memmove 处理重叠区域（判断方向后正向/反向拷贝）。追问野指针/长度校验/对齐优化路径。</p></div></details>
+<details class="qa"><summary>Q7 堆和栈的区别？嵌入式里栈溢出有什么症状？</summary><div class="ans"><p>【要点】栈：自动分配、连续向下、快、容量小；堆：malloc 管理、碎片风险。栈溢出症状：随机跑飞/局部变量被踩/相邻任务数据互串 —— 链接脚本看栈区间 + 高水位填充(0xDEADBEEF)检测。</p></div></details>
+<details class="qa"><summary>Q8 const int *p / int * const p / int const * const p 分别是什么？</summary><div class="ans"><p>【要点】从右向左读：指向常量的指针（内容不可改）/常量指针（指向不可改）/都不可改。记忆口诀「const 在 * 左修饰内容，在 * 右修饰指针」。</p></div></details>
+<details class="qa"><summary>Q9 # 和 ## 在宏中的作用？写一个带 debug 等级的打印宏。</summary><div class="ans"><p>【要点】#字符串化、##拼接。示例：<code class="inline">#define DBG(lv, fmt, ...) printf("[" #lv "]" fmt "\n", ##__VA_ARGS__)</code>。加分：do{}while(0) 包裹多语句宏的原因。</p></div></details>
+<details class="qa"><summary>Q10 程序的内存分区？下面各变量在哪？</summary><div class="ans"><p>【要点】text/data(已初始化)/bss(未初始化)/heap/stack。全局初值→data、未初值→bss、static 局部→data、字符串字面量→rodata、malloc→heap。追问 bss 为何不占镜像体积（运行时清零）。</p></div></details></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2">B2 Linux 系统编程</h3><details class="qa"><summary>Q11 进程与线程的区别？嵌入式里怎么选？</summary><div class="ans"><p>【要点】资源/地址空间隔离度、切换开销、通信成本对比。选择：需要故障隔离用进程（Web 服务崩不倒扫描线程）；共享大数据高频交互用线程（PLC 运行时）。加分：clone 标志位本质。</p></div></details>
+<details class="qa"><summary>Q12 select / poll / epoll 对比？</summary><div class="ans"><p>【要点】select fd 上限+每次全量拷贝+O(n)；poll 去掉上限仍 O(n)；epoll 红黑树注册+就绪链表回调，O(1) 且支持 ET/LT。连接数少时 poll 完全够用 —— 别为技术而技术。</p></div></details>
+<details class="qa"><summary>Q13 什么是僵尸进程/孤儿进程？如何避免僵尸？</summary><div class="ans"><p>【要点】子进程退出父进程未 wait → 僵尸（占 PID 表项）；父先亡则由 init 收养（孤儿）。避免：signal(SIGCHLD, SIG_IGN)、waitpid(WNOHANG) 循环、两段 fork。</p></div></details>
+<details class="qa"><summary>Q14 常见 IPC 方式对比与选型？</summary><div class="ans"><p>【要点】管道(父子)、FIFO(任意进程)、消息队列(报文边界)、共享内存(最快+需同步原语)、信号(事件通知)、socket(跨机通用)。PLC 场景答案：映像区共享内存+mutex，事件通知 eventfd/信号量。</p></div></details>
+<details class="qa"><summary>Q15 TCP TIME_WAIT 是什么？服务器大量出现怎么办？</summary><div class="ans"><p>【要点】主动关闭方 2MSL 等待态，防旧报文串扰。缓解：SO_REUSEADDR、让客户端先关、长连接/连接池、调内核 tw_reuse（理解风险）。</p></div></details>
+<details class="qa"><summary>Q16 什么是零拷贝？列举实现层次。</summary><div class="ans"><p>【要点】减少 CPU 参与的数据搬运：sendfile/splice（省用户态往返）、mmap+write、DMA 直接搬运（38章 HP 口）、RDMA。答出「拷贝次数+上下文切换次数」账本即高分。</p></div></details></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3">B3 设备驱动专项</h3><details class="qa"><summary>Q17 字符驱动的最小框架包含哪些要素？</summary><div class="ans"><p>【要点】alloc_chrdev_region+cdev_init/add+class_create+device_create → /dev 节点；file_operations 实现 open/read/write/unlocked_ioctl；module_platform_driver 注册匹配 of_match_table（对照17章代码默写）。</p></div></details>
+<details class="qa"><summary>Q18 为什么中断上下文不能睡眠？哪些 API 因此不能用？</summary><div class="ans"><p>【要点】睡眠=调度出去，中断上下文没有可调度的 task 结构（不是进程），且必须快速返回。禁用：mutex/semaphore/kmalloc(GFP_KERNEL)/copy_to_user/msleep。替代：spinlock、GFP_ATOMIC、tasklet/workqueue 下放。</p></div></details>
+<details class="qa"><summary>Q19 为什么必须有 copy_to_user/copy_from_user？</summary><div class="ans"><p>【要点】①用户指针不可信（校验合法性、缺页需可能睡眠的处理流程）；②用户/内核地址空间隔离（MMU 双页表），直接解引用既危险也可能根本访问不到。顺带展示 -EFAULT 返回约定。</p></div></details>
+<details class="qa"><summary>Q20 platform 总线的匹配机制？probe 何时被调用？</summary><div class="ans"><p>【要点】设备(device)来自 DTB 枚举，驱动(of_match_table)注册时逐 compatible 比对（还支持 id_table/name 兜底），成功即 probe。追问：DT 里 status=disabled 的节点不会生成设备。</p></div></details>
+<details class="qa"><summary>Q21 ioremap 的作用？不用它会怎样？</summary><div class="ans"><p>【要点】把物理寄存器窗口映射到内核虚拟地址并建立 non-cacheable 属性。直接解引用物理地址 = 访问的是错误虚拟地址（Oops）或命中错误映射。配套纪律：readl/writel 访问、devm_ 自动回收。</p></div></details>
+<details class="qa"><summary>Q22 UIO 的原理与局限？（本课程 PLC 的选型依据）</summary><div class="ans"><p>【要点】内核只提供 mmap 物理窗口 + 阻塞读等 IRQ（generic-uio 自动屏蔽/再使能），业务全在用户态。优点：免内核维护、崩溃不影响内核。局限：无 DMA 子系统接入、无标准框架生态 —— 需要这些时回归字符驱动/dmaengine。</p></div></details>
+<details class="qa"><summary>Q23 module_platform_driver() 宏展开了什么？</summary><div class="ans"><p>【要点】等价于 module_init(platform_driver_register)+module_exit(unregister) 三行糖。借此考 module 加载流程：insmod→sys_call→vermagic/SMP 校验→符号重定位(内核导出表)→init 调用。</p></div></details>
+<details class="qa"><summary>Q24 spinlock/mutex 选型？和 ISR 共享数据怎么办？</summary><div class="ans"><p>【要点】能否睡眠是分水岭（37章决策树）。与 ISR 共享：进程侧 spin_lock_irqsave（防本地中断抢占），ISR 内裸 spin_lock；SMP 下另有跨核自旋语义由锁保证。</p></div></details>
+<details class="qa"><summary>Q25 设备树解决了什么问题？没有它世界怎样？</summary><div class="ans"><p>【要点】硬件描述与驱动代码解耦：同一驱动二进制适配不同板卡，改板不改码。历史：arm 时代 board 文件爆炸 → DT 统一描述。追问 reg/cells/interrupts 三元组含义即回到14章表格。</p></div></details>
+<details class="qa"><summary>Q26 用户态 mmap /dev/mem 访问寄存器与写驱动相比的优劣？（开放）</summary><div class="ans"><p>【要点】优：零开发量、调试神器(devmem)。劣：绕过权限模型(root 才可用)、无并发保护、无抽象复用、cache 属性难控。结论：调试可用，产品走驱动/UIO —— 展示工程判断力比背 API 更重要。</p></div></details></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">B4 FreeRTOS / RTOS / 微内核专项（12 题）★第48~50章配套</h3><details class="qa"><summary>Q34 FreeRTOS 如何保证调度的确定性？抖动来源有哪些？</summary><div class="ans"><p>【要点】固定优先级抢占+O(1) 就绪表选任务；确定性=「最高优先级就绪即运行」。残余抖动来源：临界区关中断段、DMA/总线争用、tick 精度、cache miss。量化手段=49章运行时统计+Tracealyzer。</p></div></details>
+<details class="qa"><summary>Q35 任务间通信方式如何选型？给出你的排序与理由。</summary><div class="ans"><p>【要点】单播事件→<strong>Task Notification</strong>(最快最省)；字节流→Stream Buffer；定界消息→Queue；多条件同步→Event Group；资源互斥→Mutex(带继承)；跨核→rpmsg。答出「通知优先于队列」是新版教材信号。</p></div></details>
+<details class="qa"><summary>Q36 优先级反转的完整场景与 FreeRTOS 的两层对策？</summary><div class="ans"><p>【要点】低持锁-中插队-高等待。对策①互斥量优先级继承；②设计层缩短临界区/避免嵌套锁。火星探路者案例讲清「为什么测试没发现」(低概率相位)更加分。</p></div></details>
+<details class="qa"><summary>Q37 栈溢出的两种检测机制原理与局限？</summary><div class="ans"><p>【要点】方法1：切换时检查栈顶水印字是否被写(只抓"越界即毁水印"的快速溢出)；方法2：全栈 0xA5 模式扫描(慢但全)。共同盲区：溢出瞬间已破坏内存——根治靠静态分析+高水位留 30% 裕量。</p></div></details>
+<details class="qa"><summary>Q38 tickless idle 如何做到低功耗又不丢节拍？</summary><div class="ans"><p>【要点】进入前算最近唤醒点→停 tick 定时器→换低功耗计数器到点唤醒→补正 xTickCount(补偿睡眠期间流逝的 tick)。实现难点：低功耗定时器与 tick 源不同步的补偿逻辑（vPortSuppressTicksAndSleep）。</p></div></details>
+<details class="qa"><summary>Q39 为什么 ISR 版 API 要多一个 xHigherPriorityTaskWoken 参数？</summary><div class="ans"><p>【要点】ISR 内不能直接调度（嵌套/现场复杂），API 只标记"有高优任务就绪"，ISR 出口 portYIELD_FROM_ISR 一次性切换——把 N 次切换合并为 1 次，且保证在正确上下文发生。</p></div></details>
+<details class="qa"><summary>Q40 heap_4 的碎片风险怎么量化与规避？</summary><div class="ans"><p>【要点】监控 xPortGetMinimumEverFreeHeapSize 趋势；规避：启动期一次性分配(创建后不再动态)、固定尺寸池化、或全静态 xTaskCreateStatic。功能安全场景直接禁堆。</p></div></details>
+<details class="qa"><summary>Q41 上下文切换的时间开销由什么组成？如何实测？</summary><div class="ans"><p>【要点】组成：PendSV 进出+压弹 16 寄存器+调度器选任务(C函数)。CM4 典型 1~2μs@168MHz。实测：两任务 ping-pong 写 GPIO，示波器测半周期；或 DWT->CYCCNT 差值统计。</p></div></details>
+<details class="qa"><summary>Q42 FreeRTOS 的 SMP 模式与 AMP 部署的核心区别？</summary><div class="ans"><p>【要点】SMP：一个内核管多核，共享就绪表，自动负载均衡但核间锁开销+故障共域；AMP：每核独立内核/裸机，经 rpmsg 通信，故障隔离强、实时可控。ZYNQ 上选 AMP 的理由（40章）。</p></div></details>
+<details class="qa"><summary>Q43 SeL4 的 Capability 与 Linux 文件描述符有何本质不同？</summary><div class="ans"><p>【要点】fd 是全局命名空间里的句柄+内核策略检查；cap 是<strong>对象引用本身携带权限</strong>、可裁剪(Mint)、可传递、无全局表查询——权限模型从"身份校验"变为"持有即授权"，最小权限可被内核强制。</p></div></details>
+<details class="qa"><summary>Q44 SeL4 形式化验证覆盖了什么？以下哪个它<strong>不</strong>保证：A 缓冲区溢出 B 规格正确性 C 无死锁 D 实现符合抽象规格</summary><div class="ans"><p>【答案】B 与 C 不在完整性证明范围（规格对错属需求工程；无死锁非其证明目标）。A/D 属已证明性质。这题专治背概念不读原文的候选人（50章 Q1）。</p></div></details>
+<details class="qa"><summary>Q45 CAmkES 相比手写 OpenAMP 组件的价值是什么？</summary><div class="ans"><p>【要点】声明式拓扑→自动生成 IPC glue 与 cap 分发（手写最易错的部分）；接口即契约（IDL 编译期检查）；安全策略集中可审计（50.10 的 camkes.gen.capdl）。代价：学习曲线+模板调试黑盒感。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 使用提示</strong>
+<p>C 语言题建议配合「白板手写」练习 —— 面试官常要求现场写 BIT 宏、memmove、大小端转换，肌肉记忆很重要。每题背后章节：Q1→37章，Q11~16→20章，Q17~26→17/18/28章，Q34~41→48/49章，Q42~45→50章。</p><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>能独立回答「B1 C 语言与编程基础」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>能独立回答「B2 Linux 系统编程」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能独立回答「B3 设备驱动专项」相关问题，并说明关键取舍。</span></label>
+<label class="check-item"><input id="goal-4" type="checkbox" data-goal="3"> <span>能独立回答「B4 FreeRTOS / RTOS / 微内核专项（12 题）★第48~50章配套」相关问题，并说明关键取舍。</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题）」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="appendix-a.html"><span><span class="pager-label">上一章</span><b>附录 A · 数电 / Verilog / ZYNQ / 工业专项（35 题）</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="appendix-c.html"><span><span class="pager-label">下一章</span><b>附录 C · 项目深挖 / 系统设计 / 行为面（18 题）</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>附录 B · C语言 / Linux 系统 / 驱动 / RTOS 专项（41 题） · 附录 · 面试题库</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+</body>
+</html>

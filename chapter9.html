@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 9 章 · AXI 总线与自定义 IP 设计 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 9 章 · AXI 总线与自定义 IP 设计：这是全课程 最重要的一章 ：学会把任意逻辑包装成 CPU 可访问的寄存器 —— 软 PLC 的 PL 侧 IO 引擎就是它的放大版。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch09" data-chapter-file="chapter9.html" data-chapter-label="第 9 章 · AXI 总线与自定义 IP 设计">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 9 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>AXI 握手：五通道与 VALID/READY</a>
+<a href="#sec-2"><span class="num">02</span>生成 AXI4-Lite IP 模板</a>
+<a href="#sec-3"><span class="num">03</span>定义寄存器映射（先文档后代码）</a>
+<a href="#sec-4"><span class="num">04</span>用户逻辑实现（核心代码）</a>
+<a href="#sec-5"><span class="num">05</span>打包与集成</a>
+<a href="#sec-6"><span class="num">06</span>软件侧测试（Vitis 裸机）</a>
+<a href="#sec-7"><span class="num">07</span>对照组：AXI GPIO IP</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：AXI 五通道全景与突发传输（为38章铺路）</a>
+<a href="#sec-10"><span class="num">10</span>深潜：自定义 IP 的仿真闭环（不依赖板卡）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 9 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 09</div>
+      <h1 id="heroTitle">第 9 章<br><span class="grad">AXI 总线与自定义 IP 设计</span></h1>
+      <p class="hero-sub">这是全课程 最重要的一章 ：学会把任意逻辑包装成 CPU 可访问的寄存器 —— 软 PLC 的 PL 侧 IO 引擎就是它的放大版。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">10 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">09</div>
+          <div class="console-part">基础知识 / CH09</div>
+          <div class="console-title">AXI 总线与自定义 IP 设计</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>10</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:56%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>09 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>10</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解 AXI 握手机制与三种形态的工程取舍</li>
+<li class="goal-item">用模板法开发一个 AXI4-Lite 自定义 IP（LED 控制器）并集成测试</li>
+<li class="goal-item">掌握地址分配、IP 升级、软件侧寄存器读写的完整闭环</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,228 字 · 10 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">9.1</span>AXI 握手：五通道与 VALID/READY</h3><p>AXI4 是 AMBA 家族的存储映射总线。一次写事务涉及三组通道（地址、写数据、写响应），读事务两组（地址、读数据）。所有通道靠 <strong>VALID/READY 双向握手</strong>同步：发送方拉 VALID 表示数据有效，接收方拉 READY 表示可接收，两者同时为高时传输完成。</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>形态</th><th>突发</th><th>典型场景</th><th>复杂度</th></tr>
+<tr><td>AXI4-Lite</td><td>否，单拍</td><td>寄存器配置/状态读取</td><td>★ 本章主角</td></tr>
+<tr><td>AXI4 (Full)</td><td>是，1~256 拍</td><td>大块内存搬运（配 DMA）</td><td>★★★</td></tr>
+<tr><td>AXI4-Stream</td><td>无地址概念</td><td>流式数据（视频/AD采样）</td><td>★★</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 新手只需记住</span>
+<p>AXI4-Lite 下，<strong>CPU 的一次 32 位寄存器写 = 总线上一个地址通道包 + 一个写数据包 + 一个响应包</strong>。你的 IP 只需要像填表格一样实现「收到地址→给出数据」「收到数据→存进对应寄存器」，模板提供协议起点，但修改后仍须验证通道独立、响应背压、WSTRB 和复位。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">9.2</span>生成 AXI4-Lite IP 模板</h3><ol>
+<li>菜单 <strong>Tools → Create and Package New IP → Create AXI4 peripheral</strong>。</li>
+<li>命名：<code class="inline">led_ctrl</code>；接口类型 <strong>AXI4-Lite (Lite)</strong>，Slave only，数据 32 位，寄存器数量 <strong>4</strong>。</li>
+<li>选择 <em>Edit IP</em>（生成可编辑工程）而非仅打包。</li>
+</ol>
+<p>生成的工程中，<code class="inline">led_ctrl.sv/v</code> 顶部是标准 AXI 从机状态机（<strong>不要动</strong>），用户逻辑集中在两处：寄存器写解码（<code class="inline">slv_reg0..3</code>）与读多路选择（<code class="inline">reg_data_out</code> case）。</p></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">9.3</span>定义寄存器映射（先文档后代码）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>偏移</th><th>名称</th><th>方向</th><th>位定义</th></tr>
+<tr><td>0x00</td><td>CTRL</td><td>R/W</td><td>bit0=使能，bit1=模式(0流水/1呼吸)，bit2=软件复位</td></tr>
+<tr><td>0x04</td><td>SPEED</td><td>R/W</td><td>呼吸/流水速度分频系数（默认 12500_000）</td></tr>
+<tr><td>0x08</td><td>STATUS</td><td>R</td><td>bit0=IP运行标志</td></tr>
+<tr><td>0x0C</td><td>VERSION</td><td>R</td><td>固定 0x2020_0901，软件用于探测 IP 存在</td></tr>
+</table></div>
+<div class="box warn"><span class="bt">⚠️ 寄存器映射是「软硬件合同」</span>
+<p>这张表一旦定稿，PL 与软件并行开发都依赖它。工业项目里请把它写进接口文档并加版本号 —— 第27章 PLC IO 引擎的寄存器表就是本章方法的直接放大。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">9.4 用户逻辑：复位、使能与真正的 PWM</h3><p>以下是用户逻辑片段，不含完整 AXI-Lite 包装。所有状态都有复位值；SPEED=0 钳位为 1，避免减法下溢。PWM 的高速载波与低速占空比包络分别计数，不能把慢速亮灭阈值冒充呼吸 PWM。</p><div class="code-block"><div class="code-head"><span class="code-lang">VERILOG · 用户逻辑片段</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>// User-logic fragment inside the generated AXI-Lite slave.
+// Add led_o[3:0] to the module ports. Physical active-low polarity belongs at top level.
+wire en = slv_reg0[0];
+wire mode = slv_reg0[1];
+wire sw_rst = slv_reg0[2];
+wire [31:0] period = (slv_reg1 == 0) ? 32'd1 : slv_reg1;
+reg [31:0] div_cnt;
+reg tick;
+reg [3:0] chase;
+reg [9:0] carrier, duty;
+reg falling;
+
+always @(posedge s_axi_aclk or negedge s_axi_aresetn) begin
+    if (!s_axi_aresetn) begin
+        div_cnt &lt;= 0; tick &lt;= 0;
+    end else if (sw_rst || !en) begin
+        div_cnt &lt;= 0; tick &lt;= 0;
+    end else if (div_cnt &gt;= period - 1'b1) begin
+        div_cnt &lt;= 0; tick &lt;= 1;
+    end else begin
+        div_cnt &lt;= div_cnt + 1'b1; tick &lt;= 0;
+    end
+end
+
+always @(posedge s_axi_aclk or negedge s_axi_aresetn) begin
+    if (!s_axi_aresetn) begin
+        chase &lt;= 4'b0001; carrier &lt;= 0; duty &lt;= 0; falling &lt;= 0;
+    end else if (sw_rst || !en) begin
+        chase &lt;= 4'b0001; carrier &lt;= 0; duty &lt;= 0; falling &lt;= 0;
+    end else begin
+        carrier &lt;= (carrier == 10'd999) ? 10'd0 : carrier + 1'b1;
+        if (tick) begin
+            if (!mode) chase &lt;= {chase[2:0], chase[3]};
+            else if (!falling) begin
+                if (duty == 10'd999) begin
+                    falling &lt;= 1; duty &lt;= 10'd998;
+                end else duty &lt;= duty + 1'b1;
+            end else begin
+                if (duty == 0) begin
+                    falling &lt;= 0; duty &lt;= 10'd1;
+                end else duty &lt;= duty - 1'b1;
+            end
+        end
+    end
+end
+assign led_o = (!en || sw_rst) ? 4'b0000 :
+               (mode ? {4{carrier &lt; duty}} : chase);
+// STATUS and VERSION are decoded in the generated register read path.
+// Enforce read-only behavior; do not assume the template does this automatically.</code></pre></div><p>tick 在寄存器产生后由下一上升沿消费，属于明确的一拍延迟。SW_RST 在此为电平复位位，软件写 1 后须写 0 释放；若改成写 1 自清，需同时改寄存器逻辑与文档。</p><p>分别验证复位、en=0、SPEED=0/1、模式切换、PWM 端点，以及逻辑输出与板卡 active-low 的顶层映射。呼吸包络需约 1998 次 tick 完成一轮，软件为呼吸与流水选择不同 SPEED。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">9.5</span>打包与集成</h3><ol>
+<li><strong>Review and Package IP</strong> 页签 → Merge changes → <strong>Re-Package IP</strong>（生成 zip 到 IP 仓库目录）。</li>
+<li>回到 BD 工程：Settings → IP → Repository 添加仓库路径；+ 添加 <code class="inline">led_ctrl_v1.0</code>。</li>
+<li>点击 <strong>Run Connection Automation</strong>：勾选 led_ctrl 的 S_AXI，Vivado 自动插入 <strong>SmartConnect</strong> 并连到 ZYNQ 的 <code class="inline">M_AXI_GP0</code>。</li>
+<li><strong>Address Editor</strong> 确认分配：<code class="inline">led_ctrl_0/s_axi/Reg</code> 落在 <code class="inline">0x43C0_0000</code> 段（记下你的实际值！）。</li>
+<li>Validate → Generate Output Products → Export Hardware（<strong>含 bitstream</strong>）。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">9.6</span>软件侧测试（Vitis 裸机）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;xparameters.h&gt;
+#include &lt;xil_io.h&gt;
+#include &lt;xil_printf.h&gt;
+#include &lt;sleep.h&gt;
+
+#define IP_BASE  XPAR_LED_CTRL_0_S0_AXI_BASEADDR   /* 自动生成，勿手抄 */
+
+int main(void)
+{
+    xil_printf("version = 0x%08x\r\n", Xil_In32(IP_BASE + 0x0C));
+    if (Xil_In32(IP_BASE + 0x0C) != 0x20200901) {
+        xil_printf("IP not found!\r\n"); return -1;
+    }
+    Xil_Out32(IP_BASE + 0x04, 62500000 / 8);       /* SPEED */
+    Xil_Out32(IP_BASE + 0x00, 0x1);                /* 使能·流水模式 */
+    sleep(3);
+    Xil_Out32(IP_BASE + 0x04, 62500);          /* 示例：按实际 AXI 时钟与包络周期重算 */
+    Xil_Out32(IP_BASE + 0x00, 0x3);                /* 切呼吸模式 */
+    while (1) {
+        xil_printf("status=%d\r\n", Xil_In32(IP_BASE + 0x08));
+        sleep(1);
+    }
+}</code></pre></div>
+<p>上板验证：串口应打印 version 与 status=1，LED 先流水后呼吸；在调试模式下修改 <code class="inline">slv_reg1</code>（Memory 窗口直写 IP_BASE+4），速度立即变化 —— <strong>CPU 与 FPGA 逻辑实时握手成功</strong>。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">9.7</span>对照组：AXI GPIO IP</h3><p>同样的需求也可以用现成 AXI GPIO：BD 中添加 <code class="inline">AXI GPIO</code>，双通道配置（CH1 输出 LED、CH2 输入按键），勾选中断。软件用 <code class="inline">xgpio.h</code> 或直接 <code class="inline">Xil_In32(XPAR_AXI_GPIO_0_BASEADDR)</code>。对比结论：<strong>简单 IO 用现成 IP，带时序逻辑/协议的用自定义 IP</strong>。PLC 篇两者都会用到（AXI GPIO 做 DO，自定义 IP 做 DI 滤波与 PWM）。</p></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：软件读 IP 寄存器全是 0 或总线挂死？</summary><div class="ans"><p>① 地址没分配（Address Editor 显示 Unassigned）——读写会落到空地址；② 基地址抄错（必须用 xparameters.h 宏）；③ IP 的 ACLK 没接时钟（SmartConnect 自动接，手工连线时常见遗漏）；④ bitstream 是旧的（改了 PL 忘了重新下载）。</p></div></details>
+<details class="qa"><summary>Q2：修改了 IP 源码，BD 里没变化？</summary><div class="ans"><p>IP 是「打包-引用」模型：改源码后必须重新 Re-Package，然后在 BD 里右键 IP → <strong>Upgrade IP</strong>（或 Report IP Status），再重新生成输出与比特流。建议 IP 仓库用 Git 管理，每次 Re-Package 打 tag。</p></div></details>
+<details class="qa"><summary>Q3：什么时候需要 SmartConnect 而不是 AXI Interconnect？</summary><div class="ans"><p>2020.2 中 SmartConnect 是推荐的新互联（自动优化、支持更多主从），AXI Interconnect 是老核。两者对 AXI4-Lite 单从机场景无差别，Vivado 自动化默认插 SmartConnect 即可。</p></div></details>
+<details class="qa"><summary>Q4：一个 IP 能挂多个寄存器页吗？地址怎么扩？</summary><div class="ans"><p>AXI4-Lite 地址位宽可到 40 位，模板默认按 4×32bit 生成；在打包向导里把 Number of Registers 调大（如 256），或自己解码高位地址。注意 M_AXI_GP 窗口总大小 1GB，足够任何 IO 引擎。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L9-1：输入回读 IP</strong>
+<p>给 led_ctrl 增加：① 端口 <code class="inline">key_i[3:0]</code>（连到板卡按键，经消抖）；② 只读寄存器 0x10 KEYSTAT 实时反映按键电平；③ 寄存器 0x14 KEYCNT 记录按键按下次数累计。软件侧轮询打印。完成后你将拥有一套「CPU↔PL 双向数据通路」的最小完整样例。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 AXI4-Lite 不支持突发？如果配置类操作也想要高吞吐，应该怎么改设计？</li>
+<li>CPU 写寄存器时，IP 内部如何保证跨时钟域安全？（提示：本设计 IP 与 AXI 同时钟；若用户逻辑在别的时钟域怎么办）</li>
+<li>设计 PLC 的 DO 寄存器：8 路输出、需要「软件强制（force）」功能覆盖硬件逻辑，画出寄存器映射并说明 force 的优先级实现。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">9.8</span>深潜：AXI 五通道全景与突发传输（为38章铺路）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">写地址 AW: AWADDR/AWLEN/AWSIZE/AWBURST + VALID/READY
+写数据 W : WDATA/WSTRB(字节使能!) + WLAST(最后一拍)
+写响应 B : BRESP(OKAY/SLVERR/DECERR)
+读地址 AR: 同AW结构
+读数据 R : RDATA/RLAST/RRESP
+/* 突发三要素: AWLEN=拍数-1; AWSIZE=每拍字节数(2^size);
+   AWBURST: FIXED(定址)/INCR(递增·常用)/WRAP(cache行填充用) */</code></pre></div>
+<p>AXI4-Lite 保留五通道的单次传输语义，但接口不带 AxLEN 等突发信号；理解 WSTRB 让你明白为什么模板代码要按 32bit 对齐写寄存器。38章的 DMA 突发即 INCR 模式的工程化放大。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">9.9</span>深潜：自定义 IP 的仿真闭环（不依赖板卡）</h3><p>IP 交付前必须过「AXI 协议验证」：板上可用 JTAG AXI Master 产生事务；纯仿真则使用 AXI Verification IP (VIP) 或 testbench 总线主机：</p>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">/* tb 中例化 AXI VIP (Master) 直接读写你的从机 —— 上板前抓协议违例 */
+axi_vip_mst mst_i(...);          /* 配置为 AXI4LITE */
+initial begin
+  mst_i.start_master();
+  mst_i.AXI4LITE_WRITE_BURST(32'h43C10000, 32'h1, resp);
+  mst_i.AXI4LITE_READ_BURST (32'h43C10008, data, resp);
+end</code></pre></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch09"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解 AXI 握手机制与三种形态的工程取舍</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>用模板法开发一个 AXI4-Lite 自定义 IP（LED 控制器）并集成测试</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握地址分配、IP 升级、软件侧寄存器读写的完整闭环</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「AXI 总线与自定义 IP 设计」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter8.html"><span><span class="pager-label">上一章</span><b>第 8 章 · PS 外设编程：GPIO / UART / 中断 / 定时器</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter10.html"><span><span class="pager-label">下一章</span><b>第 10 章 · PS+PL 协同设计综合实验</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 9 章 · AXI 总线与自定义 IP 设计 · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

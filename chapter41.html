@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 41 章 · 扩展实战项目集（4 选 2） | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 41 章 · 扩展实战项目集（4 选 2）：四个独立项目蓝图，覆盖 DMA/网络/双核/DSP 四大方向 —— 每个都足以支撑一份高质量简历或毕设。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch41" data-chapter-file="chapter41.html" data-chapter-label="第 41 章 · 扩展实战项目集（4 选 2）">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 41 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>项目 P1 · 便携式逻辑分析仪 / 数据记录仪</a>
+<a href="#sec-2"><span class="num">02</span>项目 P2 · MQTT 工业物联网网关</a>
+<a href="#sec-3"><span class="num">03</span>项目 P3 · 双核(AMP) 直流电机控制器</a>
+<a href="#sec-4"><span class="num">04</span>项目 P4 · 实时频谱分析仪（FFT）</a>
+<a href="#sec-5"><span class="num">05</span>选型建议与组合拳</a>
+<a href="#sec-6"><span class="num">06</span>深潜：P1 关键设计——触发引擎状态机</a>
+<a href="#sec-7"><span class="num">07</span>深潜：P2 数据模型与主题设计</a>
+<a href="#sec-8"><span class="num">08</span>深潜：P3 离散 PI 控制环参考实现（核1）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：P4 定点 FFT 缩放策略</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 41 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 41</div>
+      <h1 id="heroTitle">第 41 章<br><span class="grad">扩展实战项目集（4 选 2）</span></h1>
+      <p class="hero-sub">四个独立项目蓝图，覆盖 DMA/网络/双核/DSP 四大方向 —— 每个都足以支撑一份高质量简历或毕设。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">9 个小节</span>
+        <span class="meta-chip">1 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">41</div>
+          <div class="console-part">进阶精通 / CH41</div>
+          <div class="console-title">扩展实战项目集（4 选 2）</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>9</b></div>
+            <div class="console-metric"><span>CODE</span><b>2</b></div>
+            <div class="console-metric"><span>TBL</span><b>5</b></div>
+            <div class="console-metric"><span>QA</span><b>1</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:14%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:42%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:8%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>41 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>9</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>5</b><span>速查表格</span></div>
+    <div class="stat"><b>1</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">按蓝图独立完成至少两个完整项目的需求→设计→实现→验收</li>
+<li class="goal-item">练习「从零拆解一个陌生产品」的架构能力</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,102 字 · 9 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>2 段 · 5 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>1 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+<div class="chapter-intro reveal"><div class="box tip"><span class="bt">💡 使用方式</span>
+<p>本章刻意<strong>只给骨架不给成品代码</strong>——这是从「跟做」到「独立开发」的必经训练。每个项目标注了前置章节依赖、里程碑与验收标准；卡住时回到对应章节找武器，而不是搜索现成答案。</p></div></div>
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">41.1</span>项目 P1 · 便携式逻辑分析仪 / 数据记录仪</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>项</th><th>内容</th></tr>
+<tr><td>一句话</td><td>8~16 通道、100MSa/s 流模式、浏览器显示波形的「Saleae 平替」</td></tr>
+<tr><td>前置</td><td>第38章 DMA 必修；21章 ILA 对照验证</td></tr>
+<tr><td>架构</td><td>PL：采样移位打包(8ch→byte)+阈值触发+Stream输出 → DMA S2MM → DDR 环形缓冲 → Web/文件导出（CSV/VCD格式）</td></tr>
+<tr><td>里程碑</td><td>M1 触发引擎(前后触发深度可配) → M2 连续流+丢样统计 → M3 Web Canvas 波形缩放游标 → M4 VCD 导入 GTKWave 验证</td></tr>
+<tr><td>难点提示</td><td>① 触发位置回填（环形缓冲的 seq 对齐）；② 浏览器百万点降采样绘制(LTTB算法)；③ USB 拔插期间零丢失（Ping-Pong+水位线）</td></tr>
+<tr><td>验收</td><td>信号发生器 10MHz 方波实测边沿位置误差 ≤1 样点；连续录 60s 无断流</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">41.2</span>项目 P2 · MQTT 工业物联网网关</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>项</th><th>内容</th></tr>
+<tr><td>一句话</td><td>南向 Modbus 轮询 N 台设备，北向 MQTT 上云，断网本地续传的边缘网关</td></tr>
+<tr><td>前置</td><td>第32章 Modbus（这次当<strong>主站</strong>）；第20章 socket/pthread</td></tr>
+<tr><td>架构</td><td>轮询引擎(多设备寄存器地图JSON配置) → 本地时序库(SQLite) → MQTT 发布(paho.mqtt C库, QoS1) ← 命令下行(写寄存器)；TLS + 用户名密码认证</td></tr>
+<tr><td>里程碑</td><td>M1 多设备轮询+SQLite 存储 → M2 MQTT 上云(mosquitto 自建 broker) → M3 断网缓存/恢复补传(水位标记) → M4 OTA 配置热更新 + 看门狗</td></tr>
+<tr><td>难点提示</td><td>① 设备响应超时的自适应轮询间隔；② 时间戳统一(NTP+单调钟双轨)；③ SQLite 写放大控制(WAL+批量事务)</td></tr>
+<tr><td>验收</td><td>拔网线 30 分钟再恢复，云端曲线无缺口；100 台模拟设备(脚本)并发轮询 CPU&lt;30%</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">41.3</span>项目 P3 · 双核(AMP) 直流电机控制器</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>项</th><th>内容</th></tr>
+<tr><td>一句话</td><td>核1 裸机跑 50μs 电流环，核0 Linux 跑轨迹规划+Modbus+Web 的伺服驱动器原型</td></tr>
+<tr><td>前置</td><td><strong>第40章 AMP 必修</strong>；第27章 PWM 经验迁移</td></tr>
+<tr><td>架构</td><td>PL：正交编码器解码+PWM死区发生+过流比较器(硬件保护) ‖ 核1：PI 电流环(私有定时器50μs) ‖ rpmsg 命令通道 ‖ 核0：速度环1ms+梯形轨迹规划+HMI</td></tr>
+<tr><td>里程碑</td><td>M1 编码器测速精度验证(PL捕获) → M2 核1电流环闭环(阶跃响应示波器) → M3 核间协议与看门狗 → M4 整机速度/位置模式</td></tr>
+<tr><td>难点提示</td><td>① 死区与刹车逻辑必须 PL 硬件自治（安全第一）；② 核间命令的时效性兜底（心跳超时即安全停机）；③ PI 参数整定方法论(先内后外)</td></tr>
+<tr><td>验收</td><td>电流环阶跃超调&lt;10%；Linux 死循环压测下转速波动 &lt;0.5%（证明解耦成功）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">41.4</span>项目 P4 · 实时频谱分析仪（FFT）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>项</th><th>内容</th></tr>
+<tr><td>一句话</td><td>XADC/外置 ADC 采集 → PL 或 NEON 做 1024 点 FFT → Web 瀑布图显示</td></tr>
+<tr><td>前置</td><td>第38章 DMA；DSP48E1 认知（第2章）</td></tr>
+<tr><td>架构</td><td>方案A(推荐)：Xilinx <code class="inline">FFT v9.1</code> IP(Streaming)，AXI-Stream 进出接 DMA ‖ 方案B：NEON 优化 CMSIS-DSP arm_rfft_fast_f32（软硬对比实验价值极高）→ 幅值谱 → WebSocket 推送 → Canvas 瀑布图</td></tr>
+<tr><td>里程碑</td><td>M1 正弦注入频谱正确性(对拍理论bin) → M2 加窗(Hamming)抑制泄漏对比 → M3 连续帧流式处理 → M4 双方案吞吐/功耗对比报告</td></tr>
+<tr><td>难点提示</td><td>① 定点 FFT 缩放因子防溢出；② 帧边界拼接(overlap 处理)；③ 浏览器瀑布图的色彩映射性能</td></tr>
+<tr><td>验收</td><td>1kHz 正弦主瓣定位误差 ≤1 bin；SFDR 与理论差 ≤3dB；每秒 ≥500 帧 FFT 无丢帧</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">41.5</span>选型建议与组合拳</h3><ul>
+<li><strong>求职工控/自动化方向</strong>：PLC 主项目 + P2 网关（展示云边协同视野）；</li>
+<li><strong>FPGA/高速采集方向</strong>：P1 + P4（DMA/DSP 全覆盖）；</li>
+<li><strong>嵌入式系统架构方向</strong>：P3（AMP 是稀缺技能）；</li>
+<li>时间有限只做一个？选 P1 —— 它把第38章 DMA、第33章 Web、第22章时序全部串起来，且成果可视化最强。</li>
+</ul>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>P1 的触发引擎若要求「脉宽触发」，PL 侧需要增加什么状态机？画出状态转移图。</li>
+<li>P2 若云端协议换成 OPC UA PubSub 或 Sparkplug B，架构哪些层不变？哪些要重构？</li>
+<li>P3 为什么电流环不能也放到 PL 纯硬件实现？什么场景下「全硬件」才是正确答案？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">41.6</span>深潜：P1 关键设计——触发引擎状态机</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">IDLE ──(armed命令)──▶ ARMED ──(预触发缓冲满)──▶ WAIT_TRIG
+WAIT_TRIG ──(条件命中: rising/fall/pattern/width)──▶ CAPTURING
+CAPTURING ──(后触发计数满)──▶ DONE → 上传/等待再次arm
+/* 条件在 PL 用比较器阵列实现；width 触发=边沿+脉宽窗口比较器 */
+VCD 导出最小集：$timescale 10ns $end / $var wire 8 ! data [7:0] /
+$enddefinitions / #t 值变更行 —— GTKWave 直接打开验证 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">41.7</span>深潜：P2 数据模型与主题设计</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>SQLite 表</th><td>字段（要点）</td></tr>
+<tr><td>devices(id,name,ip,port,proto,poll_ms)</td><td>设备台账，轮询引擎按行驱动</td></tr>
+<tr><td>points(id,dev_id,fc,addr,type,scale,offset,topic)</td><td>点表=协议↔语义映射核心</td></tr>
+<tr><td>samples(point_id,ts,val) WAL+每万条事务提交</td><td>时序存储；按 point_id+ts 建索引</td></tr>
+<tr><td>sync_state(topic,last_seq)</td><td>断网补传水位标记</td></tr>
+<tr><td colspan="2"><b>MQTT 主题规划</b>：<code>factory/{area}/{dev}/data</code>(周期上报JSON数组)、<code>/event</code>(变化即发,QoS1保留)、<code>/cmd/{dev}</code>(下行写寄存器,带req_id)、<code>/ack</code>(执行回执)。规则：topic 层级≤4、payload 带 ts 与 seq。</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">41.8</span>深潜：P3 离散 PI 控制环参考实现（核1）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">typedef struct { float kp,ki; float integ; float out_max; } pi_t;
+float pi_step(pi_t *c, float ref, float fb)      /* 每50μs调用一次 */
+{
+    float e = ref - fb;
+    c-&gt;integ += c->ki * e;
+    if (c-&gt;integ >  c-&gt;out_max) c-&gt;integ =  c-&gt;out_max;   /* 抗饱和 */
+    if (c-&gt;integ &lt; -c-&gt;out_max) c-&gt;integ = -c-&gt;out_max;
+    float u = c-&gt;kp*e + c-&gt;integ;
+    return clamp(u, -c-&gt;out_max, c-&gt;out_max);
+}
+/* 整定口诀：先P后I，阶跃观察超调&lt;10%再降P升I；
+   采样定理提醒：控制频率 ≥ 闭环带宽×10~20 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">41.9</span>深潜：P4 定点 FFT 缩放策略</h3><p>16bit 输入经 1024 点蝶形最多放大 √1024=32 级/级1bit —— Xilinx FFT IP 选择 <strong>scaled fixed-point</strong> 模式并配置各级移位向量（如 [10 10 10 10 10]）防溢出；结果除以总增益还原幅值。与浮点 NEON 版对拍：主瓣位置必须一致、幅值误差 ≤0.5dB。加 Hamming 窗（w[n]=0.54−0.46cos(2πn/N)）抑制频谱泄漏后再对比 SFDR 改善量 —— 这组实验数据直接进验收报告。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch41"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 2</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>按蓝图独立完成至少两个完整项目的需求→设计→实现→验收</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>练习「从零拆解一个陌生产品」的架构能力</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「扩展实战项目集（4 选 2）」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter40.html"><span><span class="pager-label">上一章</span><b>第 40 章 · AMP 双核开发：OpenAMP / rpmsg</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter42.html"><span><span class="pager-label">下一章</span><b>第 42 章 · 精通之路：能力矩阵与成长闭环</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 41 章 · 扩展实战项目集（4 选 2） · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

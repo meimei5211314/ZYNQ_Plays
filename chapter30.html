@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 30 章 · 梯形图解释器实现 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 30 章 · 梯形图解释器实现：项目的「灵魂」章节：让板卡真正执行用户逻辑 —— 触点、线圈、以及那条著名的启保停。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch30" data-chapter-file="chapter30.html" data-chapter-label="第 30 章 · 梯形图解释器实现">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 30 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>两级设计：LD →(编译)→ IL →(VM 执行)</a>
+<a href="#sec-2"><span class="num">02</span>指令集与操作数编码</a>
+<a href="#sec-3"><span class="num">03</span>解析器（容错是重点）</a>
+<a href="#sec-4"><span class="num">04</span>虚拟机执行引擎（每扫描周期跑一遍）</a>
+<a href="#sec-5"><span class="num">05</span>配套 PC 工具：LD→IL 编译器（Python）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：ST（结构化文本）语言子集设计与编译路径</a>
+<a href="#sec-8"><span class="num">08</span>深潜：两种实现路线对比与推荐</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 30 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 30</div>
+      <h1 id="heroTitle">第 30 章<br><span class="grad">梯形图解释器实现</span></h1>
+      <p class="hero-sub">项目的「灵魂」章节：让板卡真正执行用户逻辑 —— 触点、线圈、以及那条著名的启保停。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 25 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">30</div>
+          <div class="console-part">软 PLC 实战 / CH30</div>
+          <div class="console-title">梯形图解释器实现</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>8</b></div>
+            <div class="console-metric"><span>TBL</span><b>5</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:57%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:42%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>30 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>25</b><span>预计分钟</span></div>
+    <div class="stat"><b>5</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">理解 LD→IL 的编译链路与虚拟机执行模型</li>
+<li class="goal-item">实现文本解析器 + 栈式求值的迷你运行时</li>
+<li class="goal-item">跑通第一个真实 PLC 程序并在线修改验证</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,846 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>8 段 · 5 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">30.1</span>两级设计：LD →(编译)→ IL →(VM 执行)</h3><p>直接解析图形化梯形图对 C 运行时太重。工业界经典做法是<strong>中间语言</strong>：PC 端工具把梯形图编译为指令表 IL，板上 VM 只需执行线性指令流 —— 复杂度被永久隔离在 PC 工具里。</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># program.il —— 启保停（Start-Hold-Stop），分号后为注释
+# 语法：OP OPERAND        （一行一条，空行分隔网络 Network）
+
+; --- Network 1: 启保停 ---
+LD   %IX0.0          ; 常开触点 Start(KEY0)
+OR   %QX0.0          ; 并联自保持线圈反馈
+ANDN %IX0.1          ; 串联常闭 Stop(KEY1)
+OUT  %QX0.0          ; 输出线圈 → DO通道0
+
+; --- Network 2: 运行指示 ---
+LD   %QX0.0
+OUT  %QX0.1          ; LED1 跟随</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">30.2</span>指令集与操作数编码</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>指令</th><th>语义</th><th>栈效果</th></tr>
+<tr><td><code class="inline">LD x / LDN x</code></td><td>装载触点状态（取反）作为新的左母线起点</td><td>push(bit x)</td></tr>
+<tr><td><code class="inline">AND x / ANDN x</code></td><td>串联常开/常闭</td><td>acc &amp;= x</td></tr>
+<tr><td><code class="inline">OR x / ORN x</code></td><td>并联支路</td><td>acc |= x</td></tr>
+<tr><td><code class="inline">OUT coil</code></td><td>线圈跟随当前 acc</td><td>coil = acc（不弹）</td></tr>
+<tr><td><code class="inline">SET / RST coil</code></td><td>置位/复位锁存线圈</td><td>条件写</td></tr>
+<tr><td>空行</td><td>网络边界：acc 清空、进入下一逻辑组</td><td>clear</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* operand 编码：高4位区域 + 低12位索引 */
+typedef enum { AREA_IX = 1, AREA_QX, AREA_IW, AREA_MW } area_t;
+
+typedef struct {
+    uint8_t op;                 /* OP_LD..OP_RST */
+    uint8_t neg;                /* 触点是否取反 */
+    uint16_t area, idx;
+} instr_t;
+
+static instr_t prog[MAX_INSTR];
+static int     prog_len;</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">30.3</span>解析器（容错是重点）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">int logic_load(const char *path)
+{
+    FILE *fp = fopen(path, "r");
+    if (!fp) return -1;
+    char line[128]; int lineno = 0;
+    while (fgets(line, sizeof line, fp)) {
+        lineno++;
+        char *h = strchr(line, ';'); if (h) *h = 0;      /* 掐掉注释 */
+        /* 分词：OP OPERAND */
+        char op[16], arg[32];
+        if (sscanf(line, "%15s %31s", op, arg) != 2) continue;  /* 空行 */
+        instr_t *in = &amp;prog[prog_len];
+        memset(in, 0, sizeof *in);
+
+        if (!strcmp(op, "LD"))   in-&gt;op = OP_LD;
+        else if (!strcmp(op, "AND")) in-&gt;op = OP_AND;
+        else if (!strcmp(op, "OR"))  in-&gt;op = OP_OR;
+        else if (!strcmp(op, "OUT")) in-&gt;op = OP_OUT;
+        else if (!strcmp(op, "SET")) in-&gt;op = OP_SET;
+        else if (!strcmp(op, "RST")) in-&gt;op = OP_RST;
+        else return err(lineno, "unknown opcode");
+
+        in-&gt;neg = (strchr(op, 'N') &amp;&amp; in-&gt;op != OP_OUT &amp;&amp;
+                   in-&gt;op != OP_SET &amp;&amp; in-&gt;op != OP_RST);
+        if (parse_operand(arg, &amp;in-&gt;area, &amp;in-&gt;idx))    /* %IX0.3 → (IX,3) */
+            return err(lineno, "bad operand");
+        if (++prog_len &gt;= MAX_INSTR) return err(lineno, "too many");
+    }
+    fclose(fp);
+    LOGI("program loaded: %d instructions", prog_len);
+    return 0;
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">30.4</span>虚拟机执行引擎（每扫描周期跑一遍）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static inline int rd_bit(uint16_t area, uint16_t i)
+{
+    switch (area) {
+    case AREA_IX: return (g_img.ix[i / 8] &gt;&gt; (i % 8)) &amp; 1;
+    case AREA_QX: return (g_img.qx[i / 8] &gt;&gt; (i % 8)) &amp; 1;
+    default:      return 0;
+    }
+}
+static inline void wr_bit(uint16_t area, uint16_t i, int v)
+{
+    if (area == AREA_QX) {
+        if (v) g_img.qx[i / 8] |=  (1 &lt;&lt; (i % 8));
+        else   g_img.qx[i / 8] &amp;= ~(1 &lt;&lt; (i % 8));
+    }                                   /* MW 位访问扩展位 */
+}
+
+void logic_execute(void)                 /* 由 scan 线程调用，已持锁范围外 */
+{
+    img_lock();
+    int acc = 0;
+    for (int pc = 0; pc &lt; prog_len; pc++) {
+        instr_t *in = &amp;prog[pc];
+        int bit;
+        switch (in-&gt;op) {
+        case OP_LD:
+            bit = rd_bit(in-&gt;area, in-&gt;idx);
+            acc = in-&gt;neg ? !bit : bit;
+            break;
+        case OP_AND:
+            bit = rd_bit(in-&gt;area, in-&gt;idx);
+            acc = acc &amp; (in-&gt;neg ? !bit : bit);
+            break;
+        case OP_OR:
+            bit = rd_bit(in-&gt;area, in-&gt;idx);
+            acc = acc | (in-&gt;neg ? !bit : bit);
+            break;
+        case OP_OUT: wr_bit(in-&gt;area, in-&gt;idx, acc); break;
+        case OP_SET: if (acc) wr_bit(in-&gt;area, in-&gt;idx, 1); break;
+        case OP_RST: if (acc) wr_bit(in-&gt;area, in-&gt;idx, 0); break;
+        }
+    }
+    img_unlock();
+}</code></pre></div>
+<div class="box tip"><span class="bt">💡 为什么这么快？</span>
+<p>千条指令 × 单次访存 ≈ 微秒级 —— 相对 10ms 周期开销可忽略。真正的性能边界在锁竞争与 IO 寄存器往返，这也是架构上把解算放锁内一次完成的原因。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">30.5</span>配套 PC 工具：LD→IL 编译器（Python）</h3><div class="code-block"><div class="code-head"><span class="code-lang">PYTHON</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="python"># ld2il.py —— 把简单梯形图描述编译为 .il（教学级实现思路）
+# 输入 JSON：{"networks":[{"series":["%IX0.0","NOT:%IX0.1"],
+#                        "parallel":["%QX0.0"],"out":"%QX0.0"}]}
+import json, sys
+
+def emit(net):
+    first_series = net["series"][0]
+    print(f"LD   {first_series}")
+    for op in net["series"][1:]:
+        kw = "ANDN" if op.startswith("NOT:") else "AND"
+        print(f"{kw:<5}{op.replace('NOT:', '')}")
+    for op in net.get("parallel", []):
+        print(f"OR   {op}")
+    print(f"OUT  {net['out']}\n")
+
+for net in json.load(open(sys.argv[1]))["networks"]:
+    emit(net)</code></pre></div>
+<p>进阶任务（选做）：用 graphviz 绘制梯形图渲染 HTML 报告，或接入 <em>Beremiz</em> 的 matiec 编译器输出 ST→C 对比学习。</p></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：自保持不生效？</summary><div class="ans"><p>检查 OUT 写的是否就是 OR 引用的同一线圈（%QX0.0），且<strong>读回路径</strong>存在：wr_bit 后下一周期 rd_bit 能读到。若 DO 被 Force 覆盖，映像区 qx 与实际输出会分叉 —— Force 属于 PL 层，调试期请关闭。</p></div></details>
+<details class="qa"><summary>Q2：程序改了没生效？</summary><div class="ans"><p>logic_load 只在上电执行。提供 SIGUSR2 → 重新 load + 校验失败回滚旧程序的机制；Web 页的「下载程序」按钮走同一通道。</p></div></details>
+<details class="qa"><summary>Q3：非法操作数让运行时崩溃了？</summary><div class="ans"><p>parse_operand 必须校验区域前缀与数值范围，越界直接拒绝加载进 FAULT 态 —— 用户输入永远不可信，这是工控软件的底线。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L30-1：启保停上线 ★M3</strong>
+<p>① 加载 30.1 的 program.il；② 按 KEY0 → DO0/DO1 点亮，按 KEY1 → 熄灭；③ 用 Web 占位接口观察 %QX 变化时序；④ 故意加载含语法错误的程序验证 FAULT 回滚；⑤ 记录 M3 验收单。完成后你拥有一台「能编程的最小 PLC」。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 OUT 之后 acc 不清零？这允许什么样的书写习惯？与三菱/西门子行为一致吗？</li>
+<li>若两个网络分别 OUT 同一线圈会怎样？工业规范如何处理双线圈问题？你的 VM 要不要报警？</li>
+<li>评估把 IL 预编译成字节码缓存（跳过每次启动解析）的收益与复杂度。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">30.6</span>深潜：ST（结构化文本）语言子集设计与编译路径</h3><p>LD/IL 之外，<strong>ST 是工业算法逻辑的主力语言</strong>（类似 Pascal）。本节设计一个可落地的 ST 子集，让解释器直接执行 .st 程序 —— 完成这一步，你的 PLC 就具备主流编程形态。</p>
+
+<h4>① 设计边界（先冻结范围）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>能力</th><td>子集 v1 支持</td><td>v2 规划(36章展望)</td></tr>
+<tr><td>类型</td><td>BOOL / INT / DINT / REAL / TIME</td><td>+ 数组、STRING、自定义结构</td></tr>
+<tr><td>变量</td><td>VAR..END_VAR 全局映像映射(%IX/%QX/%MW)</td><td>+ 局部变量、RETAIN 标注</td></tr>
+<tr><td>语句</td><td>x:=expr; IF/ELSIF/ELSE; CASE; FOR; WHILE; RETURN</td><td>+ REPEAT、EXIT、CONTINUE</td></tr>
+<tr><td>功能块</td><td>TON / TOFF / TP / CTU / CTD 调用</td><td>+ 用户自定义FB实例化</td></tr>
+<tr><td>表达式</td><td>+ - * / MOD &lt;&gt; = &lt;= &gt;= AND OR XOR NOT ()</td><td>+ 移位、类型显式转换函数</td></tr>
+</table></div>
+
+<h4>② 文法骨架（EBNF 节选）——递归下降的直接蓝图</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">program      = { var_decl } { statement } ;
+var_decl     = "VAR" ( ident ":" type [":=" expr] ";" )... "END_VAR" ;
+statement    = assign | if_stmt | case_stmt | for_stmt | while_stmt
+             | fb_call ";" | "RETURN" ";" ;
+assign       = location ":=" expr ";" ;
+if_stmt      = "IF" expr "THEN" { statement }
+               { "ELSIF" expr "THEN" { statement } }
+               [ "ELSE" { statement } ] "END_IF" ";" ;
+case_stmt    = "CASE" expr "OF" { const_list ":" { statement } }
+               [ "ELSE" { statement } ] "END_CASE" ";" ;
+for_stmt     = "FOR" ident ":=" expr "TO" expr ["BY" const]
+               "DO" { statement } "END_FOR" ";" ;</code></pre></div>
+
+<h4>③ 表达式求值：优先级表 + 双栈法（调度场）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>优先级</th><td>运算符</td><td>结合性</td></tr>
+<tr><td>1(高)</td><td>() 函数调用</td><td>-</td></tr>
+<tr><td>2</td><td>一元 - NOT</td><td>右</td></tr>
+<tr><td>3</td><td>* / MOD</td><td>左</td></tr>
+<tr><td>4</td><td>+ -</td><td>左</td></tr>
+<tr><td>5</td><td>&lt; &gt; &lt;= &gt;=</td><td>左</td></tr>
+<tr><td>6</td><td>= &lt;&gt;</td><td>左</td></tr>
+<tr><td>7(低)</td><td>AND XOR</td><td>左</td></tr>
+<tr><td>8</td><td>OR</td><td>左</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 求值器骨架: 词法(token流)→递归下降解析→AST 或直接双栈求值 */
+typedef enum { T_NUM,T_ID,T_OP,T_LP,T_RP } tk_t;
+static int expr_eval(const char **s);        /* 返回int简化版 */
+
+/* 生产级建议: 解析成AST一次(启动时), 每扫描周期walk AST求值;
+   性能敏感则把AST编译为IL指令流 —— 与现有VM零改动融合! */</code></pre></div>
+
+<h4>④ ST → IL 编译映射表（复用第30.2 VM 的关键设计）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>ST 结构</th><td>生成的 IL 形态</td><td>说明</td></tr>
+<tr><td><code>a := b AND c;</code></td><td>LD b / AND c / ST a? → 用 MW 中转: LD b,AND c,OUT %MWk</td><td>布尔表达式天然映射能流</td></tr>
+<tr><td>IF c THEN A ELSE B END_IF</td><td>JMPC label_else … JMP end / label_else: B… / end:</td><td>VM 需补 JMPC/JMP/LBL 三条跳转指令 ★</td></tr>
+<tr><td>CASE x OF 1:A 2:B ELSE C</td><td>连续比较跳转链(或跳转表优化)</td><td>v1 用比较链足够</td></tr>
+<tr><td>FOR i:=1 TO n DO</td><td>i:=初值; LBL loop / 条件判断 JMPC end / 循环体 / i+=步长 / JMP loop</td><td>循环变量放 MW 槽</td></tr>
+<tr><td>TON#t(IN:=x, PT:=T#2s)</td><td>LD x / TON slot,2000 / 存Q到目标</td><td>直接复用31章功能块指令!</td></tr>
+</table></div>
+<p>这个设计的精妙之处：<strong>ST 编译器的输出就是现有 IL</strong> —— VM 一行不改，只新增 PC 端 st2il 编译器；或者板上直接内置微型 ST 解释器（AST walk），两条路线代码量均在 800~1500 行。</p>
+
+<h4>⑤ 端到端示例：电机启停 + 过载联锁（ST 源码）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">PROGRAM Main
+VAR
+    start  : BOOL;  stop : BOOL;  overload : BOOL;
+    motor  : BOOL;  fault_latch : BOOL;
+    t_ol   : TIME;                          (* 过载确认延时 *)
+END_VAR
+
+    start := %IX0.0;  stop := %IX0.1;  overload := (%IW0 > 9000);
+
+    IF overload THEN
+        t_on? ton_ol(IN := TRUE, PT := T#500MS);
+        IF ton_ol.Q THEN fault_latch := TRUE; END_IF;
+    ELSE
+        ton_ol(IN := FALSE, PT := T#500MS);
+    END_IF;
+
+    IF fault_latch THEN
+        motor := FALSE;
+    ELSIF stop THEN
+        motor := FALSE;
+    ELSIF start OR motor THEN
+        motor := TRUE;
+    END_IF;
+
+    %QX0.0 := motor AND NOT fault_latch;
+END_PROGRAM</code></pre></div>
+<p>验收标准：① 该程序经你的编译器/解释器在板上运行，行为与手写 IL 版一致；② 故意注入语法错误（漏 END_IF），报错行号准确；③ 扫描周期增量 ≤1ms（100 条语句量级）。</p></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">30.7</span>深潜：两种实现路线对比与推荐</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>路线</th><td>板上 ST 解释器(AST walk)</td><td>PC 端 st2il 编译器</td></tr>
+<tr><td>开发量</td><td>~1500 行 C(词法+解析+AST+求值)</td><td>~1200 行 Python(复用 ld2il 基建)</td></tr>
+<tr><td>运行开销</td><td>每周期遍历 AST(慢 3~5×)</td><td>板上仍跑线性 IL(最快)★</td></tr>
+<tr><td>错误报告</td><td>运行期才发现部分错误</td><td>下载前全静态检查 ★</td></tr>
+<tr><td>学习收获</td><td>解析器/求值器原理</td><td>编译器后端思想</td></tr>
+<tr><td>建议</td><td colspan="2">主线走 <strong>st2il 编译路线</strong>(与 IEC 工具形态一致)；AST 解释器作为选修加深理解。两者共用同一文法定义保证语义等价 —— 对拍测试即最佳验证。</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch30"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>理解 LD→IL 的编译链路与虚拟机执行模型</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>实现文本解析器 + 栈式求值的迷你运行时</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>跑通第一个真实 PLC 程序并在线修改验证</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「梯形图解释器实现」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter29.html"><span><span class="pager-label">上一章</span><b>第 29 章 · 软 PLC 运行时内核设计</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter31.html"><span><span class="pager-label">下一章</span><b>第 31 章 · 功能块：定时器与计数器</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 30 章 · 梯形图解释器实现 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

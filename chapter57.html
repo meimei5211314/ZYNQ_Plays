@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 57 章 · Linux驱动的生死顺序：IRQ、runtime PM与DMA撤场 | Zynq 工程能力讲义</title><meta name="description" content="用状态机组织probe、运行、暂停、失败回滚和remove，避免资源自动释放之后硬件仍在访问。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch57" data-chapter-file="chapter57.html" data-chapter-label="第 57 章 · Linux驱动的生死顺序：IRQ、runtime PM与DMA撤场">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 57 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>驱动先是生命周期，再是寄存器代码</a>
+<a href="#s2"><span class="num">02</span>devm管理释放，不会停止外部世界</a>
+<a href="#s3"><span class="num">03</span>硬IRQ只做能在该上下文完成的事</a>
+<a href="#s4"><span class="num">04</span>runtime PM引用覆盖整个事务</a>
+<a href="#s5"><span class="num">05</span>DMA停止的证据先于内存释放</a>
+<a href="#s6"><span class="num">06</span>失败回滚要与正常退出同样认真</a>
+<a href="#s7"><span class="num">07</span>阅读真实驱动时审计依赖而非抄API</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 57 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 57 章<br><span class="grad">Linux驱动的生死顺序：IRQ、runtime PM与DMA撤场</span></h1><p class="hero-sub">用状态机组织probe、运行、暂停、失败回滚和remove，避免资源自动释放之后硬件仍在访问。</p><div class="hero-meta"><span class="meta-chip">理论100分钟 + 实验3–6小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">为带线程化IRQ和异步DMA的采样驱动画出probe、事务、暂停、remove及失败回滚状态机。</p></div></div><ul><li>画出probe成功与每个失败点的资源和状态变化</li><li>按执行上下文划分硬IRQ、线程化IRQ与工作队列职责</li><li>正确配对runtime PM引用并分析MMIO访问前提</li><li>为remove和超时恢复证明DMA、IRQ、异步工作已停止后才释放资源</li></ul><div class="learning-links"><a href="chapter24.html">前置：第 24 章</a><a href="chapter34.html">前置：第 34 章</a><a href="chapter53.html">前置：第 53 章</a><a href="chapter54.html">前置：第 54 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">驱动先是生命周期，再是寄存器代码</h3><p>驱动在未绑定、初始化、可运行、暂停、停止与已移除之间转移。对每个状态写出能否接收新请求、能否访问寄存器、DMA是否活动、IRQ是否可达以及谁持有资源。probe不是一段顺序调用清单：其中任一步失败都必须回到无活动硬件、无悬挂访问的状态。用户入口应在依赖资源准备好之后才发布。</p><p>建议以NEW→READY→RUNNING→QUIESCING→DEAD为业务状态骨架，并用合适锁保护转换。QUIESCING先阻止新提交，再排空或取消已提交事务；DEAD后任何入口都只能返回设备已消失的错误。状态检查与请求入队必须构成一个同步操作，否则一个线程检查READY后，remove先释放资源，线程再访问旧指针。文件句柄引用与设备内存生命周期也要有方案，不能认为注销字符设备就立即销毁所有已打开句柄。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">devm管理释放，不会停止外部世界</h3><p>devm_kzalloc、devm_ioremap_resource和devm_request_threaded_irq等接口把资源释放与设备绑定关联起来，降低错误回滚复杂度。它们不会自动证明设备已经停止DMA，也不会替你等待自建工作、取消定时器或阻止用户线程继续访问。自动释放发生时，仍在跑的硬件和回调照样可能写向已经回收的内存。</p><p>按依赖顺序获取资源，反向退出，必要时用devm_add_action_or_reset登记明确的撤销动作；该接口在目标内核是否存在及具体语义仍需检查。即便采用managed DMA内存，也必须先证明设备不再拥有缓冲区。probe中断申请成功后，中断可能立刻发生，所以handler依赖的数据、锁和安全寄存器状态要在申请前建立，硬件中断源也应保持在可控的屏蔽状态直到初始化完成。失败注入应覆盖每个资源获取点，而不是只测试正常卸载。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">硬IRQ只做能在该上下文完成的事</h3><p>request_threaded_irq可将快速确认与可睡眠处理分开。共享中断的主handler先判断是否本设备来源；不是则返回IRQ_NONE。需要线程处理时，按设备协议屏蔽或确认源并返回IRQ_WAKE_THREAD。IRQF_ONESHOT控制线程处理期间的中断线屏蔽行为，但不会自动清除设备内部电平中断源。若状态一直保持有效，线程退出后可能立刻再次进入。</p><p>硬IRQ中不能调用可能睡眠的函数，也不应做长轮询或大量打印。线程化handler虽然可以睡眠，仍需考虑remove、runtime suspend和锁顺序。synchronize_irq等待相关处理完成时，调用者不能持有handler也需要的锁；否则双方互等。disable_irq_nosync只阻止后续处理，不等同已经在运行的handler结束。先区分设备中断屏蔽、控制器屏蔽、确认状态和等待handler四个动作，再按硬件协议安排次序。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">runtime PM引用覆盖整个事务</h3><p>设备暂停时寄存器可能不可访问，甚至时钟已关闭。提交事务前应取得运行态引用，确认resume成功，完成所有依赖硬件的动作后再标记忙碌并释放引用。异步DMA的引用应覆盖到完成或取消清理结束，不能在启动寄存器写完后立刻归还。否则autosuspend可能在DMA活动时关闭时钟。</p><pre><code>/* 现代内核的示意片段；2020.2内核须先核对该helper是否可用 */
+ret = pm_runtime_resume_and_get(dev);
+if (ret &lt; 0) return ret;
+ret = do_synchronous_transaction(d); /* 只代表同步事务 */
+pm_runtime_mark_last_busy(dev);
+pm_runtime_put_autosuspend(dev);
+return ret;</code></pre><p>较旧代码可能使用pm_runtime_get_sync，其失败时计数处理与较新helper不同，不能直接改函数名了事。runtime_suspend需确保没有在途请求，runtime_resume需恢复寄存器与中断可用状态；系统睡眠又有自己的冻结和阶段顺序。把引用计数、实际电源状态和业务状态分别记录，出现“偶发MMIO挂死”时才能判断是否在错误电源状态访问。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">DMA停止的证据先于内存释放</h3><p>一个典型撤场顺序是阻止新提交，取得必要运行态保证，停止设备产生新请求和中断，终止DMA并确认停止，等待IRQ与回调，取消工作/定时器，归还映射和缓冲区，再释放其余资源。具体次序依控制器协议：若停止需要完成中断，不能先把完成路径永久切断；若是DMAengine客户端，应使用对应版本的terminate/synchronize接口，避免与提供者驱动的内部流程混淆。</p><p>超时不是“设备已经停了”。必须记录停止命令、状态轮询结果和有界超时后的升级策略，例如控制器复位或保留不可安全释放的资源并报告故障。也不能在completion回调里调用一个会等待该回调结束的同步终止接口。所有权表应能回答最后一笔DMA结束的证据是什么、最后一个回调何时返回、哪一步以后MMIO不再允许。单纯“remove返回0”不能证明没有异步写入。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">失败回滚要与正常退出同样认真</h3><p>为probe的时钟、复位、映射、DMA环、IRQ、用户接口逐点加入可控失败，检查回滚后的时钟引用、中断计数和内存分配。运行阶段覆盖启动后立即remove、IRQ线程被延迟、DMA超时、autosuspend边界和重复绑定。教学生命周期交互通过状态与资源顺序展示use-after-free风险，不加载Linux模块，不替代实际内核并发测试。</p><p>目标内核支持时用KASAN发现越界和释放后使用，用lockdep检查锁关系，用DMA API调试核对映射配对，辅以动态调试和trace事件。调试功能会改变时序和内存开销，检查无报错只能作为已执行路径的证据。每条日志带事务序号、设备状态和关键引用变化，避免单凭先后交错的多CPU打印推导严格因果。最好在停止入口、最后完成、IRQ同步后和资源释放前设置可观察点。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">阅读真实驱动时审计依赖而非抄API</h3><p>公开linux-xlnx的xilinx_dma.c能看到描述符、通道、IRQ及清理流程，但主分支与课程2020.2内核的API和错误路径可能不同。先固定自己板端的内核提交、配置、设备树及模块构建头文件，再阅读相应版本。平台remove回调类型、PM helper和DMAengine终止接口都可能变更，最新版示例编译通过不等于旧BSP可用。</p><p>选一条完整事务，从上层请求进入、描述符准备、硬件启动、IRQ、回调、释放一路标注运行上下文与锁，再反向检查remove如何切断每条到达路径。若某个回调保存d指针，找到谁确保d活到回调结束；若PM可能关钟，找到谁持有引用。最终形成资源依赖图和状态转移日志，并给出一个故意错误撤场顺序会在哪个检查点失败。把“能卸载”提升为“不会在卸载后被访问”，才达到工程验收标准。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 为带线程化IRQ和异步DMA的采样驱动画出probe、事务、暂停、remove及失败回滚状态机。</strong><p>先用生命周期模型验证撤场依赖；有内核实验环境时逐点注入probe失败并反复绑定/解绑，保存带事务序号的日志。</p><p><b>故障练习：</b>在模型中让remove与已排队IRQ工作交错，找出状态检查到入队之间的竞态；在实验分支中加入锁或引用后重新检查。</p><p><b>验收：</b>新请求有停止门；DMA停止、IRQ/回调返回和异步工作取消都有证据；PM引用配对；失败与正常退出均不留下活动访问者。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch57"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>画出probe成功与每个失败点的资源和状态变化</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>按执行上下文划分硬IRQ、线程化IRQ与工作队列职责</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>正确配对runtime PM引用并分析MMIO访问前提</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>为remove和超时恢复证明DMA、IRQ、异步工作已停止后才释放资源</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter56.html"><span><span class="pager-label">上一章</span><b>第 56 章 · 让RTL自己报错：断言、覆盖与自检验证</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter58.html"><span><span class="pager-label">下一章</span><b>第 58 章 · 可解释的实时性：PREEMPT_RT、WCET与响应时间分析</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

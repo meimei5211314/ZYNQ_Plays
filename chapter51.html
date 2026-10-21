@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 51 章 · Linux 系统优化实战 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 51 章 · Linux 系统优化实战：术语 → 手段 → 工具 → 实战 → 分析思路，五段式完整教学 —— 这是产品化工程师的核心竞争力。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-optimize" data-chapter-id="ch51" data-chapter-file="chapter51.html" data-chapter-label="第 51 章 · Linux 系统优化实战">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 51 章 · 系统优化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>术语精确定义（性能语言的字母表）</a>
+<a href="#sec-2"><span class="num">02</span>优化总纲：五层模型与铁律</a>
+<a href="#sec-3"><span class="num">03</span>CPU 与调度优化</a>
+<a href="#sec-4"><span class="num">04</span>内存优化</a>
+<a href="#sec-5"><span class="num">05</span>I/O 与文件系统优化</a>
+<a href="#sec-6"><span class="num">06</span>网络优化</a>
+<a href="#sec-7"><span class="num">07</span>启动时间优化（产品体验硬指标）</a>
+<a href="#sec-8"><span class="num">08</span>工具箱全景表（一页备查）</a>
+<a href="#sec-9"><span class="num">09</span>系统化分析思路（决策树 + 报告模板）</a>
+<a href="#sec-10"><span class="num">10</span>火焰图与性能可视化深入 ★</a>
+<a href="#sec-11"><span class="num">11</span>优化种类 I：内存优化深入</a>
+<a href="#sec-12"><span class="num">12</span>优化种类 II：通讯优化深入 ★</a>
+<a href="#sec-13"><span class="num">13</span>优化种类 III：并发与锁优化（精要）</a>
+<a href="#sec-14"><span class="num">14</span>性能分析方法论深入：USE / RED / Off-CPU / 统计严谨性</a>
+<a href="#sec-15"><span class="num">15</span>端到端实战案例 I：内存泄漏 + 碎片化（完整走查）★</a>
+<a href="#sec-16"><span class="num">16</span>端到端实战案例 II：Modbus 主站轮询吞吐优化（完整走查）★</a>
+<a href="#sec-17"><span class="num">17</span>技术反思与总结（十条原则 + 反模式清单）</a>
+<a href="#sec-18"><span class="num">18</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 51 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第八篇 · 系统优化 / Chapter 51</div>
+      <h1 id="heroTitle">第 51 章<br><span class="grad">Linux 系统优化实战</span></h1>
+      <p class="hero-sub">术语 → 手段 → 工具 → 实战 → 分析思路，五段式完整教学 —— 这是产品化工程师的核心竞争力。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 40 分钟</span>
+        <span class="meta-chip">18 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">51</div>
+          <div class="console-part">系统优化 / CH51</div>
+          <div class="console-title">Linux 系统优化实战</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>18</b></div>
+            <div class="console-metric"><span>CODE</span><b>14</b></div>
+            <div class="console-metric"><span>TBL</span><b>12</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:100%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:100%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:100%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>51 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>18</b><span>本章小节</span></div>
+    <div class="stat"><b>40</b><span>预计分钟</span></div>
+    <div class="stat"><b>12</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">精确理解 30+ 性能术语，能用数据说话</li>
+<li class="goal-item">掌握 CPU/内存/IO/网络/启动五大维度的优化手段与适用边界</li>
+<li class="goal-item">建立「测量→归因→单变量实验→回归固化」的工程化优化流程</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第八篇 · 系统优化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>11,799 字 · 18 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>14 段 · 12 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从术语到工具再到实战，完成系统级优化。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">51.1</span>术语精确定义（性能语言的字母表）</h3><p>优化讨论的第一杀手是术语含混。「系统卡」三个字无法定位任何问题 —— 先把语言校准：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>术语</th><td>精确定义</td><td>测量口径/单位</td></tr>
+<tr><td>延迟 Latency</td><td>单个事件从请求到完成的耗时</td><td>avg / P95 / P99 / MAX（只看平均是新手标志）</td></tr>
+<tr><td>抖动 Jitter</td><td>周期事件发生时刻的波动幅度</td><td>max−min 或标准差（PLC 扫描核心指标）</td></tr>
+<tr><td>吞吐 Throughput</td><td>单位时间完成的事务/字节量</td><td>tps / MB/s（与延迟常互斥，需权衡）</td></tr>
+<tr><td>负载 Load Average</td><td>1/5/15 分钟内 <strong>可运行+不可中断睡眠(D状态)</strong> 的平均任务数</td><td>与核数比较：4 核机器 load=4 即饱和；D 状态计入是 Linux 特色（IO 卡顿也会推高 load）</td></tr>
+<tr><td>运行队列 Runqueue</td><td>等待 CPU 的就绪任务队列</td><td>vmstat 的 r 列（每核&gt;3 即过载信号）</td></tr>
+<tr><td>调度延迟 Sched Delay</td><td>任务变可运行到真正上 CPU 的等待时间</td><td>perf sched latency / /proc/schedstat</td></tr>
+<tr><td>自愿/非自愿切换</td><td>主动让出(IO/锁等待) vs 时间片用尽/被抢占</td><td>vmstat cs 列；非自愿激增=CPU 争抢</td></tr>
+<tr><td>RT Throttling</td><td>内核限制实时任务每周期最多用 sched_rt_runtime_us/sched_rt_period_us（默认 950ms/1000ms=95%）</td><td>防 RT 任务饿死系统；实时应用偶发 50ms 卡顿的头号嫌疑</td></tr>
+<tr><td>Page Cache 页缓存</td><td>内核用空闲内存缓存文件读写</td><td>free 里 buff/cache ——「内存快用完了」多数是假象</td></tr>
+<tr><td>Dirty Page 脏页</td><td>已修改未落盘的页；达 dirty_ratio 阈值触发集中回写</td><td>突发写卡顿（百 ms 级停顿）的经典根因</td></tr>
+<tr><td>Major/Minor Fault</td><td>缺页需读盘 vs 仅分配/映射</td><td>major 持续非零=内存不足在换页</td></tr>
+<tr><td>THP 透明大页</td><td>内核自动合并 2MB 大页降低 TLB miss</td><td>延迟敏感场景的<strong>双刃剑</strong>：合并/拆分引发毫秒级 stall（51.5 案例）</td></tr>
+<tr><td>mlock</td><td>锁定内存禁止换出/迁移</td><td>实时进程标配（配合 RLIMIT_MEMLOCK）</td></tr>
+<tr><td>WCET</td><td>最坏情况执行时间（可分析性的标尺）</td><td>静态分析+实测上界双证据</td></tr>
+<tr><td>False Sharing</td><td>两核频繁写同一 cache line 的不同变量</td><td>perf c2c 检测；结构体按 64B 对齐隔离</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">51.2</span>优化总纲：五层模型与铁律</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">L5 算法/架构      O(n²)→O(nlogn)、批量化、无锁结构     ← 收益最大,先动这里
+L4 应用运行时     线程模型/锁粒度/内存分配模式/日志策略
+L3 系统库         malloc arena、stdio缓冲、TLS栈
+L2 内核参数       调度器/THP/脏页/网络栈/sysctl
+L1 硬件与固件     CPU频点/缓存拓扑/存储介质/中断路由
+/* 铁律一: 自上而下排查, 自下而上解释 —— 症状在上层显现, 根因常在底层 */
+/* 铁律二: 测量先于优化, 基线先于实验, 单变量推进, 回归固化成果 */
+/* 铁律三: 优化目标必须量化为 SLO (如: 扫描抖动P99&lt;200μs, 启动&lt;15s,
+   Modbus RTT P99&lt;5ms) —— 没有SLO的优化是玄学 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">51.3</span>CPU 与调度优化</h3><h4>① 手段清单</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><td>操作</td><td>适用/代价</td></tr>
+<tr><td>亲和绑定</td><td><code class="inline">taskset -c 2 app</code> / <code class="inline">sched_setaffinity()</code></td><td>把关键任务钉在专属核；代价：负载不均</td></tr>
+<tr><td>核隔离</td><td>cmdline：<code class="inline">isolcpus=2,3 nohz_full=2,3 rcu_nocbs=2,3</code></td><td>隔离核不再被普通任务/RCU/tick 打扰（39章）；代价：可用核减少</td></tr>
+<tr><td>IRQ 手工分布</td><td>停 irqbalance → <code class="inline">echo 0 &gt; /proc/irq/55/smp_affinity_list</code></td><td>把网卡中断挪离实时核</td></tr>
+<tr><td>实时策略</td><td><code class="inline">chrt -f 80 app</code>（SCHED_FIFO）；优先级规划：越短周期越高</td><td>压过一切普通任务；防饿死靠 RT throttling 或预留 CPU</td></tr>
+<tr><td>RT throttling 调整</td><td><code class="inline">echo 1000000 &gt; /proc/sys/kernel? sysctl kernel.sched_rt_runtime_us=-1</code>(关闭) 或调高配额</td><td>确认无死循环风险后放开；否则保留兜底</td></tr>
+<tr><td>PREEMPT_RT</td><td>换打补丁内核</td><td>临界区可抢占、IRQ线程化；抖动从 ms 级→50μs 内；吞吐略降</td></tr>
+<tr><td>cpuset/cgroup</td><td>systemd CPUAffinity= / cgroup v2 cpu.weight</td><td>系统级配额与隔离（容器化部署必配）</td></tr>
+<tr><td>调频策略</td><td><code class="inline">cpupower frequency-set -g performance</code></td><td>禁用深睡眠 C-state（exit latency 是延迟尖刺源）：<code class="inline">/dev/cpu_dma_latency</code> 持有</td></tr>
+</table></div>
+<h4>② 实战案例 A：PLC 扫描抖动 1.2ms → 80μs</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【基线】默认系统, 扫描线程普通优先级: P99 抖动 1.2ms, 偶发 8ms
+【步骤1】perf sched record -p $(pidof plc_runtime) -- sleep 30; perf sched latency
+  → 最大调度延迟 6.8ms, 元凶: kworker 日志回写 + 网卡软中断
+【步骤2】isolcpus=1 nohz_full=1 rcu_nocbs=1 + taskset -c 1 扫描线程
+  + 网卡IRQ affinity 挪核0 + 关 irqbalance
+【步骤3】chrt -f 60 + 持有 /dev/cpu_dma_latency + performance governor
+【结果】P99=180μs; 剩余尖刺 3ms/小时 → ftrace 定位到 THP compaction → 见51.5
+【最终】关闭 THP 后 P99=80μs, 30 分钟零 &gt;500μs 尖刺
+/* 每一步只改一个变量, 每一步都有前后数据 —— 这就是可复现的优化 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">51.4</span>内存优化</h3><h4>① 手段清单</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><td>操作</td><td>要点</td></tr>
+<tr><td>锁定内存</td><td><code class="inline">mlockall(MCL_CURRENT|MCL_FUTURE)</code> + ulimit -l 调整</td><td>实时进程防换页/迁移停顿；启动后立即锁并预触碰所有页</td></tr>
+<tr><td>THP 控制</td><td><code class="inline">echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</code></td><td>延迟敏感默认关；大内存吞吐服务可开 madvise</td></tr>
+<tr><td>预留大页</td><td><code class="inline">sysctl vm.nr_hugepages=64</code> + mmap MAP_HUGETLB</td><td>DPDK 类数据面；TLB miss 显著下降</td></tr>
+<tr><td>malloc 调优</td><td><code class="inline">mallopt(M_MMAP_THRESHOLD, 131072)</code> / M_ARENA_MAX</td><td>多线程偶发 brk/mmap 系统调用尖刺的解药</td></tr>
+<tr><td>脏页策略</td><td>sysctl vm.dirty_background_ratio=5, dirty_ratio=15, dirty_expire_centisecs</td><td>削平回写尖峰；实时系统改 dirty_bytes 小值</td></tr>
+<tr><td>泄漏/越界</td><td>valgrind / ASan / kmemleak（39章）</td><td>优化前先保证正确性</td></tr>
+</table></div>
+<h4>② 实战案例 B：Web 监控页偶发 200ms 尖刺</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【现象】每 5~10 分钟随机一次 HTTP 响应 200ms+（平时 8ms）
+【排查】perf record -g 抓尖刺窗口 → 火焰图出现 __compact_memory?
+        /sys/kernel/debug/mm/compaction? → 用 ftrace 确认 mm_compaction 事件
+【归因】THP 后台 compaction 运行时锁住页表, 所有进程缺页处理被拖慢
+【修复】THP=never (该负载无大块连续内存需求) + RSS 预留验证
+【回归】72h 老化: 尖刺归零; 内存碎片化指标无恶化
+/* 教训: "内核为你好自动做的事"常常是延迟敏感系统的敌人 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">51.5</span>I/O 与文件系统优化</h3><h4>① 调度器选择表</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>介质</th><td>推荐调度器</td><td>理由</td></tr>
+<tr><td>NVMe SSD</td><td>none</td><td>设备内部并行调度,内核再调度纯开销</td></tr>
+<tr><td>SATA SSD/eMMC</td><td>mq-deadline</td><td>保读写延迟上界</td></tr>
+<tr><td>机械盘</td><td>bfq</td><td>公平性防大IO饿死小IO</td></tr>
+<tr><td>查看/切换</td><td colspan="2"><code class="inline">cat /sys/block/mmcblk0/queue/scheduler</code></td></tr>
+</table></div>
+<h4>② 手段与实战</h4>
+<ul>
+<li><strong>fsync 代价</strong>：eMMC 上一次 fsync 可达 10~50ms！数据记录器方案：<strong>组提交</strong>（攒 N 条/50ms 批量 fsync）+ 独立落盘线程与业务解耦；</li>
+<li><strong>挂载选项</strong>：<code class="inline">noatime</code>（省读放大）、<code class="inline">commit=15</code>（ext4 回写间隔）、日志模式 data=ordered 权衡；</li>
+<li><strong>O_DIRECT</strong> 绕过页缓存自管缓冲（数据库式负载），注意对齐要求；</li>
+<li><strong>fstrim 定时</strong>：SSD/eMMC 长期写性能维持；</li>
+<li><strong>实战案例 C</strong>：数据记录器每 10 分钟出现 300ms 卡顿 → 定位为 journal commit + dirty 回写风暴 → 改组提交 + dirty_background_bytes=4MB + 独立分区 → 卡顿消失，掉电丢数据窗口从「不确定」变为「≤2s 可承诺」。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">51.6</span>网络优化</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><td>手段</td><td>命令/位置</td></tr>
+<tr><td>缓冲区</td><td>按带宽时延积 BDP 设 rmem/wmem</td><td><code class="inline">sysctl -w net.core.rmem_max=... net.ipv4.tcp_rmem="4096 87380 4194304"</code></td></tr>
+<tr><td>拥塞控制</td><td>长肥管道换 BBR</td><td><code class="inline">sysctl net.ipv4.tcp_congestion_control=bbr</code></td></tr>
+<tr><td>中断合并</td><td>权衡延迟与中断率</td><td><code class="inline">ethtool -C eth0 rx-usecs 32</code>（实时场景调小）</td></tr>
+<tr><td>多核分发</td><td>RPS/RFS/XPS 把包处理分散</td><td><code class="inline">/sys/class/net/eth0/queues/rx-*/rps_cpus</code></td></tr>
+<tr><td>端口/连接</td><td>端口耗尽与 TIME_WAIT</td><td>ip_local_port_range + tcp_tw_reuse + 连接池</td></tr>
+<tr><td>协议选择</td><td>本机高频小消息</td><td>Unix socket/共享内存 优于 TCP 回环（省协议栈）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">51.7</span>启动时间优化（产品体验硬指标）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 测量三板斧
+systemd-analyze                    # 总耗时: 固件+内核+用户态
+systemd-analyze blame | head -15   # 各服务耗时排行
+systemd-analyze critical-chain plc.service   # 关键路径链
+# 内核段: initcall_debug + printk.time=1 → dmesg 时间戳分析(14章)
+【45s→12s 实战清单】
+ ① U-Boot: bootdelay=0, 关闭多余探测, silent console(-3s)
+ ② 内核: 裁剪无用驱动/文件系统, initcall 慢项改模块后置(-8s)
+ ③ rootfs: 改用 squashfs+只读(挂载快), 关 fsck
+ ④ 服务: 串行依赖改并行(Type=simple+After 最小化), 网络等待改 ip=静态
+    去掉 NetworkManager-wait-online(-10s), 日志改 volatile
+ ⑤ 应用: 延迟启动非关键服务(10s 后再拉起), 预链接 prelink? ldconfig 缓存
+/* 原则: 先测量后删减; 每删一项确认功能无回归 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">51.8</span>工具箱全景表（一页备查）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>看什么</th><td>工具与命令</td><td>健康判据示例</td></tr>
+<tr><td>CPU 各核/中断占比</td><td><code class="inline">mpstat -P ALL 1</code>; <code class="inline">cat /proc/interrupts</code>(两次差分)</td><td>%soft 集中单核=需 RPS/XPS</td></tr>
+<tr><td>调度延迟</td><td><code class="inline">perf sched record/latency</code>; /proc/schedstat</td><td>实时任务 max delay &lt; SLO</td></tr>
+<tr><td>上下文切换</td><td><code class="inline">vmstat 1</code>(cs列); pidstat -w</td><td>非自愿切换持续高=CPU 争抢</td></tr>
+<tr><td>内存与换页</td><td><code class="inline">vmstat 1</code>(si/so 应为0); ps -eo rss,comm --sort -rss</td><td>si/so≠0 即物理内存不足</td></tr>
+<tr><td>块设备延迟</td><td><code class="inline">iostat -x 1</code>(await/util)</td><td>util&gt;80% 持续=瓶颈</td></tr>
+<tr><td>网络丢包重传</td><td><code class="inline">ss -s; netstat -s | grep -i retrans</code></td><td>重传率&lt;0.1%</td></tr>
+<tr><td>热点函数</td><td>perf record/report/火焰图（39章）</td><td>Top1 &lt;30% 为健康</td></tr>
+<tr><td>系统调用画像</td><td><code class="inline">strace -c -p PID</code></td><td>发现意外 syscall(如频繁 stat)</td></tr>
+<tr><td>综合基线</td><td>sar 定时采集(历史回溯); tuned-adm profile</td><td>变更前后对比的证据库</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">51.9</span>系统化分析思路（决策树 + 报告模板）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【症状分类 → 首查动作】
+A 延迟尖刺(偶发慢) ─▶ ① 时间相关性: 周期性?(定时器/回写/compaction)
+                      ② ftrace/perf 抓尖刺窗口内核在干嘛
+                      ③ 检查 THP/脏页/RT throttling/C-state
+B 吞吐不足(持续慢) ─▶ ① 找瓶颈层: CPU(mpstat)/IO(iostat)/网(ss) 谁先饱和
+                      ② 饱和层内找热点(火焰图); 未饱和=锁/依赖串行
+C 资源耗尽(OOM/磁盘满/连接数) ─▶ 泄漏排查(39章) + 配额与告警
+D 启动慢 ─▶ 51.7 清单
+
+【优化报告模板(每次优化必交)】
+1. 现象与SLO   2. 基线数据   3. 假设与依据
+4. 实验记录(单变量, 前后数据)   5. 结论与残余风险
+6. 固化措施: sysctl/服务配置进版本库 + 回归用例</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">51.10</span>火焰图与性能可视化深入 ★</h3><h4>① 火焰图是什么（先建立正确心智）</h4>
+<p>火焰图是把<strong>成千上万次采样的调用栈</strong>聚合后画成的一张矩形图：每一列是一个调用栈，<strong>x 轴宽度 = 该函数占用的 CPU 时间比例（按字母排序，不是时间轴！）</strong>，y 轴是栈深度（顶=叶子函数，即真正在执行的代码），颜色默认随机暖色（无含义）。</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 生成全流程（板上采样 + 主机出图）
+# 板上：
+perf record -F 99 -g -p $(pidof plc_runtime) -- sleep 30   # 99Hz 采30秒
+perf script > out.stacks
+scp out.stacks host:~/                                       # 回传主机
+# 主机（FlameGraph 工具集）：
+git clone https://github.com/brendangregg/FlameGraph
+stackcollapse-perf.pl out.stacks > out.folded
+flamegraph.pl --title "plc_runtime CPU" out.folded > flame.svg
+# 浏览器打开 flame.svg：点击矩形可下钻；Ctrl+F 按函数名搜索高亮</code></pre></div>
+<h4>② 解读五规则（新手→专家的分界）</h4>
+<ol>
+<li><strong>找平顶（Plateau）</strong>：顶部宽而平的矩形 = 热点叶子函数；宽度即优化收益上限；</li>
+<li><strong>看塔的形状</strong>：又尖又窄=调用路径健康分散；底部一块巨宽的"大陆"=某条路径垄断 CPU；</li>
+<li><strong>宽度即预算</strong>：某函数占 40% → 即使优化到零，总吞吐最多提升 1/(1-0.4)≈1.67 倍 —— 先算收益再动手（Amdahl 直觉）；</li>
+<li><strong>缺失帧排查</strong>：栈不完整=编译没带 <code class="inline">-g</code> 或缺 frame pointer（加 <code class="inline">-fno-omit-frame-pointer</code>）；内核栈缺=权限；</li>
+<li><strong>x 轴不是时间</strong>！想看"什么时刻在执行什么"，用时间线类工具（perf timechart / Tracealyzer / Chrome tracing 格式），火焰图只回答"谁最耗 CPU"。</li>
+</ol>
+<h4>③ 三种必会变体</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>变体</th><td>回答的问题</td><td>生成方式</td></tr>
+<tr><td>On-CPU 火焰图</td><td>CPU 时间花在哪</td><td>上文标准流程</td></tr>
+<tr><td><strong>Off-CPU 火焰图</strong></td><td><strong>线程阻塞在等什么</strong>（锁/IO/事件）——延迟问题的正解！</td><td>eBPF：<code class="inline">/usr/share/bcc/tools/offcputime -p PID</code> → 同样折叠出图</td></tr>
+<tr><td>差分(Diff)火焰图</td><td>优化前后谁变宽谁变窄（红增蓝减）</td><td>flamegraph.pl --diff? difffolded.pl before.folded after.folded | flamegraph.pl</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 延迟问题的黄金法则</span>
+<p>CPU 火焰图很"空"（没有明显热点）但延迟仍高 → 问题几乎必然在 <strong>Off-CPU</strong>：等锁、等 IO、等事件。此时 on-CPU 图继续死磕是南辕北辙 —— 切换到 offcputime/eBPF 视角。这是性能分析最重要的视角切换。</p></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">51.11</span>优化种类 I：内存优化深入</h3><h4>① 成本直觉：一次访存到底多贵</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>层级</th><td>典型延迟(A9 量级)</td><td>工程含义</td></tr>
+<tr><td>L1 Cache (32KB)</td><td>~4 周期</td><td>热点数据要挤进这里</td></tr>
+<tr><td>L2 Cache (512KB 共享)</td><td>~12 周期</td><td>3×L1 —— 跨核共享也是争用源</td></tr>
+<tr><td>DDR3</td><td>100+ 周期</td><td><strong>30×L1</strong>！一次 miss 抵消几十条指令优化</td></tr>
+</table></div>
+<h4>② 分配策略：从 malloc 到池化</h4>
+<p>malloc 三宗罪：碎片（长期运行致命）、锁争用（多线程）、偶发系统调用（brk/mmap 尖刺）。对策按序：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 对象池：定长块 O(1) 分配回收，零碎片零系统调用 —— 实时系统标配 */
+typedef struct node { struct node *next; } node_t;
+static node_t *freelist;
+void *pool_alloc(void){ if(!freelist) return NULL;
+    node_t *n = freelist; freelist = n-&gt;next; return n; }
+void pool_free(void *p){ node_t *n = p; n-&gt;next = freelist; freelist = n; }
+/* 初始化: 把一大块内存切成 N 个 node 串成 freelist —— 启动一次搞定 */
+
+/* Arena（竞技场）：批量分配、整体释放 —— 适合"请求级"生命周期 */
+/* 33章 Web 请求: arena_alloc 解析JSON的临时对象, 响应完 arena_free 一次归还 */</code></pre></div>
+<h4>③ 碎片两兄弟</h4>
+<ul>
+<li><strong>内部碎片</strong>：申请 33B 得到 48B（对齐+头部浪费）→ 定长池按真实尺寸分级；</li>
+<li><strong>外部碎片</strong>：总空闲够但连续块不够 → 长跑系统对大块（缓冲区）<strong>启动期一次性分配</strong>，运行期只走定长池。</li>
+</ul>
+<h4>④ Cache 友好编码：AoS vs SoA 实测</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 需求: 每周期只更新 1000 个点的 x 坐标 */
+struct pt { float x,y,z; uint8_t flags; };          /* AoS: 16B/点 */
+struct pt pts[1000];  for(i..) pts[i].x += 1;       /* 步长16B用4B → cache有效载荷25% */
+
+float xs[1000], ys[1000], zs[1000]; uint8_t fl[1000];  /* SoA */
+for(i..) xs[i] += 1;   /* 顺序满行 → 每条cache line 100%利用 + 硬件预取友好 */
+/* 实测(A9): SoA 版本该循环快 2~3× —— 数据布局是"免费的优化" */
+/* 反面: false sharing —— 两核各写同一 line 的不同变量 → 按 64B 对齐隔离 */</code></pre></div>
+<h4>⑤ 其他要点</h4>
+<ul>
+<li><strong>拷贝消除</strong>：传指针/索引而非值；日志格式化"先计数后一次性写"；字符串用长度前缀避免反复 strlen；</li>
+<li><strong>内存预算制</strong>：每个模块在头文件注释声明 RSS 预算（如 <code class="inline">// MEM BUDGET: 2MB</code>），CI 监控超预算即报警 —— 泄漏在萌芽期被抓（51.15 案例的制度化成果）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12"><span class="h3-num">51.12</span>优化种类 II：通讯优化深入 ★</h3><h4>① 优先级排序（收益从大到小）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">减少交互次数 &gt; 减少传输字节 &gt; 减少拷贝次数 &gt; 减少上下文切换
+/* 每往左一级, 通常是数量级的收益; 反向微调(改个缓冲区大小)常是白忙 */</code></pre></div>
+<h4>② 批量化：一次事务搬一批</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方案</th><td>事务数</td><td>每事务开销(请求8B+响应5B+RTT5ms)</td><td>总耗时</td></tr>
+<tr><td>逐点轮询 100 点(FC03 单点)</td><td>100</td><td>RTT 5ms</td><td><strong>≈500ms</strong></td></tr>
+<tr><td>批量 FC03 一次读 100 寄存器</td><td>1</td><td>RTT 5ms + 从站处理 2ms</td><td><strong>≈7ms</strong>（71×）</td></tr>
+<tr><td>JSON 上报 100 点(每点15B)</td><td>-</td><td>序列化+解析 ~150μs/次</td><td>二进制定长 200B → ~2μs（75×）</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 通讯负载的"账本思维": 每字节都要记账 */
+RTU 帧账本: 地址1+功能码1+数据N+CRC2 → N=1 时开销 400%! N=100 时 4%
+结论: 协议效率 = 数据占比; 优化方向永远是"攒大了再发"。
+但注意反向约束: 控制类小消息(急停)不能为效率牺牲时效 → 分通道策略。</code></pre></div>
+<h4>③ Socket 层手段</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>手段</th><td>命令/代码</td><td>场景</td></tr>
+<tr><td>禁 Nagle</td><td><code class="inline">setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,&amp;y,4)</code></td><td>交互式小包(Modbus!)必开，否则 200ms 合并延迟</td></tr>
+<tr><td>缓冲区对齐 BDP</td><td>sysctl tcp_rmem/wmem（51.6）</td><td>长肥管道吞吐</td></tr>
+<tr><td>聚合写</td><td>writev / 用户态缓冲攒批</td><td>减少 syscall 次数</td></tr>
+<tr><td>零拷贝</td><td>sendfile(文件→socket) / 共享内存(本机)</td><td>大块数据；本机高频用 29 章映像区</td></tr>
+<tr><td>io_uring</td><td>Linux 5.1+ 异步提交</td><td>syscall 密集型服务的下一代方案（了解）</td></tr>
+</table></div>
+<h4>④ 连接与轮询架构</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* 多从站轮询: 串行→并发+自适应超时 (51.16 案例核心) */
+typedef struct { int fd; int dev; int rtt_ms; int fails; } conn_t;
+/* epoll 统一管理 N 条连接; 每轮: 对就绪设备发请求, 收齐/超时即结算
+   自适应: 连续 5 次 RTT&lt;10ms → 轮询间隔×0.8; 超时 → 间隔×2 并告警 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-13" aria-labelledby="h-13"><h3 id="h-13"><span class="h3-num">51.13</span>优化种类 III：并发与锁优化（精要）</h3><ul>
+<li><strong>锁的真实代价</strong>：无争用加解锁 ~20ns；争用时陷入内核+futex 唤醒 = μs 级 + cache line 在核间弹跳（每次 ~100 周期）—— 所以"锁很贵"的准确表述是"<strong>争用的锁很贵</strong>"；</li>
+<li><strong>手段阶梯</strong>（从首选到慎用）：缩小临界区 → 减少共享(改传值/消息) → 读写锁/RCU → <strong>分片 sharding</strong>（N 把锁各管 1/N 数据，示例：统计计数按核分片最后求和）→ 无锁结构（kfifo/DPDK ring，注意 ABA 与内存序，37章）；</li>
+<li><strong>诊断</strong>：perf lock? /proc/lock_stat 排名争用 Top；火焰图中 futex_wait 宽塔 = 锁瓶颈实锤。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-14" aria-labelledby="h-14"><h3 id="h-14"><span class="h3-num">51.14</span>性能分析方法论深入：USE / RED / Off-CPU / 统计严谨性</h3><h4>① USE 方法（资源层系统排查）——对每种资源问三个问题</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>资源</th><td>Utilization 利用率</td><td>Saturation 饱和度</td><td>Errors 错误</td></tr>
+<tr><td>CPU</td><td>mpstat usr+sys per核</td><td>runqueue r 值 / 调度延迟</td><td>machine check / throttling</td></tr>
+<tr><td>内存</td><td>available 比例</td><td>si/so 换页 / pgmigrate/compact</td><td>OOM kill / ECC</td></tr>
+<tr><td>存储</td><td>iostat %util</td><td>await 队列时间</td><td>/sys/block/*/stat err 计数</td></tr>
+<tr><td>网络</td><td>带宽占比(sar -n DEV)</td><td>drop/overflow 计数</td><td>CRC/重传率</td></tr>
+</table></div>
+<h4>② RED 方法（服务层）</h4>
+<p>对每个服务监控三曲线：<strong>R</strong>ate（每秒请求数）/ <strong>E</strong>rrors（错误率）/ <strong>D</strong>uration（耗时分布）—— 三线同看，异常组合即定位（如 R 不变 E 涨 = 依赖劣化）。</p>
+<h4>③ Off-CPU 分析（延迟问题的正解视角）</h4>
+<p>线程时间 = on-CPU + off-CPU。延迟类问题（"偶尔卡"）的答案通常藏在 off-CPU：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># eBPF: 统计线程每次阻塞的时长与阻塞点
+/usr/share/bcc/tools/offcputime -K -p $(pidof plc_runtime) 30
+# 输出解读: futex_wait_wait? → 等锁; poll_schedule → 等IO/事件;
+#           io_schedule → 等盘; 累计时长排序 = 优化优先级
+/* 与 on-CPU 火焰图互补: 两张图合起来 = 线程一生的完整画像 */</code></pre></div>
+<h4>④ 统计严谨性四则</h4>
+<ol>
+<li><strong>看分位数不看平均</strong>：P99/P999/MAX 才是用户体验与 SLO 的语言；</li>
+<li><strong>警惕采样偏差</strong>：perf 只采 on-CPU 样本 —— 阻塞中的问题它"看不见"（回到 off-CPU）；</li>
+<li><strong>样本量与噪声带</strong>：先测空载系统 30 分钟建立噪声带，超出噪声带的变化才叫"优化效果"；</li>
+<li><strong>回归检测制度化</strong>：基线数据进版本库，CI 自动对比，超噪声带即阻断（51.9 报告模板第 6 项的落地）。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-15" aria-labelledby="h-15"><h3 id="h-15"><span class="h3-num">51.15</span>端到端实战案例 I：内存泄漏 + 碎片化（完整走查）★</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【背景】软 PLC 运行时 72h 老化: RSS 从 12MB 线性涨到 40MB, 第 3 天偶发
+       Web 请求 malloc 返回 NULL(实际物理内存充足)
+【Step1 定性: 泄漏还是碎片?】
+  cat /proc/$(pidof plc_runtime)/smaps → [heap] 段持续涨 = 应用层泄漏/碎片
+  (若是匿名 mmap 涨 → 另查线程栈/大块分配)
+【Step2 ASan 立即抓泄漏】
+  交叉编译加 -fsanitize=address -g → 跑 2h 压测 → ASan 报告:
+    Direct leak of 64 bytes in 1 objects allocated from:
+      #0 strdup  #1 json_parse_value  #2 api_status  web.c:88
+  → 根因1: Web 层每次请求 strdup 设备名未释放(每天 86400 次 × 64B ≈ 5MB/天 ✓ 对得上!)
+  修复: 解析完即 free / 改 arena(请求级一次性释放)
+【Step3 泄漏修后: RSS 稳定在 18MB, 但 malloc 偶发失败仍在 → 碎片!】
+  malloc_stats? malloc_info(stdout) → fastbin/自由列表大量空洞
+  → 根因2: 三种尺寸(64B/256B/8KB)消息混用一个堆 → 外部碎片
+  改造: 8KB 消息缓冲改启动期静态池(51.11 池化); 64/256B 走定长池
+【Step4 制度化】
+  · 每模块头文件声明内存预算; CI: 24h 老化 RSS 斜率必须 ≈0
+  · 回归脚本: 老化后自动跑 ASan 快扫
+【前后数据】RSS 12→40→18MB(稳定); malloc 失败 0; 交付承诺"30天免重启"
+/* 反思: 泄漏是"错误", 碎片是"设计缺陷" —— 后者更隐蔽, 靠预算制度预防 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-16" aria-labelledby="h-16"><h3 id="h-16"><span class="h3-num">51.16</span>端到端实战案例 II：Modbus 主站轮询吞吐优化（完整走查）★</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">【背景与SLO】主站需 100ms 周期轮询 10 台从站×20 寄存器; 实测单轮 350ms ✗
+【Step1 时间线分解(测量先行)】
+  tcpdump 抓单轮: 每事务 RTT≈30ms(请求5ms+从站响应等待25ms) × 10 台串行
+  = 300ms + 本地处理 50ms(JSON解析居然占 45ms!) → 两个瓶颈并存
+【Step2 归因与方案排序(收益×成本)】
+  瓶颈A 串行架构: 并发化收益 10× → 首选
+  瓶颈B JSON解析: 换二进制定长 → 45ms→1ms
+【Step3 实施(单变量推进)】
+  优化① epoll 管理全部 10 连接, 请求全发后统一收(并发度10)
+     → 单轮 350→85ms ✓ (受最慢从站约束, 符合理论 30ms+处理)
+  优化② 上报改二进制定长帧 → 处理 45→1.2ms
+  优化③ TCP_NODELAY + 自适应间隔(连续快→收紧, 超时→放宽)
+【Step4 结果表】
+  | 指标        | 优化前 | 优化后 |
+  | 单轮耗时    | 350ms  | 85ms   |
+  | CPU占用     | 31%    | 12%    |
+  | 最慢从站RTT | 30ms   | 28ms(物理极限) |
+【Step5 反思与边界】
+  28ms 是从站固件的处理时间 —— 我方已触达物理边界, 继续压榨只能
+  换从站固件或降点表规模。优化到边界即止, 把剩余预算留给未来。
+/* 全流程用时 2 天; 若无测量先行, 大概率先去"优化"解析代码而收益 1ms 级 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-17" aria-labelledby="h-17"><h3 id="h-17"><span class="h3-num">51.17</span>技术反思与总结（十条原则 + 反模式清单）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><td>原则</td><td>一句话展开</td></tr>
+<tr><td>1</td><td>测量先行</td><td>没有基线的"优化"是玄学；先建观测，再谈改进</td></tr>
+<tr><td>2</td><td>90/10 定律</td><td>时间花在热点 10% 代码上；火焰图找平顶而非凭感觉</td></tr>
+<tr><td>3</td><td>预算制设计</td><td>CPU/内存/延迟预算写进模块头文件，超支即 CI 阻断</td></tr>
+<tr><td>4</td><td>可观测性是功能</td><td>指标/日志/追踪与业务代码同等级评审与测试</td></tr>
+<tr><td>5</td><td>简单性优先</td><td>能加缓存解决的先别上无锁；能单线程的别上多线程</td></tr>
+<tr><td>6</td><td>边界意识</td><td>识别物理极限(从站RTT/总线带宽)，优化到边界即止</td></tr>
+<tr><td>7</td><td>单变量推进</td><td>一次只改一件事，前后数据留档</td></tr>
+<tr><td>8</td><td>视角切换</td><td>on-CPU 看热点，off-CPU 看等待，USE 看资源，RED 看服务</td></tr>
+<tr><td>9</td><td>固化成果</td><td>优化结论=配置进版本库+回归脚本+报告归档</td></tr>
+<tr><td>10</td><td>优化是循环</td><td>SLO 会随业务升级，观测体系是长期资产而非一次性项目</td></tr>
+</table></div>
+<div class="box warn"><span class="bt">⚠️ 反模式清单（对照自查）</span>
+<p>① 玄学调参：抄网上 sysctl 不理解含义；② 只看平均值宣布优化成功；③ 微优化（省几条指令）忽略架构级瓶颈；④ 无基线宣称"提升 10 倍"；⑤ 优化代码不更新测试预期；⑥ 在观测工具高开销下得出的结论当真；⑦ 把编译器会做的优化手写一遍。</p></div></div>
+<div class="lesson-block reveal" id="sec-18" aria-labelledby="h-18"><h3 id="h-18">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：free 显示内存快用完了，要加内存吗？</summary><div class="ans"><p>先看 available 列与 si/so。buff/cache 是页缓存可随时回收，不算压力；真正警报是 available 低 + 持续 si/so 换页 + major fault 高。</p></div></details>
+<details class="qa"><summary>Q2：把所有进程都设成 SCHED_FIFO 最高优先级行不行？</summary><div class="ans"><p>不行——实时任务互相无时间片(RR 除外)，全高优先级等于互相饿死且可能饿死内核线程触发 RT throttling 惩罚。优先级必须<strong>按截止期严格分层</strong>且只授予真正实时的任务。</p></div></details>
+<details class="qa"><summary>Q3：优化后实验室达标，客户现场又复现尖刺？</summary><div class="ans"><p>现场差异项逐一核对：温度降频(throttling)、电源质量、网络拓扑广播量、第三方软件混部、NTP 步进调整时钟。对策：现场版 sar 持续采集回传 + 远程一键抓取脚本（把 51.9 决策树做成工具）。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L51-1：完整优化项目（综合验收）</strong>
+<p>以你的软 PLC 为对象执行一轮完整优化：① 定义三项 SLO（扫描抖动/Modbus RTT/启动时间）；② 按本章流程完成基线测量与三项优化（至少覆盖 CPU、内存、启动各一）；③ 产出《优化报告》含前后对比数据；④ 所有变更固化为配置文件进 Git，并写一个回归脚本自动验证 SLO。完成即达到「独立负责产品性能」的能力水位。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>load average 很高但 CPU 使用率很低，可能是什么情况？如何验证？</li>
+<li>为什么实时场景建议关闭 THP，而数据库服务器有时反而开 madvise 模式？决策变量是什么？</li>
+<li>设计「性能回归门禁」：CI 中自动跑基线脚本，什么条件下判定为性能退化并阻断合并？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch51"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>精确理解 30+ 性能术语，能用数据说话</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 CPU/内存/IO/网络/启动五大维度的优化手段与适用边界</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立「测量→归因→单变量实验→回归固化」的工程化优化流程</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Linux 系统优化实战」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter50.html"><span><span class="pager-label">上一章</span><b>第 50 章 · SeL4 微内核解析与实践视角</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter52.html"><span><span class="pager-label">下一章</span><b>第 52 章 · C、ABI、ELF 与启动证据</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 51 章 · Linux 系统优化实战 · 第八篇 · 系统优化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

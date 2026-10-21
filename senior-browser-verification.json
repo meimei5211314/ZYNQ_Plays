@@ -1,0 +1,874 @@
+{
+  "date": "2026-10-21",
+  "origin": "http://localhost:8765",
+  "desktopSenior": [
+    {
+      "chapter": "ch52",
+      "engineering": true,
+      "kind": "layout",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch53",
+      "engineering": true,
+      "kind": "mmu",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch54",
+      "engineering": true,
+      "kind": "publish",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch55",
+      "engineering": true,
+      "kind": "cdc",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch56",
+      "engineering": true,
+      "kind": "stream",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch57",
+      "engineering": true,
+      "kind": "lifecycle",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch58",
+      "engineering": true,
+      "kind": "rta",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch59",
+      "engineering": true,
+      "kind": null,
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch60",
+      "engineering": true,
+      "kind": "parser",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch61",
+      "engineering": true,
+      "kind": "journal",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 7
+    },
+    {
+      "chapter": "ch62",
+      "engineering": true,
+      "kind": "ota",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch63",
+      "engineering": true,
+      "kind": null,
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch64",
+      "engineering": true,
+      "kind": "fixedpoint",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch65",
+      "engineering": true,
+      "kind": "queuebudget",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch66",
+      "engineering": true,
+      "kind": "cdc",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch67",
+      "engineering": true,
+      "kind": "thermal",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch68",
+      "engineering": true,
+      "kind": "clock",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch69",
+      "engineering": true,
+      "kind": "parser",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch70",
+      "engineering": true,
+      "kind": "rta",
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    },
+    {
+      "chapter": "ch71",
+      "engineering": true,
+      "kind": null,
+      "overflow": false,
+      "quiz": 3,
+      "sections": 6
+    }
+  ],
+  "mobileSenior": [
+    {
+      "chapter": "ch52",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch53",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch54",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch55",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch56",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch57",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch58",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch59",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch60",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch61",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch62",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch63",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch64",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch65",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch66",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch67",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch68",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch69",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch70",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    },
+    {
+      "chapter": "ch71",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3,
+      "width": 390
+    }
+  ],
+  "experimentViews": [
+    {
+      "chapter": "ch52",
+      "kind": "layout",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch53",
+      "kind": "mmu",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch54",
+      "kind": "publish",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch55",
+      "kind": "cdc",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch56",
+      "kind": "stream",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch57",
+      "kind": "lifecycle",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch58",
+      "kind": "rta",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch60",
+      "kind": "parser",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch61",
+      "kind": "journal",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch62",
+      "kind": "ota",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch64",
+      "kind": "fixedpoint",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch65",
+      "kind": "queuebudget",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch66",
+      "kind": "cdc",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch67",
+      "kind": "thermal",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch68",
+      "kind": "clock",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch69",
+      "kind": "parser",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch69",
+      "kind": "queuebudget",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch69",
+      "kind": "fixedpoint",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch70",
+      "kind": "rta",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch70",
+      "kind": "journal",
+      "overflow": false,
+      "stats": true
+    },
+    {
+      "chapter": "ch70",
+      "kind": "ota",
+      "overflow": false,
+      "stats": true
+    }
+  ],
+  "baselineDesktop": [
+    {
+      "chapter": "ch01",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch02",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch03",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch04",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch05",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch06",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch07",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch08",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch09",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch10",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch11",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch12",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch13",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch14",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch15",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch16",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch17",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch18",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch19",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch20",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch21",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch22",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch23",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch24",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch25",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch26",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch27",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch28",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch29",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch30",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch31",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch32",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch33",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch34",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 2
+    },
+    {
+      "chapter": "ch35",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch36",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch37",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch38",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch39",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch40",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch41",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch42",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch43",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch44",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch45",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch46",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch47",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch48",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch49",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch50",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    },
+    {
+      "chapter": "ch51",
+      "engineering": true,
+      "overflow": false,
+      "quiz": 3
+    }
+  ],
+  "appendices": [
+    {
+      "chapter": "appa",
+      "overflow": false,
+      "recall": true
+    },
+    {
+      "chapter": "appb",
+      "overflow": false,
+      "recall": true
+    },
+    {
+      "chapter": "appc",
+      "overflow": false,
+      "recall": true
+    },
+    {
+      "chapter": "appd",
+      "overflow": false,
+      "recall": true
+    }
+  ],
+  "interactions": [
+    {
+      "case": "mmu permission",
+      "stats": "1\n虚拟页号\n564\n页内偏移 / B\npermission\n转换结果",
+      "status": "访问被 permission 拒绝。"
+    },
+    {
+      "case": "stale TLB permission",
+      "stats": "1\n虚拟页号\n564\n页内偏移 / B\n0x5234\n转换结果",
+      "status": "当前访问仍落在旧页框；对照关闭旧 TLB。"
+    },
+    {
+      "case": "publication fault",
+      "stats": "0\n消费者观察值\nrelease\n发布\n缺失\n获取",
+      "status": "缺少同步：索引先可见的危险轨迹。"
+    },
+    {
+      "case": "short pulse",
+      "stats": "0\n目的端事件数\n5\n目的周期 / 单位\n1\n源脉宽策略",
+      "status": "脉冲被漏采；两级同步器不能保证捕获任意窄事件。"
+    },
+    {
+      "case": "held request",
+      "stats": "1\n目的端事件数\n5\n目的周期 / 单位\n保持请求\n源脉宽策略",
+      "status": "事件已到达；用不同相位检查延迟变化。"
+    },
+    {
+      "case": "CRC reject and resync",
+      "stats": "1\n有效帧\n1\nCRC 错误\n18\n交付序号",
+      "status": "首帧被拒绝，解析器重新同步并交付后续有效帧。"
+    },
+    {
+      "case": "power loss before commit",
+      "stats": "42\n恢复结果\n0\n完成阶段\n无效\n候选记录",
+      "status": "候选槽不完整或损坏，恢复到旧值 42。"
+    },
+    {
+      "case": "committed record corruption",
+      "stats": "42\n恢复结果\n6\n完成阶段\n无效\n候选记录",
+      "status": "候选槽不完整或损坏，恢复到旧值 42。"
+    },
+    {
+      "case": "unhealthy rollback",
+      "stats": "A\n最终启动槽\n3\n最终版本下限\n回退\n决策",
+      "status": "候选试启动失败，恢复已知可用旧槽。"
+    },
+    {
+      "case": "signature rejection",
+      "stats": "A\n最终启动槽\n3\n最终版本下限\n拒绝\n决策",
+      "status": "候选在启动前被拒绝。"
+    },
+    {
+      "case": "Q15 saturation",
+      "stats": "32767\n输出整数\n0.99996948\n输出实数\n-3.052e-5\n相对理想乘积误差",
+      "status": "展开步骤检查量化与舍入；Python 参考测试覆盖正负半值。"
+    },
+    {
+      "case": "Q15 wrap fault",
+      "stats": "-32768\n输出整数\n-1.00000000\n输出实数\n-2.000e+0\n相对理想乘积误差",
+      "status": "溢出回绕改变了符号；比较关闭故障后的输出。"
+    },
+    {
+      "case": "queue removes sustained overload",
+      "stats": "8\n总到达\n0\n明确拒绝\n8\n最高水位",
+      "status": "接纳 8 = 完成 8 + 剩余 0；到达 8 = 接纳 + 拒绝。"
+    },
+    {
+      "case": "thermal baseline",
+      "stats": "63.009 °C\n末端温度\n1,200 J\n累计能量\n100 s\n热时间常数",
+      "status": "理想稳态温度 65°C；有限时间不一定到达稳态。"
+    },
+    {
+      "case": "thermal throttling",
+      "stats": "49.683 °C\n末端温度\n864 J\n累计能量\n100 s\n热时间常数",
+      "status": "阈值触发降额，回落 3°C 后恢复；检查数据表中的功率。"
+    },
+    {
+      "case": "timer multiple wrap",
+      "stats": "65428\n终止计数\n65464\n模减法结果\n1200 µs\n自由运行漂移",
+      "status": "真实间隔已超过 65536 tick；仅两个读数无法恢复。"
+    },
+    {
+      "case": "driver teardown fault",
+      "stats": "4\n已获取资源\n4\n清理动作\n危险\n卸载路径",
+      "status": "对象先释放，DMA 或 ISR 仍可能访问，形成 UAF。"
+    },
+    {
+      "case": "RTA deadline exceed",
+      "stats": "9\n当前迭代 / ms\n5\n截止期 / ms\n未满足\n当前假设下结论",
+      "status": "迭代超过截止期或未收敛；该数值不是最终响应上界，本次未证明可调度。"
+    },
+    {
+      "case": "code RAM budget selection",
+      "stats": "2304\n装载存储 / B\n2048\n运行 RAM / B\n2048\n剩余 RAM / B",
+      "status": "先看预算，再展开步骤表核对启动动作。"
+    }
+  ],
+  "persistence": {
+    "engineeringNote": true,
+    "keyboardQuizAnswer": true,
+    "quizReset": true
+  },
+  "navigation": {
+    "mobileEngineeringMenuCloses": true,
+    "searchTLBMatchesOnly53": true
+  },
+  "consoleErrors": [],
+  "fileSchemeTested": false
+}

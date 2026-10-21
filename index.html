@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 1 章 · 课程导学与学习路线图 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="ZYNQ-7020 嵌入式开发教程第 1 章互动讲义：PS/PL 分工、课程路线、数电与 FPGA 基础、C 语言内功、ARM 汇编入门。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top">
+
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>Chapter 01 · 导学</small>
+    </span>
+  </a>
+
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+    <a href="#why"><span class="num">01</span>为什么是 ZYNQ</a>
+    <a href="#roadmap"><span class="num">02</span>课程结构与路线图</a>
+    <a href="#rules"><span class="num">03</span>学习方法六条军规</a>
+    <a href="#refs"><span class="num">04</span>必备参考资料</a>
+    <a href="#digital"><span class="num">05</span>数电与 FPGA 基础</a>
+    <a href="#c"><span class="num">06</span>C 语言内功</a>
+    <a href="#asm"><span class="num">07</span>ARM 汇编入门</a>
+    <a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+    <a href="#check"><span class="num">08</span>自检与课后作业</a>
+  </nav>
+
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>完成第 8 节的自检清单后，这里会自动更新。</small>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 1 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">ZYNQ-7020 · 嵌入式开发完全教程</div>
+        <h1 id="heroTitle">第 1 章<br><span class="grad">课程导学与学习路线图</span></h1>
+        <p class="hero-sub">
+          在写第一行 Verilog、装第一个工具之前，先把三件事想清楚：
+          <strong>ZYNQ 到底是什么、这门课怎么走、遇到问题怎么查。</strong>
+          这一章不急着灌知识，先帮你搭好认知框架，并补齐后续实验真正会用到的数电、C 语言与 ARM 汇编地基。
+        </p>
+        <div class="hero-meta">
+          <span class="meta-chip">预计 60–90 分钟</span>
+          <span class="meta-chip">12 个互动演示</span>
+          <span class="meta-chip">10+ 动画</span>
+          <span class="meta-chip">可离线打开</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn primary" href="#why">开始学习 <span class="arrow">→</span></a>
+          <a class="btn ghost" href="#roadmap">先看课程地图</a>
+          <a class="btn ghost" href="course.html">课程目录</a>
+        </div>
+      </div>
+
+      <div class="chip-visual" aria-hidden="true">
+        <div class="chip">
+          <div class="chip-inner">
+            <div class="ps-side">
+              <div class="side-tag">PS · 处理系统</div>
+              <div class="core-row">
+                <div class="core">Cortex-A9<span>Core 0</span></div>
+                <div class="core">Cortex-A9<span>Core 1</span></div>
+              </div>
+              <div class="mem-row">DDR3 1GB · L2 512KB</div>
+              <div class="periph">UART ×2 · GPIO · SPI · I2C<br>SDIO · USB · GEM · QSPI</div>
+            </div>
+            <div class="axi-bus">
+              <span class="axi-label">AXI</span>
+              <div class="axi-lane"><i></i></div>
+              <div class="axi-lane"><i></i></div>
+              <div class="axi-lane"><i></i></div>
+              <div class="axi-lane"><i></i></div>
+            </div>
+            <div class="pl-side">
+              <div class="side-tag">PL · 可编程逻辑</div>
+              <div class="lut-grid">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="pl-tags">LUT 53,200 · FF 106,400<br>BRAM 4.9Mb · DSP 220</div>
+            </div>
+          </div>
+        </div>
+        <div class="float-tag tag-fast">纳秒级确定性响应</div>
+        <div class="float-tag tag-smart">Linux / 协议栈 / Web</div>
+      </div>
+    </div>
+
+    <div class="hero-stats reveal">
+      <div class="stat"><b data-count="2" data-suffix="×">0</b><span>ARM Cortex-A9 核心（PS）</span></div>
+      <div class="stat"><b data-count="53200">0</b><span>LUT 查找表（PL）</span></div>
+      <div class="stat"><b data-count="4.9" data-decimals="1" data-suffix=" Mb">0</b><span>BRAM 块存储</span></div>
+      <div class="stat"><b data-count="220">0</b><span>DSP48E1 乘法器</span></div>
+    </div>
+  </section>
+
+  <!-- ================= 01 WHY ZYNQ ================= -->
+  <section id="why" aria-labelledby="whyTitle">
+    <div class="section-head reveal">
+      <div class="section-index">01</div>
+      <div>
+        <h2 id="whyTitle">为什么是 ZYNQ？</h2>
+        <p class="lead">
+          先把这颗芯片当成一支团队：<strong>PS 是能跑 Linux 的「大脑」，PL 是可以按需定制的「反射神经」。</strong>
+          它们不是简单拼在同一块板子上，而是通过片内 AXI 总线共享内存与带宽。理解这套分工，是后面所有设计决策的起点。
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-3 reveal">
+      <article class="card card-accent-blue">
+        <span class="eyebrow-mini">Processing System</span>
+        <h4>PS · 处理器系统</h4>
+        <p>双核 Cortex-A9，带 MMU、L1/L2 Cache、NEON/FPU、DDR 控制器与丰富外设。它是一颗完整的 SoC，可以直接运行 Linux。</p>
+        <p style="margin-top:8px;color:#93c5fd;">擅长：复杂软件、协议栈、界面、文件系统。</p>
+      </article>
+      <article class="card card-accent-violet">
+        <span class="eyebrow-mini">Programmable Logic</span>
+        <h4>PL · 可编程逻辑</h4>
+        <p>Artix-7 级别的 FPGA 结构：LUT、触发器、BRAM、DSP。你把电路「画」进去，它就以硬件速度并行工作。</p>
+        <p style="margin-top:8px;color:#c4b5fd;">擅长：并行计算、硬实时 IO、确定性时序。</p>
+      </article>
+      <article class="card card-accent-cyan">
+        <span class="eyebrow-mini">Interconnect</span>
+        <h4>AXI · 片内互联</h4>
+        <p>多条 AXI 通道把 PS 与 PL 连成一个整体，带宽可达数 GB/s。CPU 读写 PL 寄存器，PL 也能直接成批访问 DDR。</p>
+        <p style="margin-top:8px;color:#67e8f9;">一句话：同一颗芯片里的两个部门，共享仓库与高速公路。</p>
+      </article>
+    </div>
+
+    <h3>和「CPU + FPGA 板级组合」差在哪？</h3>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>方案</th><th>组成</th><th>通信方式</th><th>结果</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>CPU + FPGA 两块板</strong></td>
+            <td>STM32 / 工控机 + 独立 FPGA</td>
+            <td>SPI、PCIe、并口等板间通信</td>
+            <td>延迟大、带宽低、PCB 复杂、功耗和体积都上去了</td>
+          </tr>
+          <tr>
+            <td><strong>ZYNQ 单芯片</strong></td>
+            <td>ARM 处理器系统 + FPGA 逻辑，同一颗 die</td>
+            <td>片内 AXI 直连，共享 DDR</td>
+            <td>纳秒级延迟、高带宽、低功耗、体积小，适合工业控制/机器视觉/软件无线电</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info reveal">
+      <div class="callout-icon">i</div>
+      <div class="callout-body">
+        <strong>分工口诀：PL 负责「快」，PS 负责「智」。</strong>
+        但真实系统往往是两者协作：PL 把硬实时、重复、并行的活干掉，PS 处理协议、业务、界面和存储。
+        纯 PS 做纳秒级 PWM 会被中断和调度抖动影响；纯 PL 做 TCP/IP 和 Web 又会又贵又难维护。
+      </div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <article class="card card-accent-violet">
+        <span class="eyebrow-mini">PL · Fast</span>
+        <h4>交给 PL 的典型任务</h4>
+        <ul>
+          <li>100 MHz 多通道 ADC 连续采样</li>
+          <li>纳秒级 PWM、死区控制、编码器解码</li>
+          <li>图像卷积、并行滤波、FFT 预处理</li>
+          <li>多路 DI 硬件消抖、DO 快速响应</li>
+          <li>配合 DMA 做高带宽数据搬运</li>
+        </ul>
+      </article>
+      <article class="card card-accent-blue">
+        <span class="eyebrow-mini">PS · Smart</span>
+        <h4>交给 PS 的典型任务</h4>
+        <ul>
+          <li>Linux、文件系统、网络协议栈</li>
+          <li>Modbus TCP / RTU、OPC UA</li>
+          <li>Web 监控界面、数据库、日志</li>
+          <li>梯形图解释器、业务逻辑</li>
+          <li>设备驱动、系统配置与升级</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="lab reveal" id="sorter">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 01</span>
+          <div>
+            <h3>任务分诊台</h3>
+            <p class="lab-sub">先点选一张任务卡，再点左侧 PL 或右侧 PS。分对得分，分错会给提示。</p>
+          </div>
+        </div>
+        <div class="score-pill">得分 <b id="sorterScore">0</b> / 10</div>
+      </div>
+      <div class="sorter-deck" id="sorterDeck"></div>
+      <div class="bins">
+        <div class="bin pl" data-side="pl" role="button" tabindex="0" aria-label="放入 PL">
+          <h4>PL · 快</h4>
+          <p>并行 / 确定性时序 / 硬实时</p>
+          <div class="bin-list" data-list="pl"></div>
+        </div>
+        <div class="bin ps" data-side="ps" role="button" tabindex="0" aria-label="放入 PS">
+          <h4>PS · 智</h4>
+          <p>操作系统 / 复杂协议 / 人机界面</p>
+          <div class="bin-list" data-list="ps"></div>
+        </div>
+      </div>
+      <div class="feedback" id="sorterFeedback">等待你选择第一张任务卡……</div>
+      <div class="lab-actions">
+        <button class="btn small ghost" id="sorterReset" type="button">重来</button>
+      </div>
+    </div>
+
+    <div class="callout danger reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>新手最常见的三个认知误区</strong>
+        <ul style="margin-top:6px;">
+          <li><strong>「ZYNQ = STM32 + FPGA」</strong>——错。PS 是完整 SoC，带 MMU、Cache、DDR 控制器，能直接跑 Ubuntu，复杂度远高于单片机。</li>
+          <li><strong>「先把 Verilog 学精才能开始」</strong>——错。第 5 章的入门语法就足够支撑本课程实验，边做边补。</li>
+          <li><strong>「PetaLinux 是必须的黑盒」</strong>——错。第二篇会先手工构建 U-Boot、内核与 rootfs，再用 PetaLinux 自动化，知其所以然。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 ROADMAP ================= -->
+  <section id="roadmap" aria-labelledby="roadmapTitle">
+    <div class="section-head reveal">
+      <div class="section-index">02</div>
+      <div>
+        <h2 id="roadmapTitle">课程结构与学习路线图</h2>
+        <p class="lead">
+          这门课不是线性堆知识，而是一条有依赖的工程路线：<strong>先能控制硬件，再让 Linux 跑起来，再学会定位问题，最后把这些能力组装成一台软 PLC。</strong>
+          建议按顺序推进，调试篇可以穿插在实战中。
+        </p>
+      </div>
+    </div>
+
+    <div class="roadmap" id="roadmapGrid">
+      <article class="phase reveal">
+        <div class="phase-node">01</div>
+        <div class="phase-card">
+          <div class="phase-tag">Foundations</div>
+          <h4>基础知识</h4>
+          <div class="chapter">第 1–10 章</div>
+          <p>ZYNQ 架构、板卡资源、环境搭建、Verilog、纯 PL 工程、PS 裸机、AXI 与协同设计。</p>
+          <div class="phase-meta"><span>建议时长</span><b>4–5 周</b></div>
+          <div class="duration-bar"><i style="--p:62%"></i></div>
+        </div>
+      </article>
+      <article class="phase reveal" style="--d:.08s">
+        <div class="phase-node">02</div>
+        <div class="phase-card">
+          <div class="phase-tag">Embedded Linux</div>
+          <h4>嵌入式 Linux</h4>
+          <div class="chapter">第 11–20 章</div>
+          <p>启动链、U-Boot、内核与设备树、PetaLinux、根文件系统、字符驱动、应用编程。</p>
+          <div class="phase-meta"><span>建议时长</span><b>5–6 周</b></div>
+          <div class="duration-bar"><i style="--p:78%"></i></div>
+        </div>
+      </article>
+      <article class="phase reveal" style="--d:.16s">
+        <div class="phase-node">03</div>
+        <div class="phase-card">
+          <div class="phase-tag">Debug &amp; Verify</div>
+          <h4>调试验证</h4>
+          <div class="chapter">第 21–25 章</div>
+          <p>ILA/VIO、时序收敛、JTAG 裸机调试、GDB 远程调试、内核 oops 与软硬件联合验证。</p>
+          <div class="phase-meta"><span>建议时长</span><b>1–2 周</b></div>
+          <div class="duration-bar"><i style="--p:30%"></i></div>
+        </div>
+      </article>
+      <article class="phase reveal" style="--d:.24s">
+        <div class="phase-node">04</div>
+        <div class="phase-card">
+          <div class="phase-tag">Soft PLC Project</div>
+          <h4>软 PLC 实战</h4>
+          <div class="chapter">第 26–36 章</div>
+          <p>需求分析、PL IO 引擎、UIO、运行时内核、梯形图解释器、Modbus、Web 监控与验收。</p>
+          <div class="phase-meta"><span>建议时长</span><b>4–5 周</b></div>
+          <div class="duration-bar"><i style="--p:62%"></i></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="extension-row reveal">
+      <span class="extension-chip"><b>37–42</b>进阶精通</span>
+      <span class="extension-chip"><b>43–47</b>工业自动化专题</span>
+      <span class="extension-chip"><b>48–50</b>嵌入式 RTOS</span>
+      <span class="extension-chip"><b>51</b>Linux 系统优化</span>
+      <span class="extension-chip"><b>A–D</b>面试题库</span>
+    </div>
+
+    <div class="study-rhythm reveal">
+      <div class="rhythm-item"><b>每天 2–3 h</b><span>按此强度估算总周期</span></div>
+      <div class="rhythm-item"><b>每个实验都做</b><span>看懂 ≠ 会做，报错才是老师</span></div>
+      <div class="rhythm-item"><b>每 2 周复盘</b><span>整理笔记、提交 Git、回看疑点</span></div>
+      <div class="rhythm-item"><b>调试篇穿插</b><span>遇到问题就回第 21–25 章取工具</span></div>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>不要直接跳到第二篇 Linux。</strong>
+        第 7–10 章的 PS 裸机与 AXI 知识，是理解设备树、UIO 驱动、PLC 寄存器映射的前提。
+        至少请完成第 2、4、7、9、10 章后再进入 Linux 部分。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 03 RULES ================= -->
+  <section id="rules" aria-labelledby="rulesTitle">
+    <div class="section-head reveal">
+      <div class="section-index">03</div>
+      <div>
+        <h2 id="rulesTitle">学习方法：六条军规</h2>
+        <p class="lead">
+          嵌入式不是看会的，是调会的。下面六条不是鸡汤，而是能明显减少走弯路的工程纪律。
+          真正拉开差距的，往往不是智商，而是<strong>环境一致性、资料检索习惯和排障方法</strong>。
+        </p>
+      </div>
+    </div>
+
+    <div class="rules">
+      <article class="rule-card reveal">
+        <span class="rule-num">01</span>
+        <h4>动手优先</h4>
+        <p>每个实验亲手敲一遍命令与代码。报错先自己排查 30 分钟，再求助；记录下真正解决问题的那个动作。</p>
+        <div class="rule-visual">
+          <div class="mini-bar-row"><span>看教程</span><i style="width:12%"></i></div>
+          <div class="mini-bar-row"><span>亲手做</span><i style="width:88%"></i></div>
+        </div>
+      </article>
+      <article class="rule-card reveal" style="--d:.06s">
+        <span class="rule-num">02</span>
+        <h4>版本铁律</h4>
+        <p>Vivado、Vitis、PetaLinux 全程统一 2020.2。混版本会导致 FSBL、设备树、内核驱动不匹配，问题极难排查。</p>
+        <div class="rule-visual">
+          <div class="version-row">
+            <span class="version-badge">Vivado 2020.2</span>
+            <span class="version-badge">Vitis 2020.2</span>
+            <span class="version-badge">PetaLinux 2020.2</span>
+          </div>
+        </div>
+      </article>
+      <article class="rule-card reveal" style="--d:.12s">
+        <span class="rule-num">03</span>
+        <h4>官方文档为王</h4>
+        <p>寄存器细节查 UG585，PetaLinux 用法查 UG1144，Vivado 流程查 UG892/UG949。教程只是引路，文档才是权威。</p>
+        <div class="rule-visual">
+          <div class="mini-bar-row"><span>官方手册</span><i style="width:100%"></i></div>
+          <div class="mini-bar-row"><span>板卡例程</span><i style="width:70%"></i></div>
+          <div class="mini-bar-row"><span>社区帖子</span><i class="warnline" style="width:38%"></i></div>
+        </div>
+      </article>
+      <article class="rule-card reveal">
+        <span class="rule-num">04</span>
+        <h4>用 Git 管理一切</h4>
+        <p>为 Vivado 工程、Linux 代码分别建仓库。每次实验成功后 commit，出问题可以回退、diff，快速定位是哪一步改坏的。</p>
+        <div class="rule-visual">
+          <div class="commit-row">
+            <i></i><em></em><i></i><em></em><i></i><em></em><i></i>
+          </div>
+          <div class="commit-row" style="margin-top:5px;justify-content:space-between;">
+            <span>init</span><span>led ok</span><span>uart ok</span><span>plc</span>
+          </div>
+        </div>
+      </article>
+      <article class="rule-card reveal" style="--d:.06s">
+        <span class="rule-num">05</span>
+        <h4>记录实验笔记</h4>
+        <p>把现象、命令、报错原文记下来。这是你未来的排障数据库，也是写简历项目时的素材库。不要只记「成功了」。</p>
+        <div class="rule-visual">
+          <div class="note-line" style="width:92%"></div>
+          <div class="note-line"></div>
+          <div class="note-line"></div>
+        </div>
+      </article>
+      <article class="rule-card reveal" style="--d:.12s">
+        <span class="rule-num">06</span>
+        <h4>建立调试思维</h4>
+        <p>分层定位：硬件 → PL → 内核 → 应用。先用二分法缩小范围，再深入细节；不要一上来就怀疑最复杂的那一层。</p>
+        <div class="rule-visual">
+          <div class="bisect-row">
+            <span>硬件</span><span>PL</span><span class="hot">内核</span><span>应用</span>
+          </div>
+          <div class="bisect-row" style="margin-top:5px;">
+            <span>电源</span><span>JTAG</span><span>约束</span><span class="hot">驱动</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="callout danger reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>版本一致性警告：</strong>Vivado / Vitis / PetaLinux 三者必须使用同一版本（本课程统一 2020.2）。
+        PetaLinux 2020.2 官方支持 Ubuntu 18.04.x，其他发行版需自行承担兼容风险；WSL2 不作为主环境。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 REFERENCES ================= -->
+  <section id="refs" aria-labelledby="refsTitle">
+    <div class="section-head reveal">
+      <div class="section-index">04</div>
+      <div>
+        <h2 id="refsTitle">必备参考资料清单</h2>
+        <p class="lead">
+          遇到寄存器细节不要猜，先查手册。下面这份清单建议收藏：
+          <strong>UG585 是寄存器与启动机制的圣经，UG1144 是 PetaLinux 的字典，板卡原理图是引脚的唯一事实来源。</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="ref-grid">
+      <article class="ref-card reveal">
+        <span class="ref-badge">UG585</span>
+        <div>
+          <h4>Zynq-7000 SoC Technical Reference Manual</h4>
+          <p>PS 架构、寄存器、时钟、启动机制、AXI 接口的权威手册。查寄存器偏移与启动流程先看它。</p>
+          <div class="ref-tags"><span>寄存器</span><span>启动</span><span>架构</span></div>
+        </div>
+      </article>
+      <article class="ref-card reveal" style="--d:.05s">
+        <span class="ref-badge">UG1144</span>
+        <div>
+          <h4>PetaLinux Tools Reference Guide</h4>
+          <p>PetaLinux 安装、工程配置、构建、打包与常见问题的官方说明。第二篇会反复查阅。</p>
+          <div class="ref-tags"><span>PetaLinux</span><span>构建</span><span>打包</span></div>
+        </div>
+      </article>
+      <article class="ref-card reveal">
+        <span class="ref-badge">UG821 / DS190</span>
+        <div>
+          <h4>Zynq 数据手册与器件参数</h4>
+          <p>器件资源、电气参数、封装与速度等级。选型、约束电平、资源评估时使用。</p>
+          <div class="ref-tags"><span>器件</span><span>电气</span><span>封装</span></div>
+        </div>
+      </article>
+      <article class="ref-card reveal" style="--d:.05s">
+        <span class="ref-badge">BOARD</span>
+        <div>
+          <h4>正点原子领航者配套资料</h4>
+          <p>《FPGA 开发指南》《嵌入式开发指南》与随板例程。基础实验可交叉验证，原理图与 XDC 是引脚依据。</p>
+          <div class="ref-tags"><span>原理图</span><span>例程</span><span>XDC</span></div>
+        </div>
+      </article>
+      <article class="ref-card reveal">
+        <span class="ref-badge">BOOK</span>
+        <div>
+          <h4>书籍补充（按需）</h4>
+          <p>《Verilog HDL 数字设计与综合》打语法地基；《嵌入式 Linux 应用开发完全手册》补 Linux；《鸟哥的 Linux 私房菜》补命令行。</p>
+          <div class="ref-tags"><span>Verilog</span><span>Linux</span><span>命令行</span></div>
+        </div>
+      </article>
+      <article class="ref-card reveal" style="--d:.05s">
+        <span class="ref-badge">COMMUNITY</span>
+        <div>
+          <h4>社区与论坛</h4>
+          <p>AMD/Xilinx Developer Forum、eetop、电子发烧友、CSDN/知乎 ZYNQ 专栏。搜索时带上器件型号与报错原文，效率更高。</p>
+          <div class="ref-tags"><span>问答</span><span>经验</span><span>排障</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="card reveal" style="margin-top:16px;">
+      <span class="eyebrow-mini">Search Order</span>
+      <h4>资料检索优先级</h4>
+      <div class="priority-flow">
+        <span>官方手册 UG/DS</span><i>→</i>
+        <span>板卡原理图 / 例程</span><i>→</i>
+        <span>本教程</span><i>→</i>
+        <span>社区帖子</span>
+      </div>
+      <p style="margin-top:10px;font-size:0.82rem;">
+        社区答案可能针对不同版本或不同板卡，只能作为线索，最终要用官方文档和实测验证。
+      </p>
+    </div>
+
+    <div class="callout info reveal">
+      <div class="callout-icon">i</div>
+      <div class="callout-body">
+        <strong>关于开发板：</strong>本课程以正点原子领航者 ZYNQ（XC7Z020，板级配置按原理图版本核对）为主线讲解，但内容对任何 Zynq-7020 板卡通用。
+        使用其他板卡时，只需按自己的原理图修改 LED、按键、网口等外设的引脚约束，流程完全一致。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 DIGITAL ================= -->
+  <section id="digital" aria-labelledby="digitalTitle">
+    <div class="section-head reveal">
+      <div class="section-index">05</div>
+      <div>
+        <h2 id="digitalTitle">预备知识 I：数字电路与 FPGA</h2>
+        <p class="lead">
+          你不需要先学完一整本数电。下面这些概念会在第 5、6、9、21、22 章反复出现：
+          <strong>先用直觉建立起来，后面边做边补细节。</strong>这一节配有 5 个可交互的小实验。
+        </p>
+      </div>
+    </div>
+
+    <h3>5.1 数制与码制：硬件的母语</h3>
+    <p class="reveal">
+      二进制是硬件的母语；十六进制只是「4 位一组」的速记。比如 <code>0xF3 = 1111_0011</code>，
+      一眼就能互换。十进制转二进制则用「短除取余」。补码是另一个必须跨过的坎：
+      <strong>正数不变，负数取反加一；8 位范围是 -128 ~ +127。</strong>
+      硬件的加减法共用一套加法器，靠的就是补码。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 02</span>
+          <div>
+            <h3>进制转换器</h3>
+            <p class="lab-sub">在任意一栏输入，其他两栏实时同步。二进制按 4 位一组显示，方便和十六进制对照。</p>
+          </div>
+        </div>
+      </div>
+      <div class="converter">
+        <div class="num-field">
+          <label for="decInput">十进制 <span>DEC</span></label>
+          <input id="decInput" type="text" inputmode="numeric" value="243" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="num-field">
+          <label for="hexInput">十六进制 <span>HEX</span></label>
+          <input id="hexInput" type="text" value="F3" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="num-field">
+          <label for="binInput">二进制 <span>BIN</span></label>
+          <input id="binInput" type="text" value="11110011" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="bin-grouped" id="binGrouped">1111 0011</div>
+      <div class="quick-chips">
+        <button type="button" data-value="243">0xF3</button>
+        <button type="button" data-value="90">0x5A</button>
+        <button type="button" data-value="4660">0x1234</button>
+        <button type="button" data-value="3735928559">0xDEADBEEF</button>
+        <button type="button" data-value="0">清零</button>
+      </div>
+    </div>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 03</span>
+          <div>
+            <h3>补码是怎么来的</h3>
+            <p class="lab-sub">拖动滑块选择 -128 ~ 127，点「演示转换」看负数如何从绝对值变成补码。</p>
+          </div>
+        </div>
+        <div class="score-pill">8 位有符号数</div>
+      </div>
+      <div class="twos-top">
+        <div class="value-display">
+          <b id="twosValue">-5</b>
+          <small>十进制 DECIMAL</small>
+        </div>
+        <div class="twos-slider">
+          <input type="range" id="twosRange" min="-128" max="127" step="1" value="-5" aria-label="选择 8 位有符号数">
+          <div class="range-labels"><span>-128</span><span>0</span><span>+127</span></div>
+          <div class="stage-line" id="twosStage">补码 = 原码取反 + 1</div>
+        </div>
+      </div>
+      <div class="bits" id="twosBits"></div>
+      <div class="twos-foot">
+        <div class="lab-actions" style="margin-top:0;">
+          <button class="btn small primary" id="twosDemo" type="button">演示转换</button>
+          <button class="btn small ghost" id="twosReset" type="button">重置</button>
+        </div>
+        <span class="hex-out" id="twosHex">0xFB</span>
+      </div>
+    </div>
+
+    <div class="grid-3 reveal">
+      <article class="card card-accent-green">
+        <span class="eyebrow-mini">Gray Code</span>
+        <h4>格雷码</h4>
+        <p>相邻两个数只有 1 位变化。跨时钟域传递计数值时，能避免多位同时跳变产生的采样错误（第 22 章 CDC）。</p>
+      </article>
+      <article class="card card-accent-blue">
+        <span class="eyebrow-mini">BCD</span>
+        <h4>BCD 码</h4>
+        <p>每 4 位二进制表示一个十进制数字 0–9，常用于数码管显示。它和普通二进制不是一回事。</p>
+      </article>
+      <article class="card card-accent-violet">
+        <span class="eyebrow-mini">ASCII &amp; Check</span>
+        <h4>ASCII 与校验</h4>
+        <p>串口通信传输的是字符编码；奇偶校验、CRC 是工业协议里最常见的数据完整性手段。</p>
+      </article>
+    </div>
+
+    <h3>5.2 组合逻辑四大件</h3>
+    <p class="reveal">
+      组合逻辑<strong>没有记忆</strong>：输出只取决于当前输入。你写的 if-else、case，
+      综合之后就是 MUX、译码器、比较器这些硬件。记住一句话：<strong>Verilog 不是写程序，而是描述电路。</strong>
+    </p>
+
+    <div class="grid-4 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">Decoder</span>
+        <h4>译码器</h4>
+        <p>n 位输入选通 2ⁿ 个输出之一。地址译码、片选、七段数码管驱动都用它。</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">MUX</span>
+        <h4>多路选择器</h4>
+        <p>数据流开关，是 if-else 的硬件化身。选择信号决定哪一路数据通过。</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Adder</span>
+        <h4>加法器</h4>
+        <p>行波进位慢、超前进位快。「面积换速度」的第一个例子，也是流水线设计的动机。</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Comparator</span>
+        <h4>比较器</h4>
+        <p>大小判断。位数一多，级联链就容易成为时序违例的常客（第 22 章会切流水线）。</p>
+      </article>
+    </div>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 04</span>
+          <div>
+            <h3>逻辑门游乐场</h3>
+            <p class="lab-sub">点击 A、B 切换输入，观察灯与真值表。注意：输入一变，输出立刻跟着变，这就是组合逻辑。</p>
+          </div>
+        </div>
+      </div>
+      <div class="gates">
+        <article class="gate-card" data-gate="and">
+          <div class="gate-head">
+            <span class="gate-name">AND · 与</span>
+            <span class="gate-formula">Y = A &amp; B</span>
+          </div>
+          <div class="logic-controls">
+            <button class="logic-btn" type="button" data-bit="0" aria-pressed="false">A = 0</button>
+            <button class="logic-btn" type="button" data-bit="1" aria-pressed="false">B = 0</button>
+          </div>
+          <div class="lamp"><i></i><span>Y = 0</span></div>
+          <div class="truth-mini">
+            <table>
+              <thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead>
+              <tbody>
+                <tr data-a="0" data-b="0"><td>0</td><td>0</td><td>0</td></tr>
+                <tr data-a="0" data-b="1"><td>0</td><td>1</td><td>0</td></tr>
+                <tr data-a="1" data-b="0"><td>1</td><td>0</td><td>0</td></tr>
+                <tr data-a="1" data-b="1"><td>1</td><td>1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="gate-card" data-gate="or">
+          <div class="gate-head">
+            <span class="gate-name">OR · 或</span>
+            <span class="gate-formula">Y = A | B</span>
+          </div>
+          <div class="logic-controls">
+            <button class="logic-btn" type="button" data-bit="0" aria-pressed="false">A = 0</button>
+            <button class="logic-btn" type="button" data-bit="1" aria-pressed="false">B = 0</button>
+          </div>
+          <div class="lamp"><i></i><span>Y = 0</span></div>
+          <div class="truth-mini">
+            <table>
+              <thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead>
+              <tbody>
+                <tr data-a="0" data-b="0"><td>0</td><td>0</td><td>0</td></tr>
+                <tr data-a="0" data-b="1"><td>0</td><td>1</td><td>1</td></tr>
+                <tr data-a="1" data-b="0"><td>1</td><td>0</td><td>1</td></tr>
+                <tr data-a="1" data-b="1"><td>1</td><td>1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="gate-card" data-gate="xor">
+          <div class="gate-head">
+            <span class="gate-name">XOR · 异或</span>
+            <span class="gate-formula">Y = A ^ B</span>
+          </div>
+          <div class="logic-controls">
+            <button class="logic-btn" type="button" data-bit="0" aria-pressed="false">A = 0</button>
+            <button class="logic-btn" type="button" data-bit="1" aria-pressed="false">B = 0</button>
+          </div>
+          <div class="lamp"><i></i><span>Y = 0</span></div>
+          <div class="truth-mini">
+            <table>
+              <thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead>
+              <tbody>
+                <tr data-a="0" data-b="0"><td>0</td><td>0</td><td>0</td></tr>
+                <tr data-a="0" data-b="1"><td>0</td><td>1</td><td>1</td></tr>
+                <tr data-a="1" data-b="0"><td>1</td><td>0</td><td>1</td></tr>
+                <tr data-a="1" data-b="1"><td>1</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="callout tip reveal">
+      <div class="callout-icon">✓</div>
+      <div class="callout-body">
+        <strong>组合逻辑的关键词是「立刻」。</strong>输入一变，输出经过门延迟后马上变化；它不记得上一秒发生了什么。
+        需要「记住状态」时，就必须引入触发器，进入下一节的时序逻辑。
+      </div>
+    </div>
+
+    <h3>5.3 时序逻辑：让电路「记住」状态</h3>
+    <div class="grid-3 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">D Flip-Flop</span>
+        <h4>D 触发器（FF）</h4>
+        <p>在时钟沿采样 D，并保持 1 bit。它是 FPGA 里所有「状态」的最小单元，也是寄存器、计数器的基础。</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Register Bank</span>
+        <h4>寄存器组</h4>
+        <p>n 个 FF 并排就是 n 位总线打拍。流水线切割、跨时钟域同步都靠它。</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Counter / Shift</span>
+        <h4>计数器 / 移位寄存器</h4>
+        <p>+1 计数可以分频得到 PWM 节拍；移位寄存器用于串并转换，是 SPI 等接口的骨架。</p>
+      </article>
+    </div>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 05</span>
+          <div>
+            <h3>D 触发器波形：时钟沿到底采样了什么？</h3>
+            <p class="lab-sub">观察 D 在任意时刻变化，但 Q 只在时钟上升沿更新。黄色圆点是采样时刻。</p>
+          </div>
+        </div>
+      </div>
+      <div class="wave-panel">
+        <div class="wave-topline">
+          <div class="wave-legend">
+            <span>CLK 时钟</span>
+            <span class="lg-d">D 输入</span>
+            <span class="lg-q">Q 输出</span>
+          </div>
+          <div class="score-pill">上升沿采样</div>
+        </div>
+        <canvas id="dffCanvas" width="900" height="300" aria-label="D 触发器时钟、输入与输出波形动画"></canvas>
+        <div class="wave-controls">
+          <button class="btn small primary" id="dffPlay" type="button">暂停</button>
+          <button class="btn small ghost" id="dffRestart" type="button">重播</button>
+          <span class="wave-status" id="dffStatus">播放中……</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>setup / hold 的直觉版：</strong>数据必须在时钟沿<strong>提前到达</strong>（setup），
+        并且在沿后<strong>别急着走</strong>（hold）。就像赶火车：必须提前到站台，也不能刚关门就跳下车。
+        违反时序约束，触发器可能进入<strong>亚稳态</strong>，第 22 章会展开。
+      </div>
+    </div>
+
+    <div class="timing-scene reveal" aria-hidden="true">
+      <div class="timing-track">
+        <div class="timing-window setup">setup 窗口</div>
+        <div class="timing-edge"></div>
+        <div class="timing-window hold">hold</div>
+        <div class="timing-train"><i></i><i></i><i></i></div>
+      </div>
+      <div class="timing-caption">数据这列「火车」，要在时钟沿前到站，并在沿后多停一会儿。到得太晚或走得太早，都可能采样失败。</div>
+    </div>
+
+    <h3>5.4 状态机思维：把流程图变成硬件</h3>
+    <p class="reveal">
+      任何控制逻辑都能画成<strong>状态转移图</strong>：椭圆是状态，箭头是条件，状态旁边标注输出。
+      下面用自动售货机走一遍。先建立「状态 + 转移 + 输出」的思维，第 5 章再把它翻译成三段式 Verilog。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 06</span>
+          <div>
+            <h3>自动售货机状态机</h3>
+            <p class="lab-sub">按顺序推进：投币 → 选择 → 确认 → 出货完成 → 取走零钱。当前允许的动作会高亮，乱按会被拒绝。</p>
+          </div>
+        </div>
+      </div>
+      <div class="fsm-wrap">
+        <div class="fsm-figure">
+          <svg id="fsmSvg" viewBox="0 0 680 400" role="img" aria-label="自动售货机状态转移图">
+            <defs>
+              <marker id="fsmArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(148,163,184,.45)"></path>
+              </marker>
+            </defs>
+            <path class="fsm-edge" id="edge-idle-coin" d="M 128 177 C 160 130, 190 112, 218 100"></path>
+            <path class="fsm-edge" id="edge-coin-select" d="M 290 85 L 386 85"></path>
+            <path class="fsm-edge" id="edge-select-dispense" d="M 490 100 C 530 112, 558 136, 574 172"></path>
+            <path class="fsm-edge" id="edge-dispense-change" d="M 580 228 C 576 270, 545 300, 494 315"></path>
+            <path class="fsm-edge" id="edge-change-idle" d="M 386 325 C 290 340, 130 310, 92 245"></path>
+
+            <text class="fsm-edge-label" x="166" y="127">投币</text>
+            <text class="fsm-edge-label" x="338" y="75">选择商品</text>
+            <text class="fsm-edge-label" x="556" y="127">确认</text>
+            <text class="fsm-edge-label" x="556" y="274">出货完成</text>
+            <text class="fsm-edge-label" x="236" y="342">取走零钱</text>
+
+            <g class="state-node active" data-state="idle" transform="translate(90,200)">
+              <rect x="-54" y="-26" width="108" height="52" rx="13"></rect>
+              <text>空闲 IDLE</text>
+            </g>
+            <g class="state-node" data-state="coin" transform="translate(250,85)">
+              <rect x="-54" y="-26" width="108" height="52" rx="13"></rect>
+              <text>已投币 COIN</text>
+            </g>
+            <g class="state-node" data-state="select" transform="translate(440,85)">
+              <rect x="-54" y="-26" width="108" height="52" rx="13"></rect>
+              <text>已选择 SELECT</text>
+            </g>
+            <g class="state-node" data-state="dispense" transform="translate(590,200)">
+              <rect x="-54" y="-26" width="108" height="52" rx="13"></rect>
+              <text>出货 DISPENSE</text>
+            </g>
+            <g class="state-node" data-state="change" transform="translate(440,325)">
+              <rect x="-54" y="-26" width="108" height="52" rx="13"></rect>
+              <text>找零 CHANGE</text>
+            </g>
+
+            <circle class="fsm-token" id="fsmToken" cx="90" cy="200" r="6"></circle>
+          </svg>
+        </div>
+        <div class="fsm-side">
+          <div>
+            <div class="lab-badge" style="display:inline-block;margin-bottom:5px;">当前状态</div>
+            <div class="fsm-state-name" id="fsmStateName">IDLE · 空闲</div>
+          </div>
+          <div class="fsm-output" id="fsmOutput"><b>输出：</b>等待投币</div>
+          <div class="fsm-actions" id="fsmActions">
+            <button class="btn small ghost" type="button" data-action="coin">投币</button>
+            <button class="btn small ghost" type="button" data-action="select">选择商品</button>
+            <button class="btn small ghost" type="button" data-action="confirm">确认</button>
+            <button class="btn small ghost" type="button" data-action="dispense">完成出货</button>
+            <button class="btn small ghost" type="button" data-action="change">取走零钱</button>
+            <button class="btn small ghost" type="button" data-action="reset">复位</button>
+          </div>
+          <div class="fsm-log" id="fsmLog">日志：系统就绪，等待投币。</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>5.5 FPGA 到底是什么？和 MCU 有什么本质差异？</h3>
+    <p class="reveal">
+      MCU 是「顺序执行指令流」，FPGA 是「并行电路同时工作」。
+      你把 HDL 写下去，综合工具把它翻译成 LUT/FF，布局布线放进真实器件，最后生成比特流配置 SRAM。
+      <strong>注意最后一步：FPGA 的配置掉电就丢，每次上电都要重新加载 bitstream。</strong>
+    </p>
+
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>维度</th><th>MCU（C 语言）</th><th>FPGA（Verilog）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>执行模型</strong></td><td>顺序指令流，一条接一条</td><td>并行电路同时工作</td></tr>
+          <tr><td><strong>「变量」</strong></td><td>RAM 里的存储单元</td><td>触发器 / 导线</td></tr>
+          <tr><td><strong>「函数」</strong></td><td>复用 CPU 指令</td><td>复制一份新电路</td></tr>
+          <tr><td><strong>调试手段</strong></td><td>printf / 断点</td><td>ILA / 仿真波形（第 21 章）</td></tr>
+          <tr><td><strong>实时性</strong></td><td>受 OS 调度与中断影响</td><td>引脚到引脚纳秒级确定</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flow reveal">
+      <article class="flow-step">
+        <div class="flow-num">01</div>
+        <h4>HDL 描述</h4>
+        <p>用 Verilog 描述「想要什么电路」，不是写执行步骤。</p>
+        <span class="flow-tag">.v</span>
+      </article>
+      <article class="flow-step">
+        <div class="flow-num">02</div>
+        <h4>综合</h4>
+        <p>翻译成 LUT、FF、BRAM、DSP 组成的门级网表。</p>
+        <span class="flow-tag">Synthesis</span>
+      </article>
+      <article class="flow-step">
+        <div class="flow-num">03</div>
+        <h4>布局布线</h4>
+        <p>把网表放进真实器件，决定每个单元的位置与连线。</p>
+        <span class="flow-tag">Place &amp; Route</span>
+      </article>
+      <article class="flow-step">
+        <div class="flow-num">04</div>
+        <h4>生成比特流</h4>
+        <p>产出配置芯片所需的 .bit 文件。</p>
+        <span class="flow-tag">Bitstream</span>
+      </article>
+      <article class="flow-step">
+        <div class="flow-num">05</div>
+        <h4>下载配置</h4>
+        <p>JTAG 烧写或上电从 QSPI/SD 加载，配置 SRAM。</p>
+        <span class="flow-tag">掉电丢失</span>
+      </article>
+    </div>
+
+    <div class="callout info reveal">
+      <div class="callout-icon">i</div>
+      <div class="callout-body">
+        <strong>一颗 LUT6 是什么？</strong>可以把它想成一个「6 输入真值表」：给定任意 6 位输入组合，都能输出你想要的 0/1，
+        因此常被称作「万能门」。触发器则负责把某一刻的 1 bit 记住。成千上万个 LUT + FF 配合，就能搭出复杂电路。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 06 C LANGUAGE ================= -->
+  <section id="c" aria-labelledby="cTitle">
+    <div class="section-head reveal">
+      <div class="section-index">06</div>
+      <div>
+        <h2 id="cTitle">预备知识 II：C 语言内功</h2>
+        <p class="lead">
+          嵌入式 C 的难点不是语法，而是<strong>你知道编译器把你的代码变成了什么</strong>。
+          这一节只挑后续驱动、协议解析、PLC 运行时真正用得到的部分：存储类别、指针、关键字、位操作、联合体与未定义行为。
+        </p>
+      </div>
+    </div>
+
+    <h3>6.1 存储类别：变量住在哪里，活多久？</h3>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>声明位置 / 关键字</th><th>auto（默认）</th><th>static</th><th>extern</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>函数内</strong></td>
+            <td>栈上，块作用域，函数返回即消失</td>
+            <td>静态区，块作用域，全程存活（有记忆性）</td>
+            <td>引用别处定义的全局变量</td>
+          </tr>
+          <tr>
+            <td><strong>文件级</strong></td>
+            <td>—</td>
+            <td>静态区，<strong>文件私有</strong>（内部链接）</td>
+            <td>跨文件共享声明（外部链接）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout tip reveal">
+      <div class="callout-icon">✓</div>
+      <div class="callout-body">
+        <strong>用一个比喻记住：</strong>auto 是「临时工位」，下班就收走；static 是「固定工位」，东西一直在；
+        extern 是「跨部门通告」——告诉编译器这个东西在别的文件里已经存在，别重复定义。
+      </div>
+    </div>
+
+    <h3>6.2 指针的四层功力</h3>
+    <p class="reveal">
+      指针不是「存地址的变量」这么简单，它是 C 语言表达内存布局的工具。
+      第一层是指针算术：<code>p++</code> 不是加 1 字节，而是前进一个 <code>sizeof(类型)</code>。
+      下面的数组有 8 个 <code>int</code>，试试移动指针。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 07</span>
+          <div>
+            <h3>指针与内存</h3>
+            <p class="lab-sub">int buf[8] = {10,20,...,80}; int *p = buf + 2; 观察 p、*p 与 p[-1] 的变化。</p>
+          </div>
+        </div>
+      </div>
+      <div class="mem-wrap">
+        <div class="mem-strip" id="memStrip"></div>
+      </div>
+      <div class="ptr-readout" id="ptrReadout"></div>
+      <div class="lab-actions">
+        <button class="btn small ghost" id="ptrPrev" type="button">p--</button>
+        <button class="btn small ghost" id="ptrNext" type="button">p++</button>
+        <button class="btn small ghost" id="ptrReset" type="button">重置</button>
+      </div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">Level 2 · Array Decay</span>
+        <h4>数组退化与数组指针</h4>
+        <p>数组名在多数场景会退化成首元素指针，但 <code>sizeof</code> 和 <code>&amp;</code> 的行为不同：</p>
+        <div class="code-block">
+          <div class="code-head"><span>C · array vs pointer</span></div>
+          <pre><code>char *names[] = {"modbus", "can"};  /* 指针数组 */
+char (*row)[16] = matrix;           /* 数组指针，步进 16 字节 */
+
+sizeof(buf);   /* 整个数组的字节数 */
+&amp;buf;          /* 指向整个数组的指针，类型不同 */</code></pre>
+        </div>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Level 3 · Function Pointer</span>
+        <h4>函数指针 = 回调机制之母</h4>
+        <p>Linux 驱动的 <code>file_operations</code>、命令分发表、PLC 指令解释器，本质都是函数指针表。</p>
+        <div class="code-block">
+          <div class="code-head"><span>C · dispatch table</span></div>
+          <pre><code>typedef int (*op_t)(int, int);
+
+struct { char *name; op_t fn; } ops[] = {
+    {"add", op_add},
+    {"sub", op_sub},
+};
+/* 找到名字，调用 fn —— 命令分发表 */</code></pre>
+        </div>
+      </article>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>第四层：void* 泛型与别名陷阱。</strong>用 <code>char *</code> 逐字节搬运最安全；
+        不同类型指针互访可能违反 strict aliasing，是未定义行为。协议解析请用 <code>memcpy</code> 或 packed struct，
+        不要直接强转结构体指针。
+      </div>
+    </div>
+
+    <h3>6.3 关键字深挖：面试与调试高频</h3>
+    <div class="grid-3 reveal">
+      <article class="card card-accent-cyan">
+        <span class="eyebrow-mini">volatile</span>
+        <h4>每次强制真实访存</h4>
+        <p>告诉编译器「这个值可能被外部改变，不许缓存优化」。但它<strong>不提供原子性</strong>，多核/中断共享数据仍需锁或关中断。</p>
+      </article>
+      <article class="card card-accent-blue">
+        <span class="eyebrow-mini">const</span>
+        <h4>只读承诺</h4>
+        <p>修饰变量、指针或函数参数，表达「不该被改」。注意 <code>const int *p</code> 与 <code>int *const p</code> 是两回事。</p>
+      </article>
+      <article class="card card-accent-violet">
+        <span class="eyebrow-mini">static</span>
+        <h4>三种用法</h4>
+        <p>函数内静态变量（有记忆）、文件级私有函数/变量（内部链接）、C++ 类静态成员。嵌入式最常用前两种。</p>
+      </article>
+      <article class="card card-accent-green">
+        <span class="eyebrow-mini">inline</span>
+        <h4>建议内联</h4>
+        <p>只是给编译器的建议，现代编译器自己会决定。头文件里最稳的写法是 <code>static inline</code>。</p>
+      </article>
+      <article class="card card-accent-orange" style="border-color:rgba(251,146,60,.2);">
+        <span class="eyebrow-mini">restrict</span>
+        <h4>承诺指针不重叠</h4>
+        <p>给编译器优化空间，常见于 <code>memcpy</code> 原型。承诺错了，行为未定义。</p>
+      </article>
+      <article class="card card-accent-red" style="border-color:rgba(251,113,133,.2);">
+        <span class="eyebrow-mini">volatile + 锁</span>
+        <h4>为什么不能互相替代</h4>
+        <p><code>volatile</code> 只保证「每次真读真写」，不保证「读-改-写」是一个不可分割的动作。计数器和标志位尤其要小心。</p>
+      </article>
+    </div>
+
+    <div class="callout danger reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>必须两者同用的场景：</strong>中断服务程序修改一个 32 位计数器，主循环读取并清零。
+        变量要加 <code>volatile</code> 防止缓存，但「读取 + 清零」仍可能被中断打断，还需要关中断或原子操作保护。
+      </div>
+    </div>
+
+    <h3>6.4 位操作：寄存器编程的日常</h3>
+    <p class="reveal">
+      裸机开发和驱动开发，很大一部分工作就是「把某一位设 1、清 0、翻转、读取」。
+      先记住这组宏，再玩下面的 32 位实验：
+    </p>
+    <div class="code-block reveal">
+      <div class="code-head"><span>C · bit macros</span></div>
+      <pre><code>#define BIT(n)          (1u &lt;&lt; (n))
+#define SET(x, n)       ((x) |=  BIT(n))
+#define CLR(x, n)       ((x) &amp;= ~BIT(n))
+#define TGL(x, n)       ((x) ^=  BIT(n))
+#define GET(x, n)       (((x) &gt;&gt; (n)) &amp; 1u)
+/* 要求 BIT 的 n &lt; 32；构造满 32 位掩码时不能执行 1u &lt;&lt; 32。 */
+static inline uint32_t mask32(unsigned lo, unsigned hi)
+{
+    if (lo &gt; hi || hi &gt;= 32) return 0;
+    return (UINT32_MAX &gt;&gt; (31u - (hi - lo))) &lt;&lt; lo;
+}
+#define MASK(lo, hi) mask32((lo), (hi))
+
+/* 判 2 的幂：v != 0 &amp;&amp; (v &amp; (v - 1)) == 0 */
+/* 统计 1 的个数：while (v) { v &amp;= v - 1; count++; } */</code></pre>
+    </div>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 08</span>
+          <div>
+            <h3>32 位寄存器实验台</h3>
+            <p class="lab-sub">点击任意一位直接翻转；也可以用 SET / CLR / TGL 对指定 bit 操作，观察十六进制与统计值。</p>
+          </div>
+        </div>
+      </div>
+      <div class="bit-toolbar">
+        <label for="bitHex">载入数值</label>
+        <input class="input" id="bitHex" type="text" value="0000F00F" spellcheck="false" autocomplete="off">
+        <button class="btn small ghost" id="bitApply" type="button">载入</button>
+        <button class="btn small ghost" id="bitClear" type="button">清零</button>
+        <button class="btn small ghost" id="bitInvert" type="button">取反</button>
+      </div>
+      <div class="bit-grid" id="bitGrid"></div>
+      <div class="bit-ops">
+        <label for="bitIndex">bit</label>
+        <input class="input small-input" id="bitIndex" type="number" min="0" max="31" value="4">
+        <button class="btn small ghost" type="button" data-bitop="set">SET</button>
+        <button class="btn small ghost" type="button" data-bitop="clr">CLR</button>
+        <button class="btn small ghost" type="button" data-bitop="tgl">TGL</button>
+      </div>
+      <div class="bit-readout">
+        <span>x = <b id="bitValue">0x0000F00F</b></span>
+        <span>1 的个数 <b id="bitPop">8</b></span>
+        <span>是否 2 的幂 <b id="bitPow">否</b></span>
+      </div>
+      <div class="bit-op-note" id="bitOpNote">提示：位编号从 0（最低位）到 31（最高位）。</div>
+    </div>
+
+    <h3>6.5 union、位段与字节序</h3>
+    <p class="reveal">
+      <code>union</code> 让多个成员共享同一块内存，常用来查看一个 32 位数的四个字节。
+      这直接关系到<strong>字节序（Endianness）</strong>：x86 与 ARM 通常是小端（低地址存低字节），
+      而网络协议与 Modbus 传输常用大端（高地址存低字节）。协议解析时必须明确。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 09</span>
+          <div>
+            <h3>0x12345678 在内存里长什么样？</h3>
+            <p class="lab-sub">切换小端/大端，观察 4 个字节在地址 0x1000 ~ 0x1003 中的排列。</p>
+          </div>
+        </div>
+      </div>
+      <div class="endian-value">uint32_t x = <b>0x12345678</b></div>
+      <div class="endian-toggle">
+        <button class="active" type="button" data-endian="little">小端 Little-Endian</button>
+        <button type="button" data-endian="big">大端 Big-Endian</button>
+      </div>
+      <div class="endian-mem" id="endianMem"></div>
+      <div class="endian-note" id="endianNote">低地址存低字节（0x78）——x86 / ARM 默认。网络字节序则是大端。</div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">union</span>
+        <h4>查看字节序</h4>
+        <div class="code-block" style="margin-bottom:0;">
+          <div class="code-head"><span>C · endian check</span></div>
+          <pre><code>union {
+    uint32_t u32;
+    uint8_t  u8[4];
+} conv;
+
+conv.u32 = 1;
+little_endian = (conv.u8[0] == 1);</code></pre>
+        </div>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">packed struct</span>
+        <h4>协议解析：禁止编译器插洞</h4>
+        <div class="code-block" style="margin-bottom:0;">
+          <div class="code-head"><span>C · packed frame</span></div>
+          <pre><code>struct __attribute__((packed)) canframe {
+    uint32_t id;
+    uint8_t  dlc;
+    uint8_t  data[8];
+};
+/* 关键字段仍建议手动移位解析，
+   位段跨端序不可移植 */</code></pre>
+        </div>
+      </article>
+    </div>
+
+    <div class="callout warn reveal">
+      <div class="callout-icon">!</div>
+      <div class="callout-body">
+        <strong>对齐的坑：</strong>编译器会在成员之间插入 padding，让访问更快，所以 <code>sizeof(struct)</code> 可能大于字段之和。
+        <code>packed</code> 能去掉 padding，但可能带来非对齐访问；关键协议字段用手动移位最稳。
+      </div>
+    </div>
+
+    <h3>6.6 X-Macro：一处定义，处处生成</h3>
+    <p class="reveal">
+      工业代码里常有一份「寄存器列表」：既要枚举编号，又要字符串表，还要生成处理分派。
+      手写三份很容易不同步。X-Macro 用一份列表生成全部，改一行宏，三处同步更新。
+    </p>
+    <div class="code-block reveal">
+      <div class="code-head"><span>C · X-Macro</span></div>
+      <pre><code>#define PLC_REG(X) \
+    X(ID,    0x00, R) \
+    X(CTRL,  0x04, RW) \
+    X(DI,    0x08, R)
+
+/* 枚举 */
+enum {
+#define E(n, a, p) REG_##n,
+    PLC_REG(E)
+#undef E
+};
+
+/* 字符串表 */
+static const char *reg_names[] = {
+#define S(n, a, p) #n,
+    PLC_REG(S)
+#undef S
+};
+/* 加一个寄存器 = 改一行宏，杜绝手滑不同步 */</code></pre>
+    </div>
+
+    <h3>6.7 未定义行为（UB）与 MISRA C</h3>
+    <p class="reveal">
+      UB 是编译器优化的「合法谋杀」：一旦代码触发未定义行为，编译器可以假定它永远不会发生，
+      于是删掉你的判空、判溢出分支。嵌入式里最危险的是「平时能跑，换优化等级就崩」。
+    </p>
+    <div class="grid-2 reveal">
+      <article class="card card-accent-red" style="border-color:rgba(251,113,133,.2);">
+        <span class="eyebrow-mini">UB Checklist</span>
+        <h4>高频未定义行为</h4>
+        <ul>
+          <li>有符号整数溢出（<code>INT_MAX + 1</code>）</li>
+          <li>移位数 ≥ 位宽，或负数左移</li>
+          <li>同一变量两次修改之间无序列点（<code>i++ + ++i</code>）</li>
+          <li>解引用空指针 / 野指针</li>
+          <li>越界一格的循环写（<code>i &lt;= n</code>）</li>
+          <li>写字符串字面量；返回局部变量地址</li>
+        </ul>
+      </article>
+      <article class="card card-accent-green">
+        <span class="eyebrow-mini">Defense</span>
+        <h4>对策三板斧</h4>
+        <ul>
+          <li>编译期：<code>-Wall -Wextra -Werror</code></li>
+          <li>测试期：<code>-fsanitize=undefined,address</code></li>
+          <li>评审期：对照 UB 清单逐项检查</li>
+        </ul>
+        <p style="margin-top:10px;">
+          MISRA C 的动机是<strong>可分析性与功能安全</strong>：限制动态内存、递归、隐式转换、魔数等，
+          为第 44 章 SIL 认证流程打基础。理解动机比死记条目重要。
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= 07 ARM ASSEMBLY ================= -->
+  <section id="asm" aria-labelledby="asmTitle">
+    <div class="section-head reveal">
+      <div class="section-index">07</div>
+      <div>
+        <h2 id="asmTitle">预备知识 III：ARM 汇编入门</h2>
+        <p class="lead">
+          你不需要用汇编写业务，但必须能读懂四类现场：<strong>启动代码、崩溃 PC、性能热点、上下文切换。</strong>
+          这一节只讲 Cortex-A9 的最小程序员模型、高频指令、AAPCS 调用约定和 start.S 的三件事。
+        </p>
+      </div>
+    </div>
+
+    <h3>7.1 Cortex-A9 程序员模型速览</h3>
+    <div class="grid-2 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">Registers</span>
+        <h4>通用寄存器与特殊角色</h4>
+        <ul>
+          <li><code>R0–R12</code>：通用寄存器；<code>R0–R3</code> 传参 / 返回（AAPCS）</li>
+          <li><code>R13</code> = <strong>SP</strong>：栈指针，C 环境的前提</li>
+          <li><code>R14</code> = <strong>LR</strong>：链接寄存器，保存返回地址</li>
+          <li><code>R15</code> = <strong>PC</strong>：程序计数器，当前执行位置</li>
+          <li><code>CPSR</code>：N/Z/C/V 标志 + 处理器模式 + 中断屏蔽 I/F</li>
+        </ul>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Modes</span>
+        <h4>处理器模式与专属栈</h4>
+        <p>User、IRQ、FIQ、SVC（复位与 SWI）、Abort、Undef、System。异常各有专属 SP，这是向量表分工的基础。</p>
+        <p style="margin-top:8px;color:#fbbf24;">记住：模式切换时，栈也会切换；写裸机中断时，这是第一个要处理的问题。</p>
+      </article>
+    </div>
+
+    <div class="reg-bank reveal" id="regModel" style="margin-top:14px;"></div>
+
+    <h3>7.2 高频指令 15 条</h3>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>指令</th><th>示例</th><th>一句话说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>MOV</code></td><td><code>MOV R0, #100</code></td><td>传常数；大数用 <code>LDR =</code> 伪指令</td></tr>
+          <tr><td><code>MVN</code></td><td><code>MVN R0, #0</code></td><td>按位取反，R0 = 0xFFFFFFFF</td></tr>
+          <tr><td><code>ADD / SUB</code></td><td><code>ADD R0, R1, R2, LSL #2</code></td><td>可带移位的一体化运算</td></tr>
+          <tr><td><code>MUL</code></td><td><code>MUL R0, R1, R2</code></td><td>乘法</td></tr>
+          <tr><td><code>AND / ORR / EOR</code></td><td><code>ORR R0, R0, #0x10</code></td><td>位与 / 位或 / 位异或</td></tr>
+          <tr><td><code>BIC</code></td><td><code>BIC R0, R1, R2</code></td><td>位清零：R0 = R1 &amp; ~R2</td></tr>
+          <tr><td><code>CMP</code></td><td><code>CMP R0, #10</code></td><td>隐含 SUBS，更新标志位，后接条件执行</td></tr>
+          <tr><td><code>B</code></td><td><code>BEQ label</code></td><td>条件 / 无条件分支</td></tr>
+          <tr><td><code>LDR / STR</code></td><td><code>LDR R0, [R1, #8]</code></td><td>读 / 写内存；后缀 B/H/W 选宽度</td></tr>
+          <tr><td><code>LDR =</code></td><td><code>LDR R0, =0xE000A000</code></td><td>加载任意 32 位常量，裸机最常见</td></tr>
+          <tr><td><code>PUSH / POP</code></td><td><code>PUSH {R4-R7, LR}</code></td><td>函数序言 / 尾声，保护现场</td></tr>
+          <tr><td><code>BL</code></td><td><code>BL func</code></td><td>调用函数，返回地址存入 LR</td></tr>
+          <tr><td><code>BX</code></td><td><code>BX LR</code></td><td>返回；也可切换 ARM / Thumb 状态</td></tr>
+          <tr><td><code>LDM / STM</code></td><td><code>STMIA sp!, {R0-R3}</code></td><td>批量存取，<code>!</code> 表示写回基址</td></tr>
+          <tr><td><code>MRS / MSR</code></td><td><code>MRS R0, CPSR</code></td><td>读写状态寄存器，崩溃取证常用</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>7.3 AAPCS：C 与汇编的契约</h3>
+    <p class="reveal">
+      函数调用不是「随便找个寄存器放参数」。AAPCS 规定：前 4 个整型参数走 <code>R0–R3</code>，返回值放 <code>R0</code>；
+      <code>R4–R11</code> 由被调用者保存，<code>R0–R3 / R12</code> 由调用者保存。
+      下面的动画把一次 <code>add(3, 5)</code> 的调用过程拆成 4 步。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 10</span>
+          <div>
+            <h3>一次函数调用，寄存器发生了什么？</h3>
+            <p class="lab-sub">点「下一步」逐步执行。注意 BL 如何设置 LR，结果如何通过 R0 返回。</p>
+          </div>
+        </div>
+        <div class="score-pill">步骤 <b id="callStep">0</b> / 4</div>
+      </div>
+      <div class="call-demo">
+        <div class="call-code">
+          <pre><code><span class="code-key">int</span> <span class="code-fn">add</span>(<span class="code-key">int</span> a, <span class="code-key">int</span> b) {
+    <span class="code-key">return</span> a + b;
+}
+
+<span class="code-key">int</span> <span class="code-fn">main</span>(<span class="code-key">void</span>) {
+    <span class="code-key">int</span> r = add(<span class="code-num">3</span>, <span class="code-num">5</span>);
+    <span class="code-key">return</span> r;
+}</code></pre>
+        </div>
+        <div>
+          <div class="reg-bank" id="callRegs"></div>
+          <div class="call-explain" id="callExplain">初始状态：main 尚未传参。R0–R3 是参数/返回寄存器，R13–R15 是 SP / LR / PC。</div>
+        </div>
+      </div>
+      <div class="lab-actions">
+        <button class="btn small primary" id="callNext" type="button">下一步</button>
+        <button class="btn small ghost" id="callReset" type="button">重置</button>
+      </div>
+    </div>
+
+    <div class="callout info reveal">
+      <div class="callout-icon">i</div>
+      <div class="callout-body">
+        <strong>64 位返回值</strong>用 <code>R0:R1</code> 一对寄存器；VFP 浮点参数走 S/D 寄存器。
+        <code>R4–R11</code> 是「被调用者保存」，所以函数里用到它们必须先 PUSH，返回前 POP——这就是第 48 章 PendSV 上下文切换的伏笔。
+      </div>
+    </div>
+
+    <h3>7.4 逐行读懂最小启动代码 start.S</h3>
+    <p class="reveal">
+      启动代码只做三件事：<strong>设栈、清 bss、跳 main。</strong>
+      C 标准要求未初始化的全局变量为 0，而芯片上电后 RAM 内容不确定，所以必须手动清零 bss 段。
+      <code>__bss_start</code> / <code>__bss_end</code> 由链接脚本导出。
+    </p>
+
+    <div class="lab reveal">
+      <div class="lab-head">
+        <div class="lab-title">
+          <span class="lab-badge">互动实验 11</span>
+          <div>
+            <h3>启动三件事：设栈 → 清 bss → 跳 main</h3>
+            <p class="lab-sub">跟着高亮代码逐步执行，观察 SP、bss 与 PC 的变化。</p>
+          </div>
+        </div>
+      </div>
+      <div class="startup-grid">
+        <pre class="startup-code" id="startupCode"><span class="line" data-line="1">_start:</span>
+<span class="line" data-line="2">    ldr sp, =stack_top      @ 1) C 环境前提：先有栈</span>
+<span class="line" data-line="3">    ldr r0, =__bss_start    @ 2) 清零 bss 段</span>
+<span class="line" data-line="4">    ldr r1, =__bss_end</span>
+<span class="line" data-line="5">    mov r2, #0</span>
+<span class="line" data-line="6">clr:</span>
+<span class="line" data-line="7">    cmp r0, r1</span>
+<span class="line" data-line="8">    strlo r2, [r0], #4</span>
+<span class="line" data-line="9">    blo clr</span>
+<span class="line" data-line="10">    bl main                 @ 3) 交棒 C 世界</span>
+<span class="line" data-line="11">hang:</span>
+<span class="line" data-line="12">    b hang                  @ main 返回 = 异常，原地兜圈</span></pre>
+        <div class="startup-visual">
+          <div class="mem-view">
+            <h5>栈（由高地址向低地址生长）</h5>
+            <div class="stack-track">
+              <div class="stack-fill" id="stackFill"></div>
+              <div class="stack-label"><span id="stackTopLabel">SP = ?</span><span>stack_top</span></div>
+            </div>
+          </div>
+          <div class="mem-view">
+            <h5>.bss 段（未初始化全局变量）</h5>
+            <div class="bss-cells" id="bssCells"></div>
+          </div>
+          <div class="status-chips">
+            <span class="status-chip">PC <b id="startupPC">_start</b></span>
+            <span class="status-chip">bss <b id="startupBss">未清零</b></span>
+          </div>
+          <div class="call-explain" id="startupExplain" style="margin-top:0;">点击「下一步」开始。第一步必须先建立栈，否则 C 函数无法保存局部变量和返回地址。</div>
+        </div>
+      </div>
+      <div class="lab-actions">
+        <button class="btn small primary" id="startupNext" type="button">下一步</button>
+        <button class="btn small ghost" id="startupReset" type="button">重置</button>
+      </div>
+    </div>
+
+    <h3>7.5 内联汇编与反汇编定位崩溃</h3>
+    <div class="grid-2 reveal">
+      <article class="card">
+        <span class="eyebrow-mini">Inline ASM</span>
+        <h4>读取 CPSR</h4>
+        <div class="code-block" style="margin-bottom:0;">
+          <div class="code-head"><span>C · inline asm</span></div>
+          <pre><code>uint32_t read_cpsr(void) {
+    uint32_t v;
+    __asm__ volatile("mrs %0, cpsr" : "=r"(v));
+    return v;
+}</code></pre>
+        </div>
+      </article>
+      <article class="card">
+        <span class="eyebrow-mini">Crash Analysis</span>
+        <h4>反汇编定位三板斧</h4>
+        <ol>
+          <li><code>objdump -dS app &gt; app.asm</code>，混合源码与汇编</li>
+          <li>拿崩溃 PC 偏移去 grep，定位到指令行</li>
+          <li>回溯 LR 判断调用者；看 SP 附近栈帧还原局部变量</li>
+        </ol>
+      </article>
+    </div>
+    <div class="callout info reveal">
+      <div class="callout-icon">i</div>
+      <div class="callout-body">
+        第三篇第 23–25 章会反复用这套技能：JTAG 断点、GDB 远程调试、内核 oops 分析。
+        现在先把「PC / LR / SP 分别意味着什么」刻进脑子。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 08 CHECK ================= -->
+    <section id="zx-lab" class="zx-section" data-zx-chapter="ch01"></section>
+
+<section id="check" aria-labelledby="checkTitle">
+    <div class="section-head reveal">
+      <div class="section-index">08</div>
+      <div>
+        <h2 id="checkTitle">自检、作业与通关清单</h2>
+        <p class="lead">
+          先做 8 道快速自检题，再逐项勾选通关清单。最后三道思考题没有标准答案，
+          重点是把「PS/PL 分工、排障顺序、官方文档」真正说清楚。你的笔记会自动保存在本机浏览器。
+        </p>
+      </div>
+    </div>
+
+    <h3>8.1 快速自检（8 题）</h3>
+    <div class="quiz reveal" id="quiz">
+      <div class="quiz-top">
+        <div class="quiz-score">答对 <b id="quizScore">0</b> / 8<span id="quizDone"></span></div>
+        <button class="btn small ghost" id="quizReset" type="button">重新答题</button>
+      </div>
+      <div id="quizList"></div>
+    </div>
+
+    <h3>8.2 本章通关清单</h3>
+    <div class="card reveal">
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 10</span>
+      </div>
+      <div class="checklist" id="checklist">
+        <label class="check-item"><input type="checkbox" data-check="0"><span>我能用自己的话解释 PS 与 PL 的分工，并举一个两者协作的具体场景。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="1"><span>我知道本课程四大篇章的顺序，以及为什么不能直接跳到 Linux。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="2"><span>我记住版本铁律：Vivado / Vitis / PetaLinux 全部 2020.2。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="3"><span>我能完成二 / 十 / 十六进制互转，并解释补码「取反 + 1」。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="4"><span>我理解 D 触发器在时钟沿采样，以及 setup / hold 的直觉。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="5"><span>我能画出自动售货机状态图，并说出三段式状态机的组成。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="6"><span>我理解 FPGA 五步开发流程，以及配置掉电丢失的原因。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="7"><span>我能说清 volatile 的作用与局限，以及它为什么不能替代锁。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="8"><span>我能读懂 LDR =、BL、BX LR、PUSH/POP 这几条汇编指令。</span></label>
+        <label class="check-item"><input type="checkbox" data-check="9"><span>我知道 start.S 的三件事：设栈、清 bss、跳 main。</span></label>
+      </div>
+    </div>
+
+    <h3>8.3 思考题（附参考思路）</h3>
+    <div class="card reveal">
+      <details>
+        <summary>1. 设计一个「100 kHz、4 通道应变片采集 + 上位机曲线显示」系统，采集链路放 PS 还是 PL？数据怎么回传？</summary>
+        <p>
+          <strong>参考思路：</strong>4 通道 100 kHz 采样要求并行、确定性时序，放 PL 最合适。PL 内做并行采样与滤波，
+          数据先写入 BRAM / FIFO，再通过 <code>S_AXI_HP</code> + DMA 成批搬到 DDR。
+          PS 上的 Linux 负责协议、存储与 Web 曲线显示。这样 PL 保证采样节拍，PS 负责「智能」部分。
+        </p>
+      </details>
+      <details>
+        <summary>2. 实验现象与教程不一致时，你会按什么顺序排查？为什么？</summary>
+        <p>
+          <strong>参考思路：</strong>先版本与环境（Vivado/Vitis/PetaLinux 版本、许可证、驱动），再硬件连接（电源、USB、JTAG、串口、网线、启动拨码），
+          再工程配置（器件型号、引脚约束、bitstream 是否最新），再代码逻辑，最后才怀疑文档或芯片。
+          理由：先排除「环境与硬件」这类系统性因素，再用二分法缩小到具体模块；否则容易在错误的层面上越查越乱。
+        </p>
+      </details>
+      <details>
+        <summary>3. 查阅 UG585 目录，Chapter 3 与 Chapter 29 各自回答什么问题？</summary>
+        <p>
+          <strong>参考思路：</strong>Chapter 3（Signal Interfaces）讲 PS 与 PL 的接口、MIO/EMIO、AXI 通道与信号；
+          Chapter 29（Boot and Configuration）讲启动模式、BootROM、启动流程与配置。前者回答「PS 和 PL 怎么连」，
+          后者回答「上电后第一段代码从哪里来」。
+        </p>
+      </details>
+    </div>
+
+    <div class="card reveal" style="margin-top:14px;">
+      <h4 style="margin-bottom:8px;">我的学习笔记</h4>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你的学习计划、疑问、实验现象……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存已开启</div>
+      </div>
+    </div>
+
+    <div class="next-card reveal" style="margin-top:26px;">
+      <div>
+        <div class="next-label">Next Chapter</div>
+        <h3>第 2 章 · ZYNQ 架构详解</h3>
+        <p>下一章我们会把 PS/PL 内部拆开：两张地图——资源地图与总线互联图，五类 AXI 通道怎么选，以及关键地址空间速查。</p>
+      </div>
+      <a class="btn primary" href="chapter2.html">前往下一章 <span class="arrow">→</span></a>
+    </div>
+
+    <footer class="site-footer">
+      <div>
+        本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 第 1 章整理，
+        加入了自己的理解、互动演示与自检设计。可离线打开，无需联网。
+      </div>
+      <div>Vivado / Vitis / PetaLinux 2020.2 · XC7Z020</div>
+    </footer>
+  </section>
+
+
+</div>
+</main>
+
+<script src="app.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqLectureReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

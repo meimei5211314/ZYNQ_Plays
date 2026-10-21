@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 47 章 · 工业网络抓包解析与排故实战 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 47 章 · 工业网络抓包解析与排故实战：一线工程师的看家本领：把总线上的字节摊开来读 —— 帧级理解 + 八个真实故障案例复盘。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-industrial" data-chapter-id="ch47" data-chapter-file="chapter47.html" data-chapter-label="第 47 章 · 工业网络抓包解析与排故实战">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 47 章 · 工业自动化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>抓包工具箱与正确姿势</a>
+<a href="#sec-2"><span class="num">02</span>Modbus TCP 帧逐字段解剖 ★</a>
+<a href="#sec-3"><span class="num">03</span>Modbus RTU 手工解析 + CRC 校验演示</a>
+<a href="#sec-4"><span class="num">04</span>EtherCAT 与 CAN 帧速览</a>
+<a href="#sec-5"><span class="num">05</span>分析功力提升五条</a>
+<a href="#sec-6"><span class="num">06</span>八个真实排故案例（现象→定位→根因→对策）</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：tshark 自动化字段提取（报表级分析）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：用 SNMP 定位丢包方向</a>
+<a href="#sec-10"><span class="num">10</span>排故案例补充（第9~10例）★</a>
+<a href="#sec-11"><span class="num">11</span>深潜：Wireshark IO Graph 实操五步</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 47 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第六篇 · 工业自动化 / Chapter 47</div>
+      <h1 id="heroTitle">第 47 章<br><span class="grad">工业网络抓包解析与排故实战</span></h1>
+      <p class="hero-sub">一线工程师的看家本领：把总线上的字节摊开来读 —— 帧级理解 + 八个真实故障案例复盘。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">47</div>
+          <div class="console-part">工业自动化 / CH47</div>
+          <div class="console-title">工业网络抓包解析与排故实战</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>47 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握交换机环境下正确的抓包部署方式</li>
+<li class="goal-item">能手算/逐字段解析 Modbus TCP 与 RTU 帧</li>
+<li class="goal-item">积累八个典型工业网络故障的定位套路</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第六篇 · 工业自动化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,196 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        PLC 硬件、功能安全、工业总线与冗余设计。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">47.1</span>抓包工具箱与正确姿势</h3><h4>① 部署方式（交换机时代的关键）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方式</th><th>做法</th><th>适用</th></tr>
+<tr><td>端口镜像 SPAN</td><td>交换机把源端口流量复制到观察口：<code class="inline">observe port</code> 配置一条命令</td><td>★ 首选；注意镜像口带宽是否够（万兆源→千兆口会丢包）</td></tr>
+<tr><td>RSPAN</td><td>跨交换机远程镜像（经 VLAN 承载）</td><td>大型厂区集中监控</td></tr>
+<tr><td>硬件 TAP</td><td>串联分流入分析口（无源保真）</td><td>需绝对无干扰的光纤/关键链路</td></tr>
+<tr><td>板卡直抓</td><td>你的 PLC 本机 tcpdump（自己既是端点）</td><td>快速验证；看不到链路层他机流量</td></tr>
+</table></div>
+<h4>② 命令速查</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 板上抓取（写文件防内存爆）
+tcpdump -i eth0 -w /tmp/mb.pcap 'port 502'
+# Wireshark 显示过滤器（不是捕获过滤器！语法不同）
+modbus                          # 所有 Modbus
+tcp.port==502 && ip.addr==192.168.2.30
+mbtcp.func_code==3              # 只看 FC3 读保持寄存器
+eth.type==0x88a4                # EtherCAT 原生帧
+can.id==0x123                   # CAN 接口(can0) 场景
+# 统计利器：Statistics → Conversations / IO Graph（看突发）
+# 大文件离线分析：tshark -r big.pcap -Y "modbus" -T fields -e frame.number ...</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">47.2</span>Modbus TCP 帧逐字段解剖 ★</h3><p>一次「读从站 1 的 MW0 起 2 个寄存器」的请求，以太网帧载荷十六进制：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">请求:  9c 4b 00 00 00 06 01 03 00 00 00 02
+       ───── ──── ──── ── ── ──── ── ──── ────
+        │     │    │   │  │   │   │   │    └ 数量 Quantity=0002 (Big-Endian!)
+        │     │    │   │  │   │   │   └ 起始地址 Start Addr=0x0000 → %MW0
+        │     │    │   │  │   │   └ 功能码 FC=03 Read Holding Registers
+        │     │    │   │  │   └ 单元标识符 Unit ID=01 (从站地址)
+        │     │    │   └──┘ 长度 Length=0x0006 (后续字节数)
+        │     └────── 协议标识 Protocol ID=0x0000 (恒0, Modbus)
+        └──────────── 事务标识 TxID=0x9C4B (客户端自增, 用于匹配应答)
+
+应答:  9c 4b 00 00 00 07 01 03 04 12 34 05 67
+       TxID回显│ 长度7│FC回显 字节数4 数据=0x1234,0x0567
+
+异常应答: 9c 4b 00 00 00 03 01 83 02
+                            │  │  └ 异常码02=Illegal Data Address(点表配错!)
+                            │  └ FC|0x80 标记异常
+【读帧四步法】TxID匹配?→PID=0?→FC=?→按FC查数据布局。90%的联调问题
+(地址错/字节序错/数量超限)都能在这一眼扫描中现形。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">47.3</span>Modbus RTU 手工解析 + CRC 校验演示</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">原始字节: 01 03 00 6B 00 03 [CRC_LO CRC_HI] = 01 03 00 6B 00 03 76 87
+  01      从站地址1
+  03      FC3
+  006B    起始地址107
+  0003    读3个寄存器
+  76 87   CRC16 低字节在前！(多项式0xA001反射, 初值0xFFFF)
+
+手算校验流程(面试常考):
+  crc=0xFFFF
+  依次异或每字节后循环8次: 最低位1?→右移再异或0xA001 : 仅右移
+  最终取 crc 低字节在前附尾。
+  用 python 一行验证: import libscrc; hex(libscrc.modbus(b'\x01\x03\x00\x6b\x00\x03'))</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">47.4</span>EtherCAT 与 CAN 帧速览</h3><ul>
+<li><strong>EtherCAT</strong>：Ethertype <code class="inline">0x88A4</code> 直载；帧体为若干 Datagram：[Cmd(1) Index(1) ADP(2) ADDR(4) Len/Type(2) IRQ(2) DATA...]；从站寻址常见「自增位置寻址」(POS) 与「节点配置寻址」；Wireshark 已内置 dissect 完整解析 —— 对照第45章原理看「一帧多报文」最直观。</li>
+<li><strong>CAN 标准帧</strong>：SOF | 仲裁ID11bit + RTR + IDE + r0 | DLC | DATA0~8 | CRC15 | ACK | EOF。用 candump/canguru 或逻辑分析仪解码；关注<strong>采样点配置一致性与错误帧位置</strong>（45章 bus-off 排查的证据来源）。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">47.5</span>分析功力提升五条</h3><ol>
+<li><strong>先留基线</strong>：系统健康时抓 10 分钟正常包归档 —— 故障时 diff 对比胜过一切猜测；</li>
+<li><strong>双端对抓</strong>：怀疑丢包时在两端同时抓，比对序号即可二分定位是哪一段丢的；</li>
+<li><strong>时间戳纪律</strong>：全网 NTP 对时 + pcap 用硬件时间戳，否则跨设备时序分析全是误导；</li>
+<li><strong>统计先行</strong>：Conversations 看 Top Talker、IO Graph 看突发、Expert Info 汇总重传/校验和错；</li>
+<li><strong>串口也要「抓」</strong>：485 用逻辑分析仪(Saleae 协议解码) 或双串口监听器，别靠肉眼数脉冲。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">47.6</span>八个真实排故案例（现象→定位→根因→对策）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>现象</th><th>定位过程</th><th>根因与对策</th></tr>
+<tr><td>1</td><td>全车间 PLC 周期性卡顿，CPU 占用飙高</td><td>Mirror 口抓包 → IO Graph 发现组播洪水 300k pps；Conversations 锁定一台新装摄像头</td><td>IGMP Snooping 未启用，未知组播泛洪到所有口。开启 snooping + 配置查询器根治</td></tr>
+<tr><td>2</td><td>某从站每天随机失联几分钟</td><td>持续 ping + arpwatch 记录 MAC 漂移</td><td><strong>IP 冲突</strong>（临时接入的笔记本静态 IP 撞车）。建立 IP 台账 + DHCP Snooping 防再犯</td></tr>
+<tr><td>3</td><td>485 网络 CRC 错误率随温度升高而上升</td><td>示波器看空闲电平：无偏置时 A/B 电平漂移不定，长 0 后起始位误判</td><td>主机未接<strong>失效保护偏置电阻</strong>。加装 560Ω×2 上拉下拉后归零</td></tr>
+<tr><td>4</td><td>环网演练切换时伺服报警停机</td><td>抓包测得 MRP 切换 180ms，而主站通信超时设 100ms</td><td>参数不匹配。统一规划：超时 &gt; 切换时间 ×2，并复测</td></tr>
+<tr><td>5</td><td>千兆口协商成半双工百兆且大量碰撞</td><td>ethtool 看协商状态；换线对比</td><td>水晶头只压了 4 对中的 2 对（劣质做工）。强制千兆前先修物理层——永远先怀疑线</td></tr>
+<tr><td>6</td><td>光纤链路误码率随昼夜波动</td><td>光功率计实测收光 -28dBm（规格下限 -24）</td><td>接头污染+弯曲半径过小。清洁端面、整改走线，余量恢复至 -18dBm</td></tr>
+<tr><td>7</td><td>VPN 远程维护时 Modbus 能连不能读大数据块</td><td>小包通大包断 → 典型 MTU 问题；<code class="inline">ping -f -l 1472</code> 定位隧道 MTU=1400</td><td>分片被安全设备丢弃。调整 MSS clamp / 应用分包 ≤1400</td></tr>
+<tr><td>8</td><td>新装仪表一上电就烧 485 口</td><td>万用表测两端「地」之间电位差高达 38VAC</td><td><strong>接地环路</strong>+共模超限。两端加隔离型 485 中继 + 机柜等电位联结改造</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：Wireshark 打开显示 "check sum incorrect" 一大片？</summary><div class="ans"><p>多为 TX offload 导致本机发出的包校验和未填。编辑 → 首选项 → Protocols 关闭对应校验和验证即可，不是真错误。</p></div></details>
+<details class="qa"><summary>Q2：镜像口抓到的包不完整/有性能影响？</summary><div class="ans"><p>① 出向带宽超过观察口速率必然丢包（换更高速率口或分流）；② 镜像本身消耗交换机 ASIC 资源，核心大流量设备慎开；③ 抓包盘用本地 SSD，避免 NFS 抖动。</p></div></details>
+<details class="qa"><summary>Q3：怎么判断该抓哪一层？</summary><div class="ans"><p>沿用 25 章五层法：应用行为异常先抓应用协议（Modbus 事务）；连接不稳抓 TCP 重传/RST；彻底不通抓 ARP/物理层指示灯。<strong>每一层只回答「我收到了什么」</strong>，边界自然浮现。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L47-1：交付一份《网络体检报告》</strong>
+<p>对你的软 PLC 系统：① SPAN/直抓获取 10 分钟流量，输出 Top 会话表与 IO 曲线截图；② 手工解析 5 个 Modbus 帧（含 1 个故意制造的异常码响应），逐字段注释；③ 复刻案例 3：拆掉终端电阻观察波形并量化 CRC 错误率变化；④ 把以上整理成两页报告 —— 这就是面试时讲排故故事的素材库。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 Modbus RTU 的 CRC 是低字节在前，而寄存器值是大端？历史原因是什么？</li>
+<li>设计一个自动化工况基线系统：定时抓包+特征提取（会话数/pps/新MAC告警），你会怎么实现？</li>
+<li>案例 8 若不允许增加隔离器，还有什么工程手段切断接地环路？各有什么代价？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">47.7</span>深潜：tshark 自动化字段提取（报表级分析）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 从 pcap 批量导出 Modbus 事务三要素 → CSV
+tshark -r mb.pcap -Y "mbtcp" -T fields \
+  -e frame.number -e frame.time_epoch? frame.time_relative \
+  -e mbtcp.trans_id -e mbtcp.func_code \
+  -e modbus.regval_uint16 -E header=y -E separator=, > mb_report.csv
+# 进阶: 用 python pandas 按事务ID配对请求/响应计算 RTT 分布 ——
+# 把"抓包"升级成"通信质量监控指标"。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">47.8</span>深潜：用 SNMP 定位丢包方向</h3><p>交换机端口计数器是「链路层心电图」：<code class="inline">snmpwalk -v2c -c public sw_ip IF-MIB::ifXTable</code> 关注 <strong>ifInErrors/ifOutDiscards/ifInUnknownProtos</strong>。丢包判定法：A→B 丢包时，若 A 口 OutDiscards 增长=本机出口拥塞；B 口 InErrors 增长=物理链路劣化；两端皆零但应用层丢=中间设备策略丢弃 —— 三步锁定责任段，避免甩锅式排障。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">47.9</span>排故案例补充（第9~10例）★</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>现象</th><th>定位过程</th><th>根因与对策</th></tr>
+<tr><td>9</td><td>SOE 事件顺序记录与现场目击顺序相反，事故复盘失效</td><td>比对各装置 SOE 时标：跨装置时钟差达 800ms</td><td>NTP 未部署、各控制器各自走时钟。部署 PTP/gPTP(或至少统一 NTP+毫秒级校准)，SOE 精度规格写进技术协议</td></tr>
+<tr><td>10</td><td>新增 VLAN 后 A 车间 PLC 与 B 车间 HMI 忽通忽断</td><td>同交换机内通、跨交换机不通 → trunk 链路检查</td><td>级联口 trunk 未放行新 VLAN ID。修正 allowed vlan 列表；建立"加网必改交换机台账"流程</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">47.10</span>深潜：Wireshark IO Graph 实操五步</h3><ol>
+<li>Statistics → IO Graph，时间粒度先设 1s 总览再缩到 10ms 找毛刺；</li>
+<li>叠加过滤曲线对比：<code class="inline">tcp.analysis.retransmission</code>(红) vs 正常流量(蓝) —— 重传尖峰与业务卡顿时刻对齐即实锤网络问题；</li>
+<li>X 轴切 Tick？换 "Advanced…" 加 Y 轴第二曲线 SUM(yfield) 统计字节数；</li>
+<li>导出图形 CSV 归档进《网络体检报告》（L47-1）。</li>
+</ol></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch47"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握交换机环境下正确的抓包部署方式</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>能手算/逐字段解析 Modbus TCP 与 RTU 帧</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>积累八个典型工业网络故障的定位套路</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「工业网络抓包解析与排故实战」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter46.html"><span><span class="pager-label">上一章</span><b>第 46 章 · 冗余设计与高可用架构</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter48.html"><span><span class="pager-label">下一章</span><b>第 48 章 · FreeRTOS 源码框架解析</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 47 章 · 工业网络抓包解析与排故实战 · 第六篇 · 工业自动化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

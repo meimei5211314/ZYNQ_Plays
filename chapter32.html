@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 32 章 · Modbus TCP / RTU 从站实现 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 32 章 · Modbus TCP / RTU 从站实现：M5 里程碑：让 SCADA、组态王、Python 脚本都能读写你的 PLC —— 工业互联互通的第一步。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch32" data-chapter-file="chapter32.html" data-chapter-label="第 32 章 · Modbus TCP / RTU 从站实现">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 32 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>协议速览与地址映射合同</a>
+<a href="#sec-2"><span class="num">02</span>TCP 从站核心代码</a>
+<a href="#sec-3"><span class="num">03</span>FC 分发器：一切经映像区</a>
+<a href="#sec-4"><span class="num">04</span>RTU 从站要点</a>
+<a href="#sec-5"><span class="num">05</span>测试矩阵（M5 验收）</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>深潜：libmodbus 交叉编译与协议级联调</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 32 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 32</div>
+      <h1 id="heroTitle">第 32 章<br><span class="grad">Modbus TCP / RTU 从站实现</span></h1>
+      <p class="hero-sub">M5 里程碑：让 SCADA、组态王、Python 脚本都能读写你的 PLC —— 工业互联互通的第一步。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">7 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">32</div>
+          <div class="console-part">软 PLC 实战 / CH32</div>
+          <div class="console-title">Modbus TCP / RTU 从站实现</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>7</b></div>
+            <div class="console-metric"><span>CODE</span><b>5</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:39%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:36%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>32 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>7</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 Modbus 帧结构与功能码语义</li>
+<li class="goal-item">实现并发安全的 TCP 从站（502 端口）与 RTU 从站</li>
+<li class="goal-item">建立映像区 ↔ Modbus 地址的完整映射并回归测试</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,927 字 · 7 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>5 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">32.1</span>协议速览与地址映射合同</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>功能码</th><th>名称</th><th>映射目标</th><th>访问</th></tr>
+<tr><td>FC01/02</td><td>读线圈/离散输入</td><td>%QX0.x（0..127）/ %IX0.x</td><td>R</td></tr>
+<tr><td>FC05/15</td><td>写单/多线圈</td><td>%QX —— 仅写入「上位机强制位」，逻辑仍可覆盖*</td><td>R/W</td></tr>
+<tr><td>FC03/06/16</td><td>读/写保持寄存器</td><td>%MW0..255</td><td>R/W</td></tr>
+<tr><td>FC04</td><td>读输入寄存器</td><td>%IW0..63（AI工程量等）</td><td>R</td></tr>
+</table></div>
+<p>* 设计决策：DO 的 Modbus 写入进入 <code class="inline">remote_force[]</code> 掩码，由用户程序决定是否采纳（例如配合 DO_FORCE_EN 通道）—— 避免远程误写直接驱动现场设备。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">32.2</span>TCP 从站核心代码</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* modbus_tcp.c —— 单文件从站（每连接一线程模型） */
+void *tcp_worker(void *cfd_p)
+{
+    int fd = (int)(intptr_t)cfd_p;
+    uint8_t req[260], rsp[260];
+
+    for (;;) {
+        /* ① MBAP 头 7 字节：TxID(2) ProtoID(2) Len(2) UnitID(1) */
+        if (readn(fd, req, 7) != 7) break;
+        uint16_t txid = req[0] &lt;&lt; 8 | req[1];
+        uint16_t len  = req[4] &lt;&lt; 8 | req[5];
+        if (len &lt; 2 || len &gt; sizeof(req) - 6) break;   /* 合法性闸门 */
+        if (readn(fd, req + 7, len - 1) != len - 1) break;
+
+        /* ② PDU = Function Code(1) + Data */
+        int rlen = mb_process(req + 7, len - 1, rsp + 7);/* 统一入口 */
+        if (rlen &lt; 0) {                                  /* 异常响应 */
+            rsp[7] = req[7] | 0x80;
+            rsp[8] = (uint8_t)-rlen;                     /* 异常码 */
+            rlen = 2;
+        }
+        /* ③ 回包：复用 TxID */
+        uint16_t rl = rlen + 1;
+        rsp[0] = txid &gt;&gt; 8; rsp[1] = txid &amp; 0xFF;
+        rsp[2] = 0;      rsp[3] = 0;                 /* Protocol ID */
+        rsp[4] = rl &gt;&gt; 8; rsp[5] = rl &amp; 0xFF;
+        rsp[6] = req[6];                              /* UnitID 原样 */
+        writen(fd, rsp, 6 + rl);
+    }
+    close(fd);
+    return NULL;
+}
+
+/* 监听循环 */
+void *modbus_tcp_server(void *arg)
+{
+    int srv = tcp_listen(g_cfg.mb_port);              /* 20章骨架复用 */
+    for (;;) {
+        int c = accept(srv, NULL, NULL);
+        pthread_t th;
+        pthread_create(&amp;th, NULL, tcp_worker,
+                       (void*)(intptr_t)c);
+        pthread_detach(th);
+    }
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">32.3</span>FC 分发器：一切经映像区</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">int mb_process(const uint8_t *pdu, int plen, uint8_t *out)
+{
+    uint8_t fc = pdu[0];
+    uint16_t addr = pdu[1] &lt;&lt; 8 | pdu[2];
+    uint16_t cnt  = pdu[3] &lt;&lt; 8 | pdu[4];
+
+    switch (fc) {
+    case 3: {                                   /* 读保持寄存器 %MW */
+        if (cnt &gt; 125 || addr + cnt &gt; 256) return -2;   /* Illegal Data Addr */
+        img_lock();
+        out[1] = cnt * 2;
+        for (int i = 0; i &lt; cnt; i++) {
+            out[2 + 2*i] = g_img.mw[addr+i] &gt;&gt; 8;
+            out[3 + 2*i] = g_img.mw[addr+i] &amp; 0xFF;
+        }
+        img_unlock();
+        return 2 + cnt * 2;
+    }
+    case 6: {                                   /* 写单寄存器 */
+        uint16_t v = pdu[4] &lt;&lt; 8 | pdu[5];
+        if (addr &gt;= 256) return -2;
+        img_lock(); g_img.mw[addr] = v; img_unlock();
+        memcpy(out, pdu, 5);                    /* 原样回显 */
+        return 5;
+    }
+    case 1: case 2: case 5: case 15: case 4:
+        return fc_bit_or_input(pdu, plen, out); /* 同构实现，留作 L32-1 */
+    default:
+        return -1;                              /* Illegal Function */
+    }
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">32.4</span>RTU 从站要点</h3><ul>
+<li><strong>帧结构</strong>：<code class="inline">SlaveAddr(1) + PDU + CRC16(lo,hi)</code>，无 MBAP；</li>
+<li><strong>帧定界</strong>：依赖 ≥3.5 字符时间的静默间隔（115200 下约 330μs）。实现：termios VTIME 短读 + 超时判定帧尾；</li>
+<li><strong>CRC16-MODBUS</strong>（多项式 0xA001 反射），查表法：</li>
+</ul>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static uint16_t crc16(const uint8_t *d, int n)
+{
+    uint16_t crc = 0xFFFF;
+    while (n--) {
+        crc ^= *d++;
+        for (int i = 0; i &lt; 8; i++)
+            crc = (crc &amp; 1) ? (crc &gt;&gt; 1) ^ 0xA001 : crc &gt;&gt; 1;
+    }
+    return crc;                                  /* 低字节先发！*/
+}
+/* 主循环：read 到首字节后，循环 read 直到超时无新数据 → 校验 CRC →
+   地址匹配则 mb_process() → 应答前按 RS485 方向控制切发送(DE/RE 引脚) */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">32.5</span>测试矩阵（M5 验收）</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># Ubuntu 主机侧用 mbpoll（apt install mbpoll）
+mbpoll -m tcp -a 1 -t 3 -r 0 -c 4 192.168.2.30          # 读 MW0..3
+mbpoll -m tcp -a 1 -t 4 -r 100 192.168.2.30 12345       # 写 MW100
+# Python 快速验证：
+pip install pymodbus
+python3 -c "
+from pymodbus.client import ModbusTcpClient
+c=ModbusTcpClient('192.168.2.30'); c.connect()
+print(c.read_holding_registers(0,4,slave=1).registers)
+c.write_register(100,777,slave=1)
+print(c.read_holding_registers(100,1,slave=1).registers)"
+# Web 页同步观察 MW 变化 → 三端一致性 ✓</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：TCP 能连上但读数全 0？</summary><div class="ans"><p>UnitID 不匹配（很多主站默认发 255 或 1）；或读了 %MW 但你的梯形图只写 %QX。先用 plcio_test 在板侧确认数据源非空，再查映射偏移。</p></div></details>
+<details class="qa"><summary>Q2：RTU 无应答？</summary><div class="ans"><p>排查链：示波器看 A/B 差分有无波形 → CRC 计算是否低字节在前 → 波特率/校验位一致 → RS485 收发方向脚切换时序（应答前切 TX）。四个点覆盖 99% 故障。</p></div></details>
+<details class="qa"><summary>Q3：多主站同时写一个寄存器会怎样？</summary><div class="ans"><p>img_lock 保证原子性，但业务语义上「最后写入者胜」。工业惯例是只读区/可写区分离 + 关键参数加影子确认（写后回读比对），必要时扩展双字时间戳。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L32-1：补全 FC 并自动化回归</strong>
+<p>① 实现 FC1/2/5/15/4 五个分支（位操作注意字节内序）；② 编写 Python pytest 脚本覆盖：合法读写、越界地址返回异常码 02、非法功能码返回 01、并发 10 客户端压测 5 分钟无掉线；③ 全部通过后 M5 达成。把测试脚本纳入 Git —— 这就是你的第一个工控软件 CI。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>Modbus 是「无状态」协议吗？从你的实现角度说明事务 ID 的作用与局限。</li>
+<li>为什么 FC15 写多线圈要逐位打包而不是整字节拷贝？写出你处理 LSB-first 的代码。</li>
+<li>若上级要求支持 Modbus TCP 网关转发 RTU 设备，架构如何演进？（提示：网关模式与地址空间路由）</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">32.6</span>深潜：libmodbus 交叉编译与协议级联调</h3><h4>① libmodbus 移植（对照自研栈的工程价值）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 交叉编译三步(源码 ~3万行, 成熟稳定)
+./configure --host=arm-xilinx-linux-gnueabi? --prefix=$PWD/out \
+            ac_cv_func_malloc_0_nonnull=yes      # 规避交叉检测误判
+make -j && make install
+# 运行时替换: 把 32章自研从站换成 libmodbus 的 modbus_new_tcp+map 模式,
+# 对外接口不变 —— 双实现 A/B 对拍是发现协议细节差异的最佳手段。</code></pre></div>
+<h4>② 一致性回归矩阵（自动化）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>用例族</th><td>覆盖点</td><td>工具</td></tr>
+<tr><td>功能码全量</td><td>FC1/2/3/4/5/6/15/16 正常路径 + 各自异常码</td><td>pymodbus 脚本化断言</td></tr>
+<tr><td>边界</td><td>数量上限125/地址0xFFFF/跨区读</td><td>期望精确异常码02/03</td></tr>
+<tr><td>鲁棒</td><td>坏CRC(RTU)/短包/半包/TxID错配</td><td>raw socket 发畸形帧</td></tr>
+<tr><td>并发</td><td>16客户端混合读写5分钟无错无死锁</td><td>pytest-xdist 并行</td></tr>
+<tr><td>时序</td><td>请求间隔1ms~1s扫描 RTT 分布</td><td>统计进《性能基线报告》</td></tr>
+</table></div>
+<h4>③ 帧级调试三板斧</h4>
+<ol>
+<li><strong>Wireshark 过滤链</strong>：<code class="inline">modbus && tcp.srcport!=502</code> 只看主站请求；右键「Follow TCP Stream」还原完整事务对；</li>
+<li><strong>栈内 hexdump 钩子</strong>：收发函数入口打印 <code class="inline">[TX] 9c4b00000006010...</code> 带序号——与抓包逐帧对账，快速判定问题在协议栈还是网络；</li>
+<li><strong>UnitID/字节序错位速判表</strong>：响应全 0→查 UnitID 与映射偏移；数值离奇巨大→字节序或缩放系数错；偶发 CRC 错(RTU)→示波器看波形质量而非先怀疑代码。</li>
+</ol></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch32"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 Modbus 帧结构与功能码语义</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>实现并发安全的 TCP 从站（502 端口）与 RTU 从站</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>建立映像区 ↔ Modbus 地址的完整映射并回归测试</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Modbus TCP / RTU 从站实现」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter31.html"><span><span class="pager-label">上一章</span><b>第 31 章 · 功能块：定时器与计数器</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter33.html"><span><span class="pager-label">下一章</span><b>第 33 章 · Web 监控界面</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 32 章 · Modbus TCP / RTU 从站实现 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

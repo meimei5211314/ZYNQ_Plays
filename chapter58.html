@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 58 章 · 可解释的实时性：PREEMPT_RT、WCET与响应时间分析 | Zynq 工程能力讲义</title><meta name="description" content="把任务、阻塞和抢占转成可计算模型，再用测量与跟踪验证假设，避免把低平均延迟误当截止期保证。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script><noscript><style>.reveal{opacity:1;transform:none}</style></noscript></head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch58" data-chapter-file="chapter58.html" data-chapter-label="第 58 章 · 可解释的实时性：PREEMPT_RT、WCET与响应时间分析">
+<a class="skip-link" href="#content">跳到正文</a><div class="scroll-progress" aria-hidden="true"></div>
+<aside class="sidebar" id="sidebar"><a class="brand" href="course.html"><span class="brand-mark">Z</span><span><b>ZYNQ 工程能力讲义</b><small>第 58 章 · 高级工程训练</small></span></a><div class="nav-label">本章目录</div><nav class="nav" aria-label="本章目录"><a href="#goals"><span class="num">GO</span>目标与前置</a><a href="#s1"><span class="num">01</span>实时需求先写成时间契约</a>
+<a href="#s2"><span class="num">02</span>PREEMPT_RT改变可抢占性，不创造算力</a>
+<a href="#s3"><span class="num">03</span>先声明分析模型</a>
+<a href="#s4"><span class="num">04</span>完整手算一个不动点</a>
+<a href="#s5"><span class="num">05</span>小改动可以跨过截止期</a>
+<a href="#s6"><span class="num">06</span>WCET证据不能由一个最大值冒充</a>
+<a href="#s7"><span class="num">07</span>把分析与测量组成可复核验收</a><a href="#zx-lab"><span class="num">LAB</span>互动与工程案例</a><a href="#check"><span class="num">OK</span>通关清单与笔记</a></nav><div class="side-progress"><div class="side-progress-top"><span>本章进度</span><b id="sideProgressText">0%</b></div><div class="side-progress-bar"><i id="sideProgressBar"></i></div><small>勾选记录是自我复盘；工程能力以可重现证据验收。</small></div><a class="chapter-return" href="course.html">← 返回课程目录</a></aside>
+<div class="overlay" id="overlay"></div><div class="mobile-bar"><a class="mobile-brand" href="#top"><span class="brand-mark">Z</span><span>第 58 章 · 工程训练</span></a><button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button></div>
+<main><div class="wrap"><section class="hero chapter-hero" aria-labelledby="heroTitle"><div class="eyebrow">第九篇 · 底层正确性与验证 · ZYNQ-7000 / CORTEX-A9</div><h1 id="heroTitle">第 58 章<br><span class="grad">可解释的实时性：PREEMPT_RT、WCET与响应时间分析</span></h1><p class="hero-sub">把任务、阻塞和抢占转成可计算模型，再用测量与跟踪验证假设，避免把低平均延迟误当截止期保证。</p><div class="hero-meta"><span class="meta-chip">理论110分钟 + 实验3–5小时</span><span class="meta-chip">7 节推导与实践</span><span class="meta-chip">故障 → 证据 → 解释</span></div><div class="hero-actions"><a class="btn primary" href="#content">开始学习 ↓</a><a class="btn ghost" href="#zx-lab">进入实验</a></div></section>
+<section class="chapter-goals" id="goals"><div class="section-head"><div class="section-index">GOALS</div><div><h2>本章要交付什么</h2><p class="lead">为采样、处理、上报三任务建立固定优先级模型，输出逐轮响应时间和目标测量计划。</p></div></div><ul><li>区分周期、截止期、执行时间、响应时间和释放抖动</li><li>对固定优先级单核任务集计算响应时间不动点</li><li>解释PREEMPT_RT的作用及仍需约束的硬件/驱动因素</li><li>设计含过载、锁竞争与I/O压力的测量，记录模型假设与证据差距</li></ul><div class="learning-links"><a href="chapter34.html">前置：第 34 章</a><a href="chapter54.html">前置：第 54 章</a><a href="chapter57.html">前置：第 57 章</a></div><p class="learning-source-note">主线工具版本沿用 2020.2；上游资料用于核对原理，API 与目标 BSP 需逐项核实。</p></section>
+<article class="reader" id="content"><div class="section-head"><div class="section-index">LEARN</div><div><h2>机制、约束与验证</h2><p class="lead">每条结论说明条件，每个实验保留可以复查的结果。</p></div></div>
+<section class="lesson-block reveal" id="s1" aria-labelledby="h-s1"><h3 id="h-s1">实时需求先写成时间契约</h3><p>周期T表示任务多久释放一次，截止期D表示每次释放后必须多快完成，执行时间C表示占用CPU的计算需求，响应时间R包含等待、抢占和执行。C=0.8 ms不代表R=0.8 ms；一次平均延迟50 μs也无法证明所有请求在1 ms内完成。端到端链路还包含采样相位、DMA等待、IRQ唤醒、线程处理及输出同步，不能只测中间函数。</p><p>先写明截止期从哪个物理或软件事件开始，到哪个可观察事件结束，超期怎么处置。控制任务宁可丢弃过期命令还是必须处理全部历史？周期错过后追赶多次运行还是跳到下个绝对时刻？使用绝对时间周期可避免相对sleep逐步累积漂移，但不能消除调度延迟。选择时钟源、时间戳位置和测量误差要一致记录，尤其是PS时间与PL计数器还需有跨时钟关联方法。</p></section>
+<section class="lesson-block reveal" id="s2" aria-labelledby="h-s2"><h3 id="h-s2">PREEMPT_RT改变可抢占性，不创造算力</h3><p>PREEMPT_RT使大量内核路径变得可抢占，将许多中断工作线程化，并改变部分锁的实现以支持优先级继承。这有助于降低高优先级任务就绪后的等待，但仍存在底层不可抢占区、raw锁、总线争用和固件等影响。它不会让一个CPU上总计算需求超过100%的任务集全部按期完成，也不会替驱动保证每个临界区都有上界。</p><p>课程2020.2系统不能照着当前主线文档勾一个选项就认为完成RT迁移；应核对实际内核基线、对应RT补丁、架构支持、配置和驱动兼容性。设置SCHED_FIFO还需分析同优先级关系、IRQ线程优先级、亲和性及内核实时带宽配置。一个忙等的高优先级用户线程可能饿死它依赖的低优先级IRQ线程。内存锁定、预触页和固定分配能减少某些不确定性，但每项都应与测量目标对应。</p></section>
+<section class="lesson-block reveal" id="s3" aria-labelledby="h-s3"><h3 id="h-s3">先声明分析模型</h3><p>本章算例采用一个CPU、可抢占固定优先级、周期或最小间隔任务、无释放抖动、无自挂起、D≤T，并假设执行需求与阻塞上界已可靠给定。按优先级从高到低，响应时间迭代为Rᵢ⁽ᵏ⁺¹⁾=Cᵢ+Bᵢ+Σ⌈Rᵢ⁽ᵏ⁾/Tⱼ⌉Cⱼ，求和遍历更高优先级任务。初始化Rᵢ⁽⁰⁾=Cᵢ+Bᵢ；若稳定且不超过Dᵢ则在这些假设下通过。</p><p>B包含经过锁协议分析的低优先级阻塞等有界因素，不能凭一次测量取最小值。IRQ、调度和上下文切换开销也不能漏掉；可明确计入C、额外干扰任务或适用的开销模型，避免重复计入。释放抖动、DMA自挂起、跨核共享锁及分区迁移出现后，这个简单递推不再足够，必须扩展模型。教学交互仅计算所输入模型的不动点，不测真实WCET，也不会自动发现遗漏任务。</p></section>
+<section class="lesson-block reveal" id="s4" aria-labelledby="h-s4"><h3 id="h-s4">完整手算一个不动点</h3><p>三项周期任务优先级依次降低：(C,T,D)分别为(1,4,4)、(1.5,5,5)、(2,10,10)，单位ms。另有低优先级维护工作，其锁协议已给出第三任务阻塞上界B₃=0.5 ms；这里只分析第三任务。起点R₃=2.5。第一轮2.5+⌈2.5/4⌉×1+⌈2.5/5⌉×1.5=5；下一轮为6；再下一轮为7.5，之后保持7.5，因此R₃≤10。</p><pre><code>R0 = 2.5
+R1 = 2.5 + 1*1 + 1*1.5 = 5
+R2 = 2.5 + 2*1 + 1*1.5 = 6
+R3 = 2.5 + 2*1 + 2*1.5 = 7.5
+R4 = 2.5 + 2*1 + 2*1.5 = 7.5</code></pre><p>三项利用率之和为1/4+1.5/5+2/10=0.75，只描述CPU需求比例，未包含该维护工作的完整负载或阻塞，不能仅凭0.75宣称系统可调度。所有任务都需独立检查，尤其第一、第二任务自己的阻塞也要有上界。这个算例展示的是在明确条件下如何给第三任务求界，而不是实测Zynq性能。</p></section>
+<section class="lesson-block reveal" id="s5" aria-labelledby="h-s5"><h3 id="h-s5">小改动可以跨过截止期</h3><p>保持前述C与T，若第三任务阻塞升为3 ms，起点变5。迭代得到8.5，再得到11，已经超过D=10，于是该模型不能证明满足截止期。平均CPU利用率几乎不变，长临界区却足以破坏时限。只调整线程优先级可能把问题转移给另一个任务，必须重新分析全部受影响任务。</p><p>优先级反转场景中，低优先级持锁者阻塞高优先级，中优先级又抢占持锁者；优先级继承可以限制这类额外干扰，但不缩短持锁者本身不可预测的I/O。不要在共享锁内做无上界设备等待、文件写入或大量日志。把资源获取提前、把临界区缩到有界复制、用消息转交拥有者，往往比继续提高优先级更有效。对每个优化重新记录C、B、释放模式与依赖，才能证明它改善的是哪一项。</p></section>
+<section class="lesson-block reveal" id="s6" aria-labelledby="h-s6"><h3 id="h-s6">WCET证据不能由一个最大值冒充</h3><p>WCET是给定硬件与执行条件下的最坏执行时间界；有限测量得到的是观察到的最大值，不能自动当严格上界。A9缓存、分支预测、DDR竞争、中断和频率状态会改变时间。测量需列输入边界、冷/热缓存、CPU/IRQ亲和性、频率、电源策略与其他总线主设备负载，解释哪些最坏情况已覆盖、哪些未覆盖以及采用了什么工程裕量。</p><p>cyclictest适合测周期唤醒延迟，却没有执行你的完整控制算法或验证DMA链路。先用它建立调度基线，再给真实任务加低干扰时间戳，比较唤醒到开始、开始到结束、物理事件到输出三个区间。配合调度/IRQ跟踪定位长尾，避免在高频实时路径中printf。压力试验同时考虑CPU、内存和I/O干扰，保留直方图、最大值对应的事件轨迹和截止期错失计数，而非只给一张平均值表。</p></section>
+<section class="lesson-block reveal" id="s7" aria-labelledby="h-s7"><h3 id="h-s7">把分析与测量组成可复核验收</h3><p>响应时间交互采用单个高优先级干扰任务，便于逐轮观察ceil的阶跃；多任务手算中的求和需在纸面或自己的脚本扩展。用C=2、B=0.5、较高任务C=1和T=4，可得2.5→3.5→3.5 ms；然后另行核对前述多任务7.5 ms算例。若真实响应超过分析界，先查遗漏的阻塞、IRQ、抖动或自挂起，不能任意调参数后声称验证。</p><p>验收包包含任务表、优先级和亲和性、C/B来源、逐轮计算、内核/RT版本、实验配置、压力条件、错期策略与测量限制。没有板卡时可以完成数学分析和离线交互，但应明确未验证实际延迟。面向更复杂的多核流水线，可先固定任务分区，分别分析各核，再审计跨核资源和消息等待；若采用全局迁移调度，应选择适用理论。将假设写清楚，是实时论证可信度的一部分。</p></section>
+<div class="lab" data-lab-card="1"><strong>工程任务 · 为采样、处理、上报三任务建立固定优先级模型，输出逐轮响应时间和目标测量计划。</strong><p>先用单HP任务交互验证2.5→3.5→3.5 ms，再独立核对多任务求和；具备RT内核时测cyclictest基线与真实端到端分布。</p><p><b>故障练习：</b>加入一个低优先级长临界区或把IRQ线程优先级放到忙等线程之下，定位增加的是阻塞还是依赖等待。</p><p><b>验收：</b>每个C/B与开销都有来源和范围；全部任务分别通过分析；测量没有未解释的超界；不将有限样本最大值直接称WCET。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存满足条件的实验记录</span></label><span class="lab-state">待完成</span></div></div></article>
+<section id="zx-lab" class="zx-section" data-zx-chapter="ch58"></section>
+<section class="chapter-check" id="check" aria-labelledby="checkTitle"><div class="section-head"><div class="section-index">CHECK</div><div><h2 id="checkTitle">通关清单与本章笔记</h2><p class="lead">用独立解释与可复现结果检验理解。</p></div></div><div class="check-grid"><div class="check-panel"><h3>本章通关目标</h3><div class="check-progress"><div class="check-progress-bar"><i id="checkBar"></i></div><span id="checkText">0 / 5</span></div><div class="checklist" id="checklist"><label class="check-item"><input type="checkbox" data-goal="0"><span>区分周期、截止期、执行时间、响应时间和释放抖动</span></label><label class="check-item"><input type="checkbox" data-goal="1"><span>对固定优先级单核任务集计算响应时间不动点</span></label><label class="check-item"><input type="checkbox" data-goal="2"><span>解释PREEMPT_RT的作用及仍需约束的硬件/驱动因素</span></label><label class="check-item"><input type="checkbox" data-goal="3"><span>设计含过载、锁竞争与I/O压力的测量，记录模型假设与证据差距</span></label></div></div><div class="check-panel notes-panel"><h3>本章笔记</h3><p class="note-prompt">记录假设、版本、原始证据位置和仍待验证的边界。</p><div class="notes-area"><textarea id="notes" aria-label="本章笔记" placeholder="机制与假设：&#10;复现实验：&#10;故障与证据：&#10;待验证："></textarea><div class="note-status" id="noteStatus">自动保存在本机</div></div></div></div>
+<div class="chapter-pager"><a class="pager-card prev" href="chapter57.html"><span><span class="pager-label">上一章</span><b>第 57 章 · Linux驱动的生死顺序：IRQ、runtime PM与DMA撤场</b></span><span class="pager-arrow">←</span></a><a class="pager-card next" href="chapter59.html"><span><span class="pager-label">下一章</span><b>第 59 章 · 可复现的崩溃诊断：构建身份、core与跨层证据</b></span><span class="pager-arrow">→</span></a></div></section>
+<footer class="site-footer"><div>原课程：<a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a>。本章为新增高级工程补强；原始资料与公开参考项目见工程训练区。</div><div>第九篇 · 底层正确性与验证 · <a href="SENIOR-PLAN.md">能力补强方案</a> · <a href="labs/README.md">参考实验</a></div></footer></div></main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body></html>

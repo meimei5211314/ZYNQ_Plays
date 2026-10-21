@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 7 章 · PS 裸机开发入门：Hello ZYNQ | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 7 章 · PS 裸机开发入门：Hello ZYNQ：从这一章起，你开始驱动 ARM 硬核 —— 理解 XSA、BSP、ps7_init 三件套，跑通第一个串口程序。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch07" data-chapter-file="chapter7.html" data-chapter-label="第 7 章 · PS 裸机开发入门：Hello ZYNQ">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 7 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>裸机开发工具链全景（2020.2 版本变化）</a>
+<a href="#sec-2"><span class="num">02</span>Vivado 侧：创建含 PS 的最小系统</a>
+<a href="#sec-3"><span class="num">03</span>Vitis 侧：平台与应用</a>
+<a href="#sec-4"><span class="num">04</span>代码：UART1 打印 + 寄存器直读体验</a>
+<a href="#sec-5"><span class="num">05</span>关键机制：JTAG 裸机为什么需要 ps7_init？</a>
+<a href="#sec-6"><span class="num">06</span>程序内存布局初探</a>
+<a href="#sec-7"><span class="num">07</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 7 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 07</div>
+      <h1 id="heroTitle">第 7 章<br><span class="grad">PS 裸机开发入门：Hello ZYNQ</span></h1>
+      <p class="hero-sub">从这一章起，你开始驱动 ARM 硬核 —— 理解 XSA、BSP、ps7_init 三件套，跑通第一个串口程序。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">7 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">07</div>
+          <div class="console-part">基础知识 / CH07</div>
+          <div class="console-title">PS 裸机开发入门：Hello ZYNQ</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>7</b></div>
+            <div class="console-metric"><span>CODE</span><b>1</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:39%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>07 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>7</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握「Vivado 建 BD → 导出 XSA → Vitis 建平台与应用」标准流程</li>
+<li class="goal-item">理解 FSBL / ps7_init 在裸机启动中的角色</li>
+<li class="goal-item">通过 UART1 输出 Hello World，建立软硬件交叉验证习惯</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,628 字 · 7 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>1 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">7.1</span>裸机开发工具链全景（2020.2 版本变化）</h3><p>2020.x 起，老 SDK 被 <strong>Vitis 统一 IDE</strong> 取代。概念对应关系：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>旧 SDK 时代</th><th>Vitis 2020.2</th><th>说明</th></tr>
+<tr><td>Hardware Platform (.hdf)</td><td>Platform Project（来自 .xsa）</td><td>XSA = Vivado 导出的硬件描述包（含BD、约束、ps7_init）</td></tr>
+<tr><td>BSP</td><td>Platform Project 内的域（Domain：standalone）</td><td>standalone 即裸机 BSP，含驱动库与 xparameters.h</td></tr>
+<tr><td>Application Project</td><td>Application Project</td><td>你的 main.c，引用平台头文件与库</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">7.2</span>Vivado 侧：创建含 PS 的最小系统</h3><ol>
+<li>新建工程 <code class="inline">ps_hello</code>，同第6章选择 xc7z020clg484-1。</li>
+<li><strong>Create Block Design</strong>（IP Integrator），在画布空白处点击 + 添加 IP：<code class="inline">ZYNQ7 Processing System</code>。</li>
+<li>点击上方绿色横幅 <strong>Run Block Automation</strong>，勾选 Apply Board Preset？—— 领航者提供官方板卡预设文件则勾选；没有就手动配置：
+  <ul>
+    <li><strong>PS-PL Configuration</strong>：暂不勾选任何 AXI 口（最小系统）；</li>
+    <li><strong>Peripheral I/O Pins</strong>：勾选 UART1（引脚按板卡 MIO 规划自动/手动指定）、SD0（TF 卡，为后续章节预留）、QSPI；</li>
+    <li><strong>Clock Configuration</strong>：Input frequency 33.333MHz（PS_CLK 查原理图），保持默认 PLL 配置（CPU 767MHz、DDR 533MHz）；</li>
+    <li><strong>DDR Configuration</strong>：Controller Type 选 DDR3，按板卡手册填容量 1024MB、位宽 32bit、时序参数（正点原子资料提供现成配置截图照抄即可）。</li>
+  </ul></li>
+<li><strong>F6 Validate Design</strong>（Ctrl+S 保存），无错误后右键 BD → <strong>Generate Output Products</strong> → Global（纯PS无需综合BD）。</li>
+<li>菜单 <strong>File → Export → Export Hardware</strong>，勾选 Include bitstream（本例无 PL 逻辑可不勾），导出 <code class="inline">ps_hello.xsa</code>。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">7.3</span>Vitis 侧：平台与应用</h3><ol>
+<li>Vivado 菜单 <strong>Tools → Launch Vitis</strong>，指定工作区路径（无中文空格）。</li>
+<li><strong>File → New → Platform Project</strong>：名称 <code class="inline">ps_hello_platform</code>，XSA 选择刚导出的文件。完成创建后点 <strong>Build Platform</strong>——产物是 standalone 域的 BSP 库。</li>
+<li><strong>File → New → Application Project</strong>：名称 <code class="inline">hello_uart</code>，关联上述平台，Domain 选 <em>standalone (ps7_cortexa9_0)</em>，模板选 <strong>Hello World</strong> 或 Empty Application(C)。</li>
+<li>点击锤子图标编译，产物在 <code class="inline">hello_uart/src</code> 同级 Debug 目录：<code class="inline">hello_uart.elf</code>。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">7.4</span>代码：UART1 打印 + 寄存器直读体验</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;xparameters.h&gt;      /* 自动生成：所有外设基地址/中断号速查表 */
+#include &lt;xuartps.h&gt;           /* UART 驱动 API */
+#include &lt;xil_printf.h&gt;        /* 轻量 printf，不依赖完整 libc */
+#include &lt;sleep.h&gt;
+
+int main(void)
+{
+    int status;
+    XUartPs uart;
+
+    /* 初始化 UART1 —— 基地址由 xparameters.h 提供 */
+    XUartPs_Config *cfg = XUartPs_LookupConfig(XPAR_XUARTPS_1_DEVICE_ID);
+    if (cfg == NULL) return XST_FAILURE;
+    status = XUartPs_CfgInitialize(&amp;uart, cfg, cfg-&gt;BaseAddress);
+    if (status != XST_SUCCESS) return XST_FAILURE;
+
+    XUartPs_SetBaudRate(&amp;uart, 115200);
+
+    while (1) {
+        xil_printf("Hello ZYNQ! CPU freq = %d Hz\r\n",
+                   XPAR_CPU_CORTEXA9_CORE_CLOCK_FREQ_HZ);
+        /* 直读私有定时器计数寄存器，体验"寄存器就在那里"的感觉 */
+        u32 cnt = *(volatile u32 *)0xF8F00604;   /* CPU private timer counter */
+        xil_printf("private timer count = 0x%08x\r\n", cnt);
+        sleep(1);
+    }
+    return 0;
+}</code></pre></div>
+<p>打开 MobaXterm 连接串口（115200 8N1），接下来把程序跑起来。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">7.5</span>关键机制：JTAG 裸机为什么需要 ps7_init？</h3><p>芯片刚上电时，<strong>DDR 控制器未初始化、PLL 未配置、MIO 复用未设定</strong>——任何访问 DDR 的代码都会挂死。Vivado 导出 XSA 时会生成 <code class="inline">ps7_init.tcl/.c/.h</code>，它就是一份「按正确顺序写 SLCR/DDR/GPIO 寄存器」的初始化脚本：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>场景</th><th>谁负责初始化</th><th>说明</th></tr>
+<tr><td>Vitis 中 JTAG 调试裸机 ELF</td><td>System Debugger 自动先执行 ps7_init.tcl</td><td>Debug Configurations 里可见 "ps7_init" 步骤，勿删</td></tr>
+<tr><td>SD/QSPI 产品化启动</td><td>FSBL（First Stage Boot Loader）</td><td>FSBL 本质 = ps7_init 的 C 版 + 加载 bitstream + 跳转下一镜像，第12章详解</td></tr>
+<tr><td>只跑 OCM 小程序</td><td>可跳过</td><td>不碰 DDR 时可省略初始化（高级玩法）</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 运行方式二选一</span>
+<p><strong>A. 直接运行</strong>：右键应用 → Run As → Launch on Hardware（相当于下载即运行）。<br><strong>B. 调试运行</strong>：Debug As → Launch on Hardware，可在 main() 设断点单步——现在就试试在第14行打断点，观察 <code class="inline">cfg-&gt;BaseAddress</code> 的值是否等于 0xE0001000（UART1 基地址），把第2章的地址表变成亲眼所见。</p></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">7.6</span>程序内存布局初探</h3><p>双击工程的 <code class="inline">lscript.ld</code>（链接脚本）：standalone 默认把代码放在 <strong>DDR 低地址 0x100000</strong> 起，栈堆在其上分配；若把区域改成 OCM（0xFFFC0000），整个程序就能脱离 DDR 运行——这是理解「FSBL 为什么放 OCM」的最好实验。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：串口完全没有输出？</summary><div class="ans"><p>① 板卡 console 接的是 UART<strong>1</strong>，而模板默认打印走 stdout 映射——确认 Platform 里 UART 选择与硬件一致；② 波特率不符（改过 PLL 后默认可能不是115200）；③ 代码跑飞在 DDR 初始化前（调试器没执行 ps7_init——检查 Debug 配置）；④ TX/RX 接反（用外部 USB-TTL 时）。</p></div></details>
+<details class="qa"><summary>Q2：修改了 Vivado 设计重新导出 XSA，Vitis 里怎么更新？</summary><div class="ans"><p>右键 Platform Project → <strong>Update Hardware Specification</strong> 选择新 XSA，然后重新 Build Platform 与应用。<strong>不要</strong>新建第二个平台工程，否则两套 xparameters.h 容易张冠李戴。</p></div></details>
+<details class="qa"><summary>Q3：xil_printf 打印浮点数乱码？</summary><div class="ans"><p>xil_printf 为节省空间不支持 %f。需要浮点打印时链接完整 newlib 并用 sprintf/snprintf 组合，或在 Platform 设置中开启相应库选项（增大体积）。</p></div></details>
+<details class="qa"><summary>Q4：Vitis 编译报错找不到 xparameters.h？</summary><div class="ans"><p>应用的 C/C++ Build 引用了平台 include 路径，通常自动配置。手动检查：Properties → Paths and Symbols → Includes 应包含 <code class="inline">&lt;platform&gt;/export/&lt;platform&gt;/include</code>。多数情况是先建应用后补建平台导致的，重建应用即可。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L7-1：让地址表活起来</strong>
+<p>① 在断点处依次查看 <code class="inline">*(volatile u32*)0xF8F00000</code>（SLCR ID）、GPIO 基址 0xE000A000 处内容，对照 UG585 确认模块签名；② 把链接脚本内存区改为 OCM 重新编译运行，验证程序仍能工作并思考原因；③ 用 <code class="inline">xil_printf</code> 打印 L2 Cache 大小相关宏，浏览 <code class="inline">xparameters.h</code> 找出 GIC、私有定时器的宏名规律。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>ps7_init 与 FSBL 功能重叠，为什么 JTAG 场景不用完整 FSBL？（提示：启动介质、加载对象、速度）</li>
+<li>如果两个应用分别要在核0和核1上运行（AMP），链接脚本需要注意什么？</li>
+<li>阅读 hello.c 模板的汇编启动流程（Debug 单步到 main 前），说明 _start → main 之间发生了什么。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch07"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握「Vivado 建 BD → 导出 XSA → Vitis 建平台与应用」标准流程</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解 FSBL / ps7_init 在裸机启动中的角色</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>通过 UART1 输出 Hello World，建立软硬件交叉验证习惯</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「PS 裸机开发入门：Hello ZYNQ」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter6.html"><span><span class="pager-label">上一章</span><b>第 6 章 · 第一个 FPGA 工程：纯 PL 流水灯</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter8.html"><span><span class="pager-label">下一章</span><b>第 8 章 · PS 外设编程：GPIO / UART / 中断 / 定时器</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 7 章 · PS 裸机开发入门：Hello ZYNQ · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

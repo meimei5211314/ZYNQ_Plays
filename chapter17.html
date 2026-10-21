@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 17 章 · 字符设备驱动开发 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 17 章 · 字符设备驱动开发：写一个真正的 Linux 内核模块，把第9章的 PL 寄存器安全地暴露给用户态 —— PLC 平台层的雏形。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch17" data-chapter-file="chapter17.html" data-chapter-label="第 17 章 · 字符设备驱动开发">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 17 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>驱动在系统中的位置</a>
+<a href="#sec-2"><span class="num">02</span>完整驱动源码 plc_led.c</a>
+<a href="#sec-3"><span class="num">03</span>交叉编译与加载</a>
+<a href="#sec-4"><span class="num">04</span>用户态验证程序</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：miscdevice —— 十行注册一个设备节点</a>
+<a href="#sec-7"><span class="num">07</span>深潜：poll 完整实现（事件驱动应用的地基）</a>
+<a href="#sec-8"><span class="num">08</span>深潜：异步通知 SIGIO / fasync</a>
+<a href="#sec-9"><span class="num">09</span>深潜：错误码规范速查（返回值即文档）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 17 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 17</div>
+      <h1 id="heroTitle">第 17 章<br><span class="grad">字符设备驱动开发</span></h1>
+      <p class="hero-sub">写一个真正的 Linux 内核模块，把第9章的 PL 寄存器安全地暴露给用户态 —— PLC 平台层的雏形。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 25 分钟</span>
+        <span class="meta-chip">9 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">17</div>
+          <div class="console-part">嵌入式 Linux / CH17</div>
+          <div class="console-title">字符设备驱动开发</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>9</b></div>
+            <div class="console-metric"><span>CODE</span><b>6</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:43%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>17 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>9</b><span>本章小节</span></div>
+    <div class="stat"><b>25</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握字符驱动的完整框架：注册/file_operations/设备节点</li>
+<li class="goal-item">理解内核空间与用户空间的数据交互边界</li>
+<li class="goal-item">能独立完成「交叉编译模块→加载→应用访问」闭环</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,550 字 · 9 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>6 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">17.1</span>驱动在系统中的位置</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类别</th><th>典型</th><th>接口形态</th><th>本课程涉及</th></tr>
+<tr><td>字符设备</td><td>GPIO/UART/自定义IP</td><td>/dev/xxx 字节流 + ioctl</td><td>★ 本章主角</td></tr>
+<tr><td>块设备</td><td>eMMC/SD</td><td>块缓存层</td><td>使用层面了解</td></tr>
+<tr><td>网络设备</td><td>GEM 以太网</td><td>socket 协议栈</td><td>使用层面了解</td></tr>
+</table></div>
+<p>驱动的价值：<strong>把「物理事实」（寄存器地址、时序要求）封装在内核，给应用暴露统一抽象</strong>。第28章我们会看到 UIO 这种「半自动」替代方案 —— 但先手写过一次，才知道 UIO 替你省了什么。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">17.2</span>完整驱动源码 plc_led.c</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">// plc_led.c —— 控制第9章 led_ctrl IP 的字符驱动
+#include &lt;linux/module.h&gt;
+#include &lt;linux/fs.h&gt;
+#include &lt;linux/platform_device.h&gt;
+#include &lt;linux/of.h&gt;
+#include &lt;linux/io.h&gt;
+#include &lt;linux/cdev.h&gt;
+#include &lt;linux/uaccess.h&gt;
+
+#define DEV_NAME "plcled"
+static dev_t          devid;
+static struct cdev    cdev;
+static struct class  *cls;
+static void __iomem  *regs;            /* ioremap 后的虚拟地址 */
+
+/* ---- file_operations：应用 open/read/write 的内核侧实现 ---- */
+static ssize_t plc_write(struct file *f, const char __user *buf,
+                         size_t len, loff_t *off)
+{
+    char kbuf[8] = {0};
+    if (len &gt; sizeof(kbuf) - 1) return -EINVAL;
+    if (copy_from_user(kbuf, buf, len))       /* 用户指针不可直接解引用！ */
+        return -EFAULT;
+
+    /* 约定协议："0"=灭 "1"=流水 "2"=呼吸 */
+    switch (kbuf[0]) {
+    case '0': writel(0x0, regs + 0x00); break;
+    case '1': writel(0x1, regs + 0x00); break;
+    case '2': writel(0x3, regs + 0x00); break;
+    default: return -EINVAL;
+    }
+    return len;
+}
+
+static ssize_t plc_read(struct file *f, char __user *buf,
+                        size_t len, loff_t *off)
+{
+    char st = readl(regs + 0x08) &amp; 0x1 ? 'R' : 'I';
+    return simple_read_from_buffer(buf, len, off, &amp;st, 1);
+}
+
+static int plc_open(struct inode *i, struct file *f) { return 0; }
+static int plc_release(struct inode *i, struct file *f) { return 0; }
+
+static const struct file_operations plc_fops = {
+    .owner   = THIS_MODULE,
+    .open    = plc_open,
+    .release = plc_release,
+    .read    = plc_read,
+    .write   = plc_write,
+};
+
+/* ---- platform 探测：从设备树拿寄存器资源 ---- */
+static int plc_probe(struct platform_device *pdev)
+{
+    struct resource *res;
+    int ret;
+
+    res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    if (!res) return -ENODEV;
+    regs = devm_ioremap_resource(&amp;pdev-&gt;dev, res);   /* 映射 0x43Cxxxxx */
+    if (IS_ERR(regs)) return PTR_ERR(regs);
+
+    /* 版本寄存器探测：硬件不在则明确失败 */
+    if (readl(regs + 0x0C) != 0x20200901) {
+        dev_err(&amp;pdev-&gt;dev, "unexpected IP version\n");
+        return -ENODEV;
+    }
+
+    ret = alloc_chrdev_region(&amp;devid, 0, 1, DEV_NAME);
+    cdev_init(&amp;cdev, &amp;plc_fops);
+    cdev_add(&amp;cdev, devid, 1);
+    cls = class_create(THIS_MODULE, DEV_NAME);       /* 自动建节点 */
+    device_create(cls, NULL, devid, NULL, DEV_NAME); /* → /dev/plcled */
+
+    dev_info(&amp;pdev-&gt;dev, "plc_led @ %pap ready\n", &amp;res-&gt;start);
+    return 0;
+}
+
+static int plc_remove(struct platform_device *pdev)
+{
+    device_destroy(cls, devid);
+    class_destroy(cls);
+    cdev_del(&amp;cdev);
+    unregister_chrdev_region(devid, 1);
+    return 0;
+}
+
+static const struct of_device_id plc_of_match[] = {
+    { .compatible = "demo,plc-io-v1" },     /* 与14章 DTS 节点呼应！ */
+    { }
+};
+MODULE_DEVICE_TABLE(of, plc_of_match);
+
+static struct platform_driver plc_driver = {
+    .probe  = plc_probe,
+    .remove = plc_remove,
+    .driver = {
+        .name = "plc-led",
+        .of_match_table = plc_of_match,
+    },
+};
+module_platform_driver(plc_driver);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("course");
+MODULE_DESCRIPTION("PLC LED char driver");</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">17.3</span>交叉编译与加载</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">source ~/work/sdk/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+
+# Makefile
+cat &gt; Makefile &lt;&lt;'EOF'
+obj-m := plc_led.o
+KDIR ?= ~/work/src/linux-xlnx        # 必须是板上同版本同配置的内核树
+all:
+	$(MAKE) ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- \
+	        -C $(KDIR) M=$(PWD) modules
+EOF
+make && file plc_led.ko              # ARM ELF relocatable
+scp plc_led.ko root@192.168.2.30:/usr/bin/
+
+# 板上：
+insmod /usr/bin/plc_led.ko && dmesg | tail -3
+ls -l /dev/plcled                    # class_create 的成果</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">17.4</span>用户态验证程序</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+int main(int argc, char **argv)
+{
+    int fd = open("/dev/plcled", O_RDWR);
+    if (fd &lt; 0) { perror("open"); return 1; }
+    write(fd, argv[1], 1);            /* ./a.out 2 → 呼吸模式 */
+    char st; read(fd, &amp;st, 1);
+    printf("status=%c\n", st);
+    close(fd);
+    return 0;
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：insmod 报 Invalid module format / vermagic 不一致？</summary><div class="ans"><p>模块的 vermagic 必须与运行内核完全匹配（版本号+抢占模型+SMP）。根因：用了不同 checkout 或不同 defconfig 的内核树编译。对策：modinfo plc_led.ko 对比板上 uname -a；确保 KDIR 正确且先 make 过该树。</p></div></details>
+<details class="qa"><summary>Q2：Unknown symbol copy_from_user？</summary><div class="ans"><p>漏 include <code class="inline">&lt;linux/uaccess.h&gt;</code>。内核符号按导出表解析，头文件即声明来源，别凭记忆猜函数签名 —— 全部以 <code class="inline">include/linux/*.h</code> 为准。</p></div></details>
+<details class="qa"><summary>Q3：probe 没被调用？</summary><div class="ans"><p>三级检查：① dts 节点的 compatible 与 of_match_table 是否逐字符一致；② 节点 status 是否 okay；③ 内核是否编入了 platform 总线（默认有）。用 <code class="inline">ls /sys/bus/platform/devices/ | grep 43c1</code> 确认设备已枚举。</p></div></details>
+<details class="qa"><summary>Q4：为什么不能直接对 0x43C00000 解引用？</summary><div class="ans"><p>内核开启 MMU 后一切地址皆虚拟。物理地址必须经 ioremap 映射，且用 readl/writel 访问（保证字节序与屏障语义）。直接野指针访问会触发 Oops —— 这正是第25章要练的分析对象。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L17-1：完善驱动 API</strong>
+<p>为 plc_led 增加 <code class="inline">unlocked_ioctl</code>：命令字 <code class="inline">IOC_SET_SPEED</code>/<code class="inline">IOC_GET_VERSION</code>/<code class="inline">IOC_GET_KEYCNT</code>（后者需在 IP 里加按键计数逻辑，联动 L9-1）。编写对应测试程序并整理成 README —— 这个驱动将原样迁移进第28章的 PLC 平台层。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>copy_to_user 为什么存在？如果驱动直接 memcpy 用户缓冲区会发生什么？</li>
+<li>两个进程同时 write /dev/plcled，驱动需要加锁吗？什么时候必须加？（提示：读改写序列）</li>
+<li>对比本章全定制驱动与第28章将用的 UIO 方案：开发效率/实时性/安全性各如何取舍？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">17.5</span>深潜：miscdevice —— 十行注册一个设备节点</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static struct miscdevice plc_misc = {
+    .minor = MISC_DYNAMIC_MINOR,      /* 自动分配次设备号 */
+    .name  = "plcled",                /* → /dev/plcled 自动出现 */
+    .fops  = &amp;plc_fops,               /* 复用第17.2的 file_operations */
+    .mode  = 0666,
+};
+module_misc_device(plc_misc);         /* 一行完成注册+注销 */
+/* 适用：单一节点、无需 class 分组的简单设备；多实例/分组仍用标准 cdev 流程 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">17.6</span>深潜：poll 完整实现（事件驱动应用的地基）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static DECLARE_WAIT_QUEUE_HEAD(plc_wq);
+static bool data_ready;
+
+static unsigned int plc_poll(struct file *f, poll_table *wait)
+{
+    unsigned int mask = 0;
+    poll_wait(f, &amp;plc_wq, wait);          /* 把本fd挂到wq（不阻塞！）*/
+    if (data_ready) mask |= POLLIN | POLLRDNORM;
+    if (!test_bit(0, &amp;hw_present)) mask |= POLLERR;
+    return mask;
+}
+/* ISR/工作线程置位后：data_ready = true; wake_up_interruptible(&amp;plc_wq); */
+
+/* 应用侧配套： */
+struct pollfd p = { .fd = fd, .events = POLLIN };
+int n = poll(&amp;p, 1, 1000);
+if (n > 0 &amp;&amp; (p.revents &amp; POLLIN)) read(fd, buf, sizeof buf);</code></pre></div>
+<div class="box warn"><span class="bt">⚠️ poll 三戒</span>
+<p>① poll_wait 只挂队列不睡眠，真正睡在内核 poll 总入口；② 条件判定必须在 poll_wait <strong>之后</strong>再查一次（防唤醒丢失竞态）；③ 唤醒后必须消费数据并清标志，否则 epoll LT 模式将无限唤醒。</p></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">17.7</span>深潜：异步通知 SIGIO / fasync</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">static struct fasync_struct *plc_fa;
+static int plc_fasync(int fd, struct file *f, int on)
+{   return fasync_helper(fd, f, on, &amp;plc_fa); }        /* 加入.fops->fasync */
+
+/* 数据到达处（ISR安全）：kill_fasync(&amp;plc_fa, SIGIO, POLL_IN); */
+
+/* 应用侧三步：
+   signal(SIGIO, handler);
+   fcntl(fd, F_SETOWN, getpid());          /* 告知内核发给谁 */
+   oflags = fcntl(fd, F_GETFL); fcntl(fd, F_SETFL, oflags | FASYNC); */</code></pre></div>
+<p>选型：poll/epoll 覆盖 95% 场景；SIGIO 适合「极低频关键事件 + 不想常驻线程」的老式程序。信号语义复杂（不可靠队列、全局处理函数），新代码优先 epoll。</p></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">17.8</span>深潜：错误码规范速查（返回值即文档）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>errno</th><th>使用场景</th><th>反例警示</th></tr>
+<tr><td>-EINVAL</td><td>参数非法（越界地址/坏命令字）</td><td>不要拿它表示"硬件忙"</td></tr>
+<tr><td>-EAGAIN</td><td>非阻塞下资源暂不可用（O_NDELAY 配套）</td><td>阻塞模式下不该返回它</td></tr>
+<tr><td>-ETIMEDOUT</td><td>等待超时（poll等待/硬件应答超时）</td><td>-</td></tr>
+<tr><td>-ENODEV/-ENXIO</td><td>设备不存在/地址无对应设备</td><td>probe 失败常用 ENODEV</td></tr>
+<tr><td>-EBUSY</td><td>独占资源被占（中断号/重复 open 策略）</td><td>能用共享就别 BUSY</td></tr>
+<tr><td>-EFAULT</td><td>copy_*_user 失败（坏指针）</td><td>必须检查其返回值再转 EFAULT</td></tr>
+<tr><td>-EIO</td><td>底层 IO/硬件错误兜底</td><td>别用它掩盖具体原因，日志里写清楚</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch17"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握字符驱动的完整框架：注册/file_operations/设备节点</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解内核空间与用户空间的数据交互边界</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能独立完成「交叉编译模块→加载→应用访问」闭环</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「字符设备驱动开发」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter16.html"><span><span class="pager-label">上一章</span><b>第 16 章 · 根文件系统与 BusyBox</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter18.html"><span><span class="pager-label">下一章</span><b>第 18 章 · 设备树进阶与 platform 驱动</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 17 章 · 字符设备驱动开发 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

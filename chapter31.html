@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 31 章 · 功能块：定时器与计数器 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 31 章 · 功能块：定时器与计数器：没有定时器的 PLC 只能做组合逻辑。本章补齐 TON/TOFF/TP 与 CTU/CTD —— 工业逻辑的最后拼图。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch31" data-chapter-file="chapter31.html" data-chapter-label="第 31 章 · 功能块：定时器与计数器">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 31 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>TON 通电延时定时器（最高频）</a>
+<a href="#sec-2"><span class="num">02</span>实例模型：MW 槽位即状态机</a>
+<a href="#sec-3"><span class="num">03</span>运行时实现（每周期先于梯形图执行）</a>
+<a href="#sec-4"><span class="num">04</span>综合案例：星三角降压启动 ★</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 31 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 31</div>
+      <h1 id="heroTitle">第 31 章<br><span class="grad">功能块：定时器与计数器</span></h1>
+      <p class="hero-sub">没有定时器的 PLC 只能做组合逻辑。本章补齐 TON/TOFF/TP 与 CTU/CTD —— 工业逻辑的最后拼图。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">5 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">31</div>
+          <div class="console-part">软 PLC 实战 / CH31</div>
+          <div class="console-title">功能块：定时器与计数器</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>5</b></div>
+            <div class="console-metric"><span>CODE</span><b>4</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:28%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:29%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>31 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>5</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">精确掌握 IEC 61131-3 三种定时器与两种计数器语义</li>
+<li class="goal-item">在运行时中实现功能块实例与 MW 状态槽</li>
+<li class="goal-item">用星三角启动程序完成综合验证 ★M4</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,545 字 · 5 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>4 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">31.1</span>TON 通电延时定时器（最高频）</h3><figure class="fig">
+<svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TON时序">
+<style>.w{stroke:#2563eb;stroke-width:2;fill:none}.p{stroke:#dc2626;stroke-width:2;fill:none}.t{font:11px sans-serif;fill:#1f2937}</style>
+<text x="20" y="40" class="t">IN</text><path class="w" d="M60 50 H200 V30 H420 V50 H700"/>
+<text x="20" y="100" class="t">Q</text><path class="p" d="M60 110 H260 V90 H480 V110 H700"/>
+<line x1="200" y1="25" x2="200" y2="120" stroke="#94a3b8" stroke-dasharray="4 3"/>
+<line x1="260" y1="85" x2="260" y2="130" stroke="#059669" stroke-dasharray="4 3"/>
+<line x1="420" y1="25" x2="420" y2="120" stroke="#94a3b8" stroke-dasharray="4 3"/>
+<line x1="480" y1="85" x2="480" y2="130" stroke="#059669" stroke-dasharray="4 3"/>
+<text x="230" y="145" class="t" fill="#059669">PT=2s 后 Q=1</text>
+<text x="430" y="145" class="t">IN↓ → Q 立即复位，ET 清零</text>
+<text x="20" y="190" class="t">ET</text><path class="t" d="" />
+<path fill="none" stroke="#7c3aed" stroke-width="2" d="M60 195 H200 L260 165 H420 L480 195 H700"/>
+<line x1="60" y1="205" x2="700" y2="205" stroke="#333"/><text x="708" y="209" class="t">t</text>
+<text x="215" y="180" class="t" fill="#7c3aed">ET 爬升到 PT</text>
+</svg>
+<figcaption>图31-1 TON 时序：IN 保持 ≥PT 才输出，断开立即复位</figcaption>
+</figure>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类型</th><th>触发→动作</th><th>典型用途</th></tr>
+<tr><td><strong>TON</strong></td><td>IN 为真持续 ET≥PT → Q=1；IN 假则立即 Q=0、ET=0</td><td>延时启动、消抖、星三角切换</td></tr>
+<tr><td><strong>TOFF</strong></td><td>IN 真 → Q 立即 1；IN 变假后保持 PT 再关</td><td>风机停机延时、灯光保持</td></tr>
+<tr><td><strong>TP</strong></td><td>IN 上升沿触发固定宽度 PT 的单脉冲（期间再触发无效）</td><td>阀门冲刷、报警闪烁节拍</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">31.2</span>实例模型：MW 槽位即状态机</h3><p>每个定时器实例占用 <code class="inline">%MW</code> 区连续 4 字：<code class="inline">{state, ET_ms, PT_ms, reserved}</code>。IL 里这样使用：</p>
+<div class="code-block"><div class="code-head"><span class="code-fragment-tag">结构示意 · 需按目标工程补全</span><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">; --- Network 1: 按下 Start 延时 2s 启动 ---
+LD   %IX0.0
+ANDN %MW20          ; TON1 的 Q 反馈存在 MW20.state 位? —— 见下方简化
+; 实际采用扩展指令直接驱动功能块：
+LD   %IX0.0
+TON  1 , 2000       ; 实例#1, PT=2000ms（状态自动存于 MW 槽 #1）
+OUTB %MW21          ; 把 TON1.Q 装入 %MW21 作为可读中间变量
+LD   %MW21
+OUT  %QX0.2</code></pre></div>
+<div class="box note"><span class="bt">📌 设计取舍说明</span>
+<p>完整 IEC 需要功能块实例数据库与 ST 语言。教学版取折中：<strong>TON n, pt_ms</strong> 指令 + 固定槽表，语义完整但零配置。第36章展望中说明升级到 matiec 编译 ST 的路径。</p></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">31.3</span>运行时实现（每周期先于梯形图执行）</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">typedef struct { uint8_t q; int16_t et, pt, pad; } ton_t;
+static ton_t tons[MAX_TONS];            /* 槽表，映射到 MW 高段 */
+
+void fb_tick_10ms(void)                  /* scan 循环②之前调用 */
+{
+    /* ① 先执行本周期挂起的 TON 指令输入条件已在 VM 中记录 */
+    for (int i = 0; i &lt; MAX_TONS; i++) {
+        ton_t *t = &amp;tons[i];
+        if (!t->active) continue;
+        if (t->in) {
+            if (t->et &lt; t->pt)
+                t->et += g_cfg.scan_ms;
+            t->q = (t->et >= t->pt);
+        } else {
+            t->q = 0; t->et = 0;
+        }
+        t->active = 0;                   /* 本轮消费完毕 */
+    }
+}
+
+/* VM 中 TON 指令的处理分支 */
+case OP_TON:
+    tons[in-&gt;idx].in     = acc;          /* 左母线能流即 IN */
+    tons[in-&gt;idx].pt     = in-&gt;ext;      /* PT 编码在指令立即数 */
+    tons[in-&gt;idx].active = 1;
+    acc = tons[in-&gt;idx].q;               /* 输出回填能流，可 OUT */
+    break;</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>计数器</th><th>输入</th><th>输出</th><th>语义</th></tr>
+<tr><td><strong>CTU 加计数</strong></td><td>CU上升沿 / R / PV</td><td>Q / CV</td><td>CV 到 PV 时 Q=1；R 优先清零</td></tr>
+<tr><td><strong>CTD 减计数</strong></td><td>CD上升沿 / LD / PV</td><td>Q / CV</td><td>CV≤0 时 Q=1</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">case OP_CTU:
+    cu = acc &amp;&amp; !tons_ctu_prev[in-&gt;idx];       /* 检测 CU 上升沿 */
+    tons_ctu_prev[in-&gt;idx] = acc;
+    if (g_img.mw[in-&gt;ext])                      /* R 操作数由 MW 提供 */
+        ctu[i].cv = 0;
+    else if (cu)
+        ctu[i].cv++;
+    ctu[i].q = (ctu[i].cv >= ctu[i].pv);
+    acc = ctu[i].q;
+    break;</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">31.4</span>综合案例：星三角降压启动 ★</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># program_star_delta.il
+# IO分配: KEY0=启动 %IX0.0 | KEY1=停止 %IX0.1
+#         DO0=主接触器KM1 | DO1=星形KM_Y | DO2=三角形KM_D | DO3=运行灯
+
+; N1: 运行锁存（启保停骨架）
+LD %IX0.0
+OR %QX0.0
+ANDN %IX0.1
+OUT %QX0.0                       ; KM1 主接触器
+
+; N2: 星形接法 —— 启动瞬间投入，5s 后退出
+LD %QX0.0
+ANDN %MW22                       ; TON2.Q (三角定时) 取反 = 未到切换时间
+ANDN %QX0.2                      ; 与三角形互锁（硬互锁双保险）
+OUT %QX0.1
+
+; N3: 切换定时 5s
+LD %QX0.0
+TON  2 , 5000
+OUTB %MW22
+
+; N4: 三角形接法 —— 定时到且已断星形
+LD %MW22
+ANDN %QX0.1
+OUT %QX0.2
+
+; N5: 运行指示
+LD %QX0.0
+OUT %QX0.3</code></pre></div>
+<div class="box danger"><span class="bt">🚨 接触器互锁是安全底线</span>
+<p>真实星三角必须<strong>软硬双重互锁</strong>：软件 ANDN 对方输出之外，硬件上把两接触器常闭辅助触点串入对方线圈回路。任何 PLC 教学都不允许跳过这条铁律。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：TON 时间不准，5s 实测 6s？</summary><div class="ans"><p>ET 以扫描次数×scan_ms 累计 —— 若实际周期漂移（29章统计），时间随之漂移。修正路径：① 用 PL TICK 差值校准；② 高要求场景把定时基准改为硬件定时器中断计数。</p></div></details>
+<details class="qa"><summary>Q2：CTU 一按键盘数字狂跳？</summary><div class="ans"><p>CU 没做上升沿检测，长按被多次采样。务必保留 prev 态比较；DI 层的去抖只滤物理抖动，不替代沿检测。</p></div></details>
+<details class="qa"><summary>Q3：重启后定时器状态残留？</summary><div class="ans"><p>槽表未初始化。冷启动 memset 全部功能块槽并写默认 PV；需要 RETAIN 语义的槽单独登记（26章思考题的落地机会）。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L31-1：交通灯控制器</strong>
+<p>东西/南北两组红黄绿（DO0~DO5），周期 12s：绿8s→黄2s→红10s 交替。只用 TON 实现状态机（建议 3 个级联 TON）。验收：示波器双通道测相邻相位切换误差 ≤10ms；Web 页显示当前状态号与各 ET 值。完成后 M4 达成 —— 你的 PLC 已具备解决真实工程问题的能力。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>TP 在脉冲期间再次收到上升沿为什么必须忽略？如果重触发会破坏什么应用？</li>
+<li>对比「10ms 累计」与「读系统绝对时间差」两种 ET 实现，各自的精度上限由什么决定？</li>
+<li>为 CTU 增加「掉电保持」：哪些数据要保存？何时写入持久介质才不影响实时性？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch31"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>精确掌握 IEC 61131-3 三种定时器与两种计数器语义</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>在运行时中实现功能块实例与 MW 状态槽</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>用星三角启动程序完成综合验证 ★M4</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「功能块：定时器与计数器」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter30.html"><span><span class="pager-label">上一章</span><b>第 30 章 · 梯形图解释器实现</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter32.html"><span><span class="pager-label">下一章</span><b>第 32 章 · Modbus TCP / RTU 从站实现</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 31 章 · 功能块：定时器与计数器 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

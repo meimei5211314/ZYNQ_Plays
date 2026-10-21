@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 3 章 · 领航者开发板硬件资源 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 3 章 · 领航者开发板硬件资源：磨刀不误砍柴工 —— 学会「读板」：看懂资源分布，掌握从原理图反查 FPGA 引脚的方法。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch03" data-chapter-file="chapter3.html" data-chapter-label="第 3 章 · 领航者开发板硬件资源">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 3 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>板卡资源总览</a>
+<a href="#sec-2"><span class="num">02</span>核心方法：三步从原理图找到引脚</a>
+<a href="#sec-3"><span class="num">03</span>启动相关的三个硬件开关</a>
+<a href="#sec-4"><span class="num">04</span>为 PLC 实战预埋的硬件视角</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 3 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 03</div>
+      <h1 id="heroTitle">第 3 章<br><span class="grad">领航者开发板硬件资源</span></h1>
+      <p class="hero-sub">磨刀不误砍柴工 —— 学会「读板」：看懂资源分布，掌握从原理图反查 FPGA 引脚的方法。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">5 个小节</span>
+        <span class="meta-chip">5 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">03</div>
+          <div class="console-part">基础知识 / CH03</div>
+          <div class="console-title">领航者开发板硬件资源</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>5</b></div>
+            <div class="console-metric"><span>CODE</span><b>1</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:28%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>03 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>5</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">熟悉领航者开发板的存储、时钟、通信与调试资源</li>
+<li class="goal-item">掌握「原理图 → 网络标号 → 引脚约束」的查图方法论</li>
+<li class="goal-item">能独立编写 XDC 引脚约束文件</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,687 字 · 5 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>1 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">3.1</span>板卡资源总览</h3><p>领航者ZYNQ采用核心资源一体的板卡设计，围绕 <strong>XC7Z020（完整型号、封装和速度级以芯片丝印与原理图为准）</strong> 展开。以下资源清单请对照你手中的板卡逐一确认：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类别</th><th>资源</th><th>说明与用途</th></tr>
+<tr><td rowspan="4">存储</td><td>DDR3 SDRAM ×1GB</td><td>32bit 数据位宽，Linux 运行主内存</td></tr>
+<tr><td>QSPI Flash（W25Q256，32MB）</td><td>存放固化 BOOT.BIN（FSBL+bitstream+U-Boot），掉电不丢</td></tr>
+<tr><td>eMMC（8GB）</td><td>大容量根文件系统/数据存储</td></tr>
+<tr><td>MicroSD 卡座</td><td>日常开发主力：启动卡 + NFS 替代方案</td></tr>
+<tr><td>显示与人机</td><td>HDMI 输出、RGB LCD 接口、OLED 接口</td><td>进阶显示实验；本课程主线不依赖</td></tr>
+<tr><td rowspan="3">通信</td><td>千兆以太网口（RGMII PHY）</td><td>NFS/TFTP 开发、Modbus TCP、Web 监控 —— PLC 篇关键通道</td></tr>
+<tr><td>USB2.0 OTG</td><td>U 盘/网口 gadget 实验（选学）</td></tr>
+<tr><td>USB 转串口（板载）</td><td>连接 PS UART1，Linux 控制台 console</td></tr>
+<tr><td>调试</td><td>板载 USB-JTAG 下载器 + UART</td><td>一根 USB 线完成烧写与串口，无需外购下载器</td></tr>
+<tr><td>用户交互</td><td>PL 用户 LED、轻触按键、拨码开关若干</td><td>基础实验的「示波器」；具体数量见丝印与原理图</td></tr>
+<tr><td>扩展</td><td>扩展排针（引出部分 PL IO 与电源）</td><td>PLC 篇 DI/DO/PWM 外接端子来源</td></tr>
+<tr><td>时钟复位</td><td>PL 全局时钟晶振（50MHz）、PS 参考时钟（33.33MHz）、复位按键</td><td>XDC 中 create_clock 的对象</td></tr>
+</table></div>
+
+<div class="box note"><span class="bt">📌 以原理图为唯一事实来源</span>
+<p>不同批次板卡的 LED/按键数量与引脚可能调整。<strong>本课程所有涉及具体引脚的位置都要求你自己查一遍原理图与随板 XDC 文件</strong>——这既是纪律也是技能：工业项目里，硬件工程师交接给你的永远是原理图，而不是教程截图。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">3.2</span>核心方法：三步从原理图找到引脚</h3><p>以「点亮一个 PL 用户 LED」为例，完整走一遍查图流程：</p>
+<ol>
+<li><strong>在原理图中定位元件</strong>：打开随板 PDF 原理图，搜索元件位号（如 D1）或网络名（如 <code class="inline">LED0</code>），确认 LED 的驱动极性——限流电阻接 VCC 则低电平点亮（多数板卡如此），反之高电平点亮。这一步决定你代码里写 <code class="inline">led <= ~cnt(26)</code> 还是 <code class="inline">led <= cnt(26)</code>。</li>
+<li><strong>顺着网络线追到 FPGA 引脚</strong>：网络名 LED0 最终连到 XC7Z020 的某个 Ball（如 <code class="inline">H17</code>）。同时记录所在 Bank 及其 VCCO 电压（Bank 34/35 通常为 3.3V，影响 IO STANDARD 选择）。</li>
+<li><strong>写入 XDC 约束</strong>：把引脚与电平标准固化到工程约束文件中：</li>
+</ol>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># led.xdc —— 引脚约束示例（引脚号务必按你的原理图修改！）
+set_property -dict {PACKAGE_PIN H17 IOSTANDARD LVCMOS33} [get_ports {led[0]}]
+set_property -dict {PACKAGE_PIN K15 IOSTANDARD LVCMOS33} [get_ports {led[1]}]
+
+# PL 50MHz 系统时钟（同样需查图确认引脚）
+create_clock -period 20.000 -name sys_clk [get_ports sys_clk]
+set_property -dict {PACKAGE_PIN N18 IOSTANDARD LVCMOS33} [get_ports sys_clk]</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">3.3</span>启动相关的三个硬件开关</h3><p>ZYNQ 的启动介质由 <strong>MIO 配置引脚的电平</strong>决定（BootROM 上电采样），板上以拨码开关/跳线帽形式暴露：</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>启动模式</th><th>用途</th><th>本课程场景</th></tr>
+<tr><td>JTAG</td><td>Vivado 直接下载 bitstream / 裸机 ELF，掉电丢失</td><td>第6章流水灯、第7~10章裸机、ILA 调试</td></tr>
+<tr><td>QSPI Flash</td><td>上电自动从 32MB SPI Flash 启动</td><td>产品化交付（第34章系统集成）</td></tr>
+<tr><td>SD 卡（TF）</td><td>上电从 FAT 分区读 BOOT.BIN</td><td>日常 Linux 开发首选</td></tr>
+<tr><td>eMMC / NAND</td><td>备选介质</td><td>-</td></tr>
+</table></div>
+<p>日常开发的标准姿势：<strong>JTAG 调试 + SD 卡启动双模式随时切换</strong>。每次烧写前先确认拨码位置，这是新手最常见的「为什么没反应」原因 Top1。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">3.4</span>为 PLC 实战预埋的硬件视角</h3><p>第四篇软 PLC 需要「像模像样」的工业 IO。利用扩展排针即可搭建最小验证环境：</p>
+<ul>
+<li><strong>DI 数字量输入</strong>：排针 IO → 按键/开关模块模拟现场按钮（PL 内做 10ms 消抖滤波）；</li>
+<li><strong>DO 数字量输出</strong>：排针 IO → LED 或光耦继电器模块（弱电演示；如接真负载必须加隔离并遵守安全电压）；</li>
+<li><strong>AO/PWM</strong>：PL PWM 输出 → RC 滤波得模拟量，或直接驱动风扇测速；</li>
+<li><strong>AI 模拟量</strong>：电位器分压 0~1V 接入 XADC 专用于通道（查原理图确认 VP/VN 或 VAUXP 引脚走线）。</li>
+</ul>
+
+<div class="box danger"><span class="bt">🚨 安全红线</span>
+<p>本课程所有 IO 实验默认 <strong>3.3V 弱电</strong>。若确需驱动继电器控制市电设备：必须使用带光耦隔离的继电器模块、强弱电端子严格分离、由具备电工资质的人员操作市电侧。初学阶段强烈建议仅用 LED/蜂鸣器演示逻辑。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：插上 USB 后电脑识别不到板载下载器/串口？</summary><div class="ans"><p>① 更换 USB 线（部分线材只供电无数据芯）；② Windows 设备管理器查看有无黄色感叹号，手动安装随板资料的 USB-JTAG/串口驱动；③ 禁用笔记本的 USB 节能选项；④ Linux 虚拟机需在 VMware 中把该 USB 设备「连接到虚拟机」。</p></div></details>
+<details class="qa"><summary>Q2：必须用 QSPI 启动吗？只用 SD 卡可以完成全部课程吗？</summary><div class="ans"><p>可以。SD 卡启动完全覆盖学习需求（BOOT.BIN 放 FAT 分区即可）。QSPI 固化只在最后「产品形态」演示时体验一次。注意 QSPI 写入次数有限且擦除较慢，频繁迭代开发不要用它。</p></div></details>
+<details class="qa"><summary>Q3：HDMI、LCD 这些外设教程不讲，是不是买亏了？</summary><div class="ans"><p>没有。它们是很好的自学延伸题（如 HDMI 输出字符、LCD 触摸画板），官方资料中心有配套例程。本课程聚焦工业控制主线，显示需求由 Web 监控界面承担——这也是真实工控产品的形态（无头设备 + 浏览器访问）。</p></div></details>
+<details class="qa"><summary>Q4：怎么确认我的板子是 7020 而不是 7010？</summary><div class="ans"><p>① 看核心芯片丝印 <code class="inline">XC7Z020（完整型号、封装和速度级以芯片丝印与原理图为准）</code>；② Vivado 工程建好后打开 synthesized design，Utilization 报告里 LUT 总量约 53,200 即为 7020（7010 约 17,600）。买错型号不影响前 10 章学习，但第四篇余量会紧张。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>在你的原理图中找到两个用户按键的网络名、FPGA 引脚号与电平有效极性，写成 XDC 片段。</li>
+<li>为什么 XDC 里除了 PACKAGE_PIN 还必须指定 IOSTANDARD？如果 Bank 电压是 1.8V 却配了 LVCMOS33 会怎样？</li>
+<li>设想把板子交付给客户现场部署，启动模式应设为哪种？为什么 JTAG 模式不适合量产？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch03"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>熟悉领航者开发板的存储、时钟、通信与调试资源</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握「原理图 → 网络标号 → 引脚约束」的查图方法论</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>能独立编写 XDC 引脚约束文件</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「领航者开发板硬件资源」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter2.html"><span><span class="pager-label">上一章</span><b>第 2 章 · ZYNQ 架构详解</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter4.html"><span><span class="pager-label">下一章</span><b>第 4 章 · 开发环境搭建</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 3 章 · 领航者开发板硬件资源 · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

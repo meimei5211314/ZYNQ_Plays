@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 23 章 · JTAG 裸机调试 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 23 章 · JTAG 裸机调试：CPU 停下来给你看 —— 断点、单步、内存窗口，裸机世界的显微镜。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-debug" data-chapter-id="ch23" data-chapter-file="chapter23.html" data-chapter-label="第 23 章 · JTAG 裸机调试">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 23 章 · 调试验证</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>调试链路原理</a>
+<a href="#sec-2"><span class="num">02</span>Vitis Debugger 五板斧</a>
+<a href="#sec-3"><span class="num">03</span>实战：三分钟定位「中断不来」</a>
+<a href="#sec-4"><span class="num">04</span>XSCT：脚本化的终极形态</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：板级 bring-up 的 JTAG 急救技术 ★</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 23 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第三篇 · 调试验证 / Chapter 23</div>
+      <h1 id="heroTitle">第 23 章<br><span class="grad">JTAG 裸机调试</span></h1>
+      <p class="hero-sub">CPU 停下来给你看 —— 断点、单步、内存窗口，裸机世界的显微镜。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">23</div>
+          <div class="console-part">调试验证 / CH23</div>
+          <div class="console-title">JTAG 裸机调试</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>3</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:21%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>23 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">掌握 Vitis Debugger 的断点/单步/内存与寄存器观测</li>
+<li class="goal-item">理解硬件断点与软件断点的机制差异</li>
+<li class="goal-item">会用 XSCT 命令行把调试过程脚本化</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第三篇 · 调试验证</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,480 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        ILA、时序、GDB 与内核排障，建立可验证的工程习惯。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">23.1</span>调试链路原理</h3><p>JTAG 调试器经 <strong>DAP（Debug Access Port）</strong>连接 Cortex-A9 的调试单元，可以：暂停/恢复 CPU、读写全部核心寄存器与内存、设置硬件断点（比较器匹配地址）与监视点（数据访问触发）。这一切<strong>不需要目标程序任何配合</strong> —— 所以裸机阶段就能全功能调试。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">23.2</span>Vitis Debugger 五板斧</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>操作</th><th>入口</th><th>要点</th></tr>
+<tr><td>启动调试</td><td>右键应用 → Debug As → Launch Hardware</td><td>确认配置含 ps7_init 步骤（第7章）</td></tr>
+<tr><td>断点</td><td>代码行号左侧双击</td><td>默认软件断点；汇编级可切硬件断点</td></tr>
+<tr><td>单步</td><td>F5 步入 / F6 步越 / F7 返回 / F8 继续</td><td>-O2 下行序乱跳属正常，教学工程用 -O0</td></tr>
+<tr><td>看变量</td><td>Variables / Expressions 视图</td><td>指针右键 View Memory 跳转内存窗</td></tr>
+<tr><td>看外设</td><td>Memory 视图输入物理地址如 <code class="inline">0xE000A000</code></td><td>对照 UG585 寄存器手册逐位核对</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">23.3</span>实战：三分钟定位「中断不来」</h3><p>复现第8章 Q1 场景，演示分层排查：</p>
+<ol>
+<li><strong>断点 A</strong> 在 <code class="inline">XScuTimer_Start()</code> 之后 → Run 到此暂停，Memory 打开定时器基址 <code class="inline">0xF8F00600</code>：Enable 位确已置 1 → 定时器侧无嫌疑。</li>
+<li><strong>断点 B</strong> 在 ISR 首行 → F8 放行后未命中 → 中断未送达 CPU。</li>
+<li>Memory 打开 GIC 分发器 <code class="inline">0xF8F01100+29*4</code>（ISER 位段）：Timer29 对应位为 0 → <strong>GIC 层没使能！</strong>回查代码发现漏了 <code class="inline">XScuGic_Enable(&amp;intc, TIMER_IRPT_ID)</code>。</li>
+<li>补上重跑 → 断点 B 命中，问题闭环。全程未改一行逻辑，纯靠「证据链」。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">23.4</span>XSCT：脚本化的终极形态</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># xsct 交互或脚本（debug.tcl）：
+connect
+targets -set -filter {name =~ "Cortex-A9 #0"}   # 选核
+rst -processor                                   # 复位该核
+source ps7_init.tcl ; ps7_init                   # 初始化 SoC
+dow hello_uart.elf                               # 下载
+bpadd -file hello_uart.c -line 14                # 设断点
+con ; sleep 1 ; stp                              # 运行到断点再单步
+puts "PC=[rrd pc] r0=[rrd r0]"                   # 抓现场
+mrd 0xE0001000 8                                 # 直读UART寄存器8字
+dis                                              # 反汇编当前PC附近
+exit</code></pre></div>
+<p>价值：<strong>回归测试可脚本化</strong> —— 每次改完驱动自动下载运行并断言关键寄存器状态，CI 化的第一步（第35章验收会复用）。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：暂停 CPU 后系统突然复位？</summary><div class="ans"><p>CPU 停了但看门狗还在数！调试前先禁用 WDT（FSBL 配置里关掉，或调试配置中跳过），或在断点前喂狗。这是裸机调试第一坑。</p></div></details>
+<details class="qa"><summary>Q2：断点打不上或命中位置诡异？</summary><div class="ans"><p>① 编译优化 -O2 导致指令重排 —— 调试用 -O0（Properties→C/C++ Build→Optimization）；② 断点落在内联函数展开处；③ 硬件断点寄存器只有 6~8 个，超出则静默失败。</p></div></details>
+<details class="qa"><summary>Q3：双核同时调试互相干扰？</summary><div class="ans"><p>Vitis Targets 视图分别 attach 两核；注意共享外设（GIC/DDR）操作需协调。AMP 调试时建议先只挂核0，核1 用日志输出。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L23-1：寄存器级侦探</strong>
+<p>不用 printf，纯靠断点+Memory 视图完成：① 验证 GPIO EMIO 输出翻转时 DATA 寄存器对应位变化；② 抓取 UART 发送一个字符过程中 TX FIFO 状态位变化序列；③ 把三个发现写成「寄存器观察笔记」—— 这份笔记就是你读懂 UG585 的里程碑。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>硬件断点为什么能调试 ROM/Flash 中的代码而软件断点不能？</li>
+<li>设计一个「上电即停在 main 入口」的方案，便于从第一条语句开始跟踪。（提示：halt after download）</li>
+<li>XSCT 脚本如何在断言失败时返回非零退出码？给出 CI 集成思路。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">23.5</span>深潜：板级 bring-up 的 JTAG 急救技术 ★</h3><p>新板/新固件最黑暗的时刻是「串口一个字都没有」。JTAG 是此时唯一的光 —— 不需要任何代码能跑，就能读寄存器做诊断。</p>
+<h4>① 无系统诊断三板斧（XSCT 直读寄存器）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">connect
+targets -set -filter {name =~ "Cortex-A9 #0"}
+# ① 时钟链路健康: 读 ARM PLL 状态(SLCR)
+mrd 0xF8000140    # ARM_CLK_CTRL — 值为0或全F = PLL未锁/电源异常
+mrd 0xF8000100    # PLL_STATUS: bit0 ARMPLL_LOCK 应=1
+# ② DDR 活性: 绕过一切软件直接写读内存
+mwr 0x00100000 0xA5A51234
+mrd 0x00100000    # 回读==0xA5A51234 → DDR控制器+颗粒基本OK
+# ③ GPIO 心跳: 手动翻转 MIO LED 寄存器, 确认最低层硬件活着
+/* 三步结论树: PLL未锁→查电源/晶振; DDR写失败→查ps7_init时序参数;
+   都正常但程序不跑→问题在加载环节(镜像/入口地址) */</code></pre></div>
+<h4>② 内存 Pattern 测试脚本（DDR 可信度验收）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TCL</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="tcl"># xsct 脚本: 数据走1 + 地址抽样双重测试
+set base 0x00100000
+for {set i 0} {$i &lt; 32} {incr i} {
+    mwr [expr $base + $i*4] [expr 1 &lt;&lt; $i]     # 数据走1
+}
+for {set a $base} {$a &lt; $base+0x04000000} {set a [expr $a+0x100000]} {
+    mwr $a 0xAAAAAAAA
+    if {[lindex [mrd -value $a] 1] != 0xAAAAAAAA} { puts "FAIL @ $a" }
+}</code></pre></div>
+<h4>③ 启动三级接管的 JTAG 切入点</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>死亡阶段</th><td>JTAG 接管动作</td></tr>
+<tr><td>BootROM 后无 FSBL</td><td>halt → 手动 source ps7_init.tcl → dow fsbl.elf 单步跟</td></tr>
+<tr><td>FSBL 卡在 PCAP</td><td>mrd DevC 状态寄存器(0xF8007000 域) 看 PCAP_DONE/溢出位</td></tr>
+<tr><td>U-Boot 前 DDR 即坏</td><td>用①②确认后修正 XSA 的 DDR 时序重出 FSBL</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch23"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>掌握 Vitis Debugger 的断点/单步/内存与寄存器观测</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>理解硬件断点与软件断点的机制差异</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用 XSCT 命令行把调试过程脚本化</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「JTAG 裸机调试」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter22.html"><span><span class="pager-label">上一章</span><b>第 22 章 · 时序分析与时序收敛</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter24.html"><span><span class="pager-label">下一章</span><b>第 24 章 · Linux 应用远程调试：GDB + VSCode</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 23 章 · JTAG 裸机调试 · 第三篇 · 调试验证</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

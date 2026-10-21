@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 4 章 · 开发环境搭建 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 4 章 · 开发环境搭建：一次装对，全程受益 —— Windows 侧 Vivado/Vitis + Ubuntu 虚拟机 PetaLinux + 网络服务三件套。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-foundation" data-chapter-id="ch04" data-chapter-file="chapter4.html" data-chapter-label="第 4 章 · 开发环境搭建">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 4 章 · 基础知识</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>环境总体架构</a>
+<a href="#sec-2"><span class="num">02</span>安装 Vivado / Vitis 2020.2（Windows）</a>
+<a href="#sec-3"><span class="num">03</span>Ubuntu 18.04 虚拟机</a>
+<a href="#sec-4"><span class="num">04</span>安装 PetaLinux 2020.2</a>
+<a href="#sec-5"><span class="num">05</span>串口终端与文件服务</a>
+<a href="#sec-6"><span class="num">06</span>工作目录规范（全课程遵循）</a>
+<a href="#sec-7"><span class="num">07</span>环境自检清单（全部通过再进入第5章）</a>
+<a href="#sec-8"><span class="num">08</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 4 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第一篇 · 基础知识 / Chapter 04</div>
+      <h1 id="heroTitle">第 4 章<br><span class="grad">开发环境搭建</span></h1>
+      <p class="hero-sub">一次装对，全程受益 —— Windows 侧 Vivado/Vitis + Ubuntu 虚拟机 PetaLinux + 网络服务三件套。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">8 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">04</div>
+          <div class="console-part">基础知识 / CH04</div>
+          <div class="console-title">开发环境搭建</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>8</b></div>
+            <div class="console-metric"><span>CODE</span><b>7</b></div>
+            <div class="console-metric"><span>TBL</span><b>3</b></div>
+            <div class="console-metric"><span>QA</span><b>5</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:44%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:25%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:13%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>04 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>8</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>3</b><span>速查表格</span></div>
+    <div class="stat"><b>5</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">完成 Vivado/Vitis 2020.2 与 PetaLinux 2020.2 的规范安装</li>
+<li class="goal-item">搭建 TFTP / NFS / 串口 终端等日常开发基础设施</li>
+<li class="goal-item">通过本章自检清单，确保后续每一章实验环境可用</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第一篇 · 基础知识</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>4,455 字 · 8 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>7 段 · 3 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>5 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从读板、工具链到 PS/PL 协同，建立 ZYNQ 全栈地基。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">4.1</span>环境总体架构</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>位置</th><th>安装内容</th><th>职责</th></tr>
+<tr><td>Windows 宿主机</td><td>Vivado 2020.2 + Vitis、MobaXterm、VSCode、Git</td><td>PL 工程开发、裸机调试、串口终端、远程编辑代码</td></tr>
+<tr><td>Ubuntu 18.04 虚拟机</td><td>PetaLinux 2020.2、NFS/TFTP 服务、交叉编译 SDK</td><td>Linux 全家桶构建、驱动/应用编译、文件服务</td></tr>
+<tr><td>领航者开发板</td><td>BOOT.BIN / 镜像</td><td>被调试目标，经 USB(JTAG+串口)+网线 与主机互联</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 推荐布局理由</span>
+<p>Vivado 图形界面在 Windows 原生运行最流畅；PetaLinux 只能装在 Linux。两者通过「共享文件夹/网盘 + NFS」衔接 bitstream 与 HDF 文件。如果你习惯全 Linux 工作流，把 Vivado 也装进虚拟机完全可行（内存建议 32GB）。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">4.2</span>安装 Vivado / Vitis 2020.2（Windows）</h3><ol>
+<li>注册 AMD/Xilinx 账号，从官网下载 <strong>Vivado 2020.2 Unified Installer</strong>（约几十 MB 在线安装器，或完整离线包）。</li>
+<li>运行安装器，选择 <strong>Vitis</strong>（2020.2 起 SDK 功能并入 Vitis，裸机开发必需）。</li>
+<li>器件勾选：<strong>Zynq-7000 SoC</strong>（可再加 Artix-7 备用）；文档勾选 DocNav。</li>
+<li>安装路径<strong>全英文、无空格</strong>（如 <code class="inline">D:\Xilinx</code>），磁盘预留 ≥100GB。</li>
+<li>许可：选择 <strong>WebPack 免费许可</strong>，Zynq-7020 在覆盖列表内，无需付费 License。</li>
+<li>安装完成后启动 Vivado，确认版本号 2020.2；插入开发板 USB 线，Hardware Manager 中应能识别板载 JTAG。</li>
+</ol></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">4.3</span>Ubuntu 18.04 虚拟机</h3><ol>
+<li>安装 VMware Workstation（16 及以上）。</li>
+<li>新建虚拟机：镜像 <code class="inline">ubuntu-18.04.6-desktop-amd64.iso</code>；配置 <strong>4 核 CPU / 16GB 内存（最低8GB）/ 150GB 磁盘（选单个文件）</strong>。</li>
+<li>装好后执行系统更新与基础工具：</li>
+</ol>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">sudo apt update && sudo apt upgrade -y
+sudo apt install -y open-vm-tools-desktop net-tools openssh-server
+# 换阿里源（编辑 /etc/apt/sources.list 将 archive.ubuntu.com 替换为 mirrors.aliyun.com）
+sudo sed -i 's/cn.archive.ubuntu.com/mirrors.aliyun.com/g; s/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+sudo apt update
+# 固定 IP（桥接模式示例，按你的局域网网段修改）
+sudo nano /etc/netplan/01-netcfg.yaml</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># /etc/netplan/01-netcfg.yaml —— 静态IP示例
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens33:
+      dhcp4: no
+      addresses: [192.168.2.20/24]
+      gateway: 192.168.2.1
+      nameservers:
+        addresses: [192.168.2.1, 114.114.114.114]</code></pre></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">sudo netplan apply && ip a   # 确认 IP 生效</code></pre></div>
+
+<h4>网络规划表（全课程统一，强烈建议照抄）</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>设备</th><th>IP</th><th>说明</th></tr>
+<tr><td>Windows 宿主机</td><td>192.168.2.10</td><td>有线网卡桥接进虚拟机</td></tr>
+<tr><td>Ubuntu 虚拟机</td><td>192.168.2.20</td><td>NFS/TFTP 服务器、编译机</td></tr>
+<tr><td>ZYNQ 开发板</td><td>192.168.2.30</td><td>U-Boot 与 Linux 中的静态地址</td></tr>
+</table></div>
+<div class="box warn"><span class="bt">⚠️ 桥接要点</span>
+<p>VMware 虚拟网络编辑器中，VMnet0 桥接到<strong>有线物理网卡</strong>（不是无线、不是 VPN 虚拟网卡）；板卡与主机接同一台交换机/路由器 LAN 口；Windows 防火墙允许 ICMP（或临时关闭测试）。三台设备互 ping 全通才算过关。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">4.4</span>安装 PetaLinux 2020.2</h3><ol>
+<li>安装依赖（UG1144 官方清单）并修正默认 shell：</li>
+</ol>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">sudo dpkg-reconfigure dash    # 选择 No，改回 bash
+sudo apt install -y tofrodos iproute2 gawk xvfb gcc git make net-tools \
+  libncurses5-dev tftpd zlib1g-dev libssl-dev flex bison libselinux1 \
+  gnupg wget diffstat chrpath socat xterm autoconf libtool tar unzip \
+  texinfo zlib1g-dev gcc-multilib automake zlib1g:i386 screen pax gzip \
+  cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+  iputils-ping libsdl1.2-dev libglib2.0-dev lib32z1</code></pre></div>
+<ol start="2">
+<li>运行安装器（<strong>不要用 root，也不要装进系统目录</strong>）：</li>
+</ol>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">mkdir -p /opt/pkg/petalinux/2020.2
+sudo chown -R $USER:$USER /opt/pkg
+chmod +x petalinux-v2020.2-final-installer.run
+./petalinux-v2020.2-final-installer.run /opt/pkg/petalinux/2020.2
+# 按提示阅读并接受许可协议（输入 q + y）
+# 写入环境变量
+echo 'source /opt/pkg/petalinux/2020.2/settings.sh' >> ~/.bashrc
+source ~/.bashrc
+echo $PETALINUX        # 应输出安装路径
+petalinux-util --version  # 应显示 2020.2</code></pre></div>
+<div class="box tip"><span class="bt">💡 sstate 与 downloads 加速目录</span>
+<p>首次构建 PetaLinux 会联网下载大量源码包。提前从官网下载对应 <code class="inline">sstate-aarch64 2020.2</code> 与 <code class="inline">downloads-2020.2</code> 离线包解压到 <code class="inline">~/work/sstate</code> 与 <code class="inline">~/work/downloads</code>，建工程时在 <code class="inline">petalinux-config → Yocto Settings</code> 里指向本地路径，可将构建时间从数小时缩到几十分钟，且断网可用。</p></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">4.5</span>串口终端与文件服务</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 1) Windows 侧：MobaXterm → Serial → 选板卡串口
+#    波特率 115200，8N1，无流控（保存为会话）
+
+# 2) Ubuntu 侧 TFTP 服务（供 U-Boot 拉取镜像）
+sudo apt install -y tftpd-hpa
+sudo mkdir -p /tftpboot && sudo chmod 777 /tftpboot
+sudo nano /etc/default/tftpd-hpa
+#   TFTP_DIRECTORY="/tftpboot"
+#   TFTP_OPTIONS="--secure --create"
+sudo systemctl restart tftpd-hpa
+echo "tftp-ok" | sudo tee /tftpboot/test.txt
+tftp 127.0.0.1 -c get test.txt && cat test.txt   # 自检
+
+# 3) Ubuntu 侧 NFS 服务（供板卡挂载根文件系统）
+sudo apt install -y nfs-kernel-server
+mkdir -p ~/work/rootfs
+echo "/home/$USER/work/rootfs *(rw,sync,no_root_squash,no_subtree_check)" | sudo tee -a /etc/exports
+sudo exportfs -ra && showmount -e localhost      # 自检
+sudo ufw disable                                  # 关闭防火墙避免干扰</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">4.6</span>工作目录规范（全课程遵循）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">~/work/
+├── fpga/        # Vivado 工程（每实验一个子目录）
+├── plnx/        # PetaLinux 工程
+├── apps/        # Linux 驱动与应用源码（Git 管理）
+├── tools/       # 自用脚本（烧卡、打包等）
+├── rootfs/      # NFS 根文件系统导出目录
+├── sstate/      # PetaLinux 离线 sstate
+└── downloads/   # PetaLinux 离线源码包</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">4.7</span>环境自检清单（全部通过再进入第5章）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>#</th><th>检查项</th><th>方法</th><th>预期</th></tr>
+<tr><td>1</td><td>Vivado 版本</td><td>启动 Vivado → Help → About</td><td>2020.2</td></tr>
+<tr><td>2</td><td>JTAG 识别</td><td>Vivado → Open Hardware Manager → Open Target</td><td>识别到 xc7z020</td></tr>
+<tr><td>3</td><td>串口连通</td><td>MobaXterm 打开串口，按板卡复位</td><td>有输出（或至少无报错占用）</td></tr>
+<tr><td>4</td><td>PetaLinux</td><td><code class="inline">petalinux-util --version</code></td><td>2020.2</td></tr>
+<tr><td>5</td><td>三机互通</td><td>Windows↔Ubuntu↔板卡 互 ping</td><td>全部通</td></tr>
+<tr><td>6</td><td>TFTP</td><td>本机 get 测试</td><td>取回 test.txt</td></tr>
+<tr><td>7</td><td>NFS</td><td><code class="inline">showmount -e localhost</code></td><td>列出 rootfs 导出</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：Vivado 安装完成但启动闪退/白屏？</summary><div class="ans"><p>常见原因：① 安装路径含中文或空格；② 显卡驱动兼容问题——尝试右键「以图形处理器运行→集成显卡」；③ 缺 VC 运行库；④ 以管理员身份运行一次。若仍失败，查看 <code class="inline">Vivado Launch.log</code> 末尾报错检索。</p></div></details>
+<details class="qa"><summary>Q2：petalinux-config 界面乱码或直接退出？</summary><div class="ans"><p>多为 locale 问题：执行 <code class="inline">sudo locale-gen en_US.UTF-8</code>，并在 <code class="inline">~/.bashrc</code> 加 <code class="inline">export LC_ALL=en_US.UTF-8</code>。另确认终端窗口足够大（ncurses 菜单需要 ≥80×24）。</p></div></details>
+<details class="qa"><summary>Q3：构建时报磁盘空间不足？</summary><div class="ans"><p>PetaLinux 单工程可膨胀至 30~60GB。① 确认虚拟机磁盘 ≥150GB；② sstate 与工程分盘存放；③ 旧工程及时删除 <code class="inline">build/tmp</code>；④ VMware 磁盘选「单个文件」避免碎片化，必要时用 vmware-vdiskmanager 扩容。</p></div></details>
+<details class="qa"><summary>Q4：WSL2 里能装 PetaLinux 2020.2 吗？</summary><div class="ans"><p>官方不支持（2020.2 仅认证 Ubuntu 18.04 原生/主流虚拟机）。WSL2 的网络与 systemd 差异会导致 NFS 等服务异常。求稳请用 VMware/VirtualBox 完整虚拟机；WSL2 可作为辅助 shell 使用但不作为主环境。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L4-1：环境验收</strong>
+<p>按 4.7 清单逐项完成并记录截图/输出。额外任务：① 在 Ubuntu 中用 <code class="inline">ssh user@192.168.2.20</code> 从 Windows VSCode Remote-SSH 连通；② 把 <code class="inline">test.txt</code> 放入 /tftpboot 后，在 Windows 命令行 <code class="inline">tftp -i 192.168.2.20 get test.txt</code>（需启用 Windows TFTP 客户端功能）验证跨机取文件。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 NFS 导出配置里要加 <code class="inline">no_root_squash</code>？去掉后板卡以 root 挂载会遇到什么现象？</li>
+<li>如果公司内网禁止静态 IP，你会如何改造 4.3 的网络方案让板卡仍能被稳定访问？（提示：DHCP 保留 / mDNS / hostnames）</li>
+<li>sstate 缓存为什么能加速构建？它缓存的粒度是什么？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch04"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>完成 Vivado/Vitis 2020.2 与 PetaLinux 2020.2 的规范安装</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>搭建 TFTP / NFS / 串口 终端等日常开发基础设施</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>通过本章自检清单，确保后续每一章实验环境可用</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「开发环境搭建」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter3.html"><span><span class="pager-label">上一章</span><b>第 3 章 · 领航者开发板硬件资源</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter5.html"><span><span class="pager-label">下一章</span><b>第 5 章 · Verilog HDL 快速入门</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 4 章 · 开发环境搭建 · 第一篇 · 基础知识</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

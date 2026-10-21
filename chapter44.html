@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 44 章 · 标准体系与功能安全认证 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 44 章 · 标准体系与功能安全认证：工业产品的「游戏规则」：读懂 IEC 标准地图，理解 SIL 等级背后的数学，知道认证怎么走。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-industrial" data-chapter-id="ch44" data-chapter-file="chapter44.html" data-chapter-label="第 44 章 · 标准体系与功能安全认证">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 44 章 · 工业自动化</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>PLC 研发相关标准地图</a>
+<a href="#sec-2"><span class="num">02</span>IEC 61131-2 设备要求速览（硬件研发输入）</a>
+<a href="#sec-3"><span class="num">03</span>功能安全（IEC 61508）核心概念 ★</a>
+<a href="#sec-4"><span class="num">04</span>认证实操：CE / UL / CCC 怎么走</a>
+<a href="#sec-5"><span class="num">05</span>IEC 62443 工控信息安全入门</a>
+<a href="#sec-6"><span class="num">06</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-7"><span class="num">07</span>44.6 定量练习：先列假设，不凭数值宣称 SIL</a>
+<a href="#sec-8"><span class="num">08</span>深潜：软件工具置信度分类（T1/T2/T3）</a>
+<a href="#sec-9"><span class="num">09</span>深潜：防爆入门——分区与 Ex 标志解读</a>
+<a href="#sec-10"><span class="num">10</span>深潜：IEC 62443-4-2 组件要求(CR)节选</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 44 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第六篇 · 工业自动化 / Chapter 44</div>
+      <h1 id="heroTitle">第 44 章<br><span class="grad">标准体系与功能安全认证</span></h1>
+      <p class="hero-sub">工业产品的「游戏规则」：读懂 IEC 标准地图，理解 SIL 等级背后的数学，知道认证怎么走。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">10 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">44</div>
+          <div class="console-part">工业自动化 / CH44</div>
+          <div class="console-title">标准体系与功能安全认证</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>10</b></div>
+            <div class="console-metric"><span>CODE</span><b>3</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:56%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:21%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>44 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>10</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">建立 PLC 相关国际/国家标准的完整地图</li>
+<li class="goal-item">掌握功能安全核心概念：SIL/PFD/HFT/SFF 与冗余表决结构</li>
+<li class="goal-item">了解 CE/UL 认证流程与 IEC 62443 工控安全框架</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第六篇 · 工业自动化</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,728 字 · 10 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        PLC 硬件、功能安全、工业总线与冗余设计。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">44.1</span>PLC 研发相关标准地图</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>标准号</th><th>名称/范围</th><th>对研发的意义</th></tr>
+<tr><td><strong>IEC 61131 系列</strong></td><td>可编程控制器族：-1总览 -2<strong>设备要求</strong> -3<strong>编程语言</strong> -5通信 -7模糊控制 -8指南</td><td>PLC 产品的「宪法」；-2 是硬件设计输入，-3 是软件框架依据</td></tr>
+<tr><td>IEC 61508 系列</td><td>电气/电子/可编程电子安全系统<strong>功能安全</strong>母标准（SIL 分级）</td><td>SIL2/3 级安全 PLC 的设计依据；衍生 ISO 26262(汽车)/IEC 61511(过程)</td></tr>
+<tr><td>IEC 61158 / 61784</td><td>工业通信网络现场总线 / 行规集（CP 1~27 对应各总线）</td><td>第45章总线协议的标准出处</td></tr>
+<tr><td>IEC 62443 系列</td><td>工业过程测量控制<strong>信息安全</strong>（原 ISA-99）</td><td>工控安全设计框架：Zone/Conduit/SL 等级</td></tr>
+<tr><td>IEC 61000 系列</td><td>EMC 试验与测量技术（-4-x 抗扰度各分项）</td><td>硬件 EMC 设计与测试的判卷标准</td></tr>
+<tr><td><strong>GB/T 国标</strong></td><td>GB/T 15969(对应61131)、GB/T 20438(对应61508)、GB/T 33008等</td><td>国内市场准入与招投标技术依据</td></tr>
+<tr><td>UL 508 / EN 60204</td><td>北美工业控制设备安全 / 机械电气安全</td><td>出口北美/欧洲的强制门槛</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">44.2</span>IEC 61131-2 设备要求速览（硬件研发输入）</h3><ul>
+<li><strong>工作条件</strong>：开放式/面板式/封闭式设备分级；温度 5~55℃（室内）起步，存储 -40~+70℃；湿度 5~95%RH 无凝露；</li>
+<li><strong>电气要求</strong>：24VDC 额定允许波动范围、绝缘耐压（如 500V AC 试验电压按工作电压等级）、保护接地连续性；</li>
+<li><strong>机械要求</strong>：振动/冲击试验等级、导轨安装保持力；</li>
+<li><strong>EMC</strong>：引用 IEC 61000-4-2(ESD ±8kV接触)/-3(射频场)/-4(EFT ±2kV)/-5(浪涌 1kV)/-6，判定准则 A/B/C（性能降级允许程度）；</li>
+<li>研发落地方式：把每条要求翻译成<strong>设计规格表</strong>（如 EFT ±2kV → 每端口 TVS+共模电感），评审逐条打勾。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">44.3</span>功能安全（IEC 61508）核心概念 ★</h3><h4>① 基本链条</h4>
+<p>危险分析(H&RA) → 定义<strong>SIF 安全仪表功能</strong>（如"锅炉超压则切断燃料阀"）→ 用 LOPA/风险矩阵确定所需 <strong>SIL 等级</strong> → 设计实现并<strong>验证</strong>达到该等级 → 运行期维护证明持续有效。</p>
+<h4>② SIL 等级的数学含义</h4>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>等级</th><th>低要求模式 PFD<sub>avg</sub></th><th>高要求/连续模式 PFH (1/h)</th><th>风险降低因子</th><th>典型应用</th></tr>
+<tr><td>SIL1</td><td>10⁻² ~ 10⁻¹</td><td>10⁻⁶ ~ 10⁻⁵</td><td>10~100</td><td>一般联锁</td></tr>
+<tr><td>SIL2</td><td>10⁻³ ~ 10⁻²</td><td>10⁻⁷ ~ 10⁻⁶</td><td>100~1000</td><td>机械安全、过程多数场景</td></tr>
+<tr><td>SIL3</td><td>10⁻⁴ ~ 10⁻³</td><td>10⁻⁸ ~ 10⁻⁷</td><td>1000~10000</td><td>锅炉保护、透平跳闸</td></tr>
+<tr><td>SIL4</td><td>10⁻⁵ ~ 10⁻⁴</td><td>10⁻⁹ ~ 10⁻⁸</td><td>10⁴~10⁵</td><td>极罕见（核/铁路）</td></tr>
+</table></div>
+<h4>③ 硬件结构约束：HFT 与表决</h4>
+<ul>
+<li><strong>HFT（硬件故障裕度）</strong>：容忍 N 个危险故障仍保持安全的能力。SIL2 至少 HFT0(低SFF)或 HFT1；SIL3 更严；</li>
+<li>典型冗余结构：<code class="inline">1oo1</code>单通道 / <code class="inline">1oo2</code>（任一动作即输出安全，防拒动）/ <code class="inline">2oo2</code>（都动作才输出，防误动）/ <code class="inline">2oo3</code> 三取二（兼顾两者，安全 PLC 经典架构）；</li>
+<li><strong>SFF 安全失效分数</strong> =（安全失效+可诊断危险失效）/总失效。提高 SFF 靠<strong>诊断覆盖率 DC</strong>：看门狗、存储器CRC、IO 回读、ADC 注入自检、时钟监测……诊断是安全设计的灵魂；</li>
+<li><strong>共因失效 CCF</strong>：两通道用同一电源/同一软件 bug → 冗余形同虚设。对策：通道物理隔离、多样性设计（不同算法/不同芯片）、β 因子评估。</li>
+</ul>
+<h4>④ PFD 验证计算（感受一下数学）</h4>
+<div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">1oo1 教学近似：PFDavg ≈ λDU × T / 2
+仅在定失效率、小概率、完全证明测试与恢复等假设下使用。
+多通道需另建包含独立性、共因、测试与维修的模型。
+例：500 FIT × 8760 h / 2 = 0.00219，无量纲。
+仅靠该数值不能判定完整安全功能的 SIL。</code></pre></div>
+<h4>⑤ 软件与流程要求（61508-3）</h4>
+<ul>
+<li>V 模型全生命周期文档：需求→架构→详细设计→编码→单元/集成/验证测试，每步可追溯；</li>
+<li>编码规范（MISRA C）、静态分析、MC/DC 覆盖率（SIL3）、受控工具链（T3 类工具需论证或认证）；</li>
+<li>这就是 SIL 级安全 PLC（如西门子 F 系列）价格数倍于标准型的根本原因：<strong>买的是整个开发过程与证据链</strong>。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">44.4</span>认证实操：CE / UL / CCC 怎么走</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>认证</th><th>市场</th><th>核心指令/标准</th><th>模式</th></tr>
+<tr><td>CE-EMC</td><td>欧盟</td><td>2014/30/EU + EN 61131-2</td><td>自我声明 + 技术文档留存（可公告机构增强公信）</td></tr>
+<tr><td>CE-LVD/RoHS</td><td>欧盟</td><td>2014/35/EU / 2011/65/EU</td><td>同上</td></tr>
+<tr><td>UL 508 / 61010</td><td>北美</td><td>UL 实验室工厂审查+型式试验</td><td>强制第三方 + 年度厂检</td></tr>
+<tr><td>CCC/CR 认证</td><td>中国</td><td>对应国标目录内产品</td><td>目录内强制</td></tr>
+<tr><td>功能安全认证</td><td>全球</td><td>TÜV Rheinland/Süd、exida 等</td><td>按 61508 认证产品+流程，周期 1~2 年</td></tr>
+</table></div>
+<p>送测前自检清单：EMC 预测试（找实验室摸底）、耐压绝缘设计余量、说明书安全警示语、关键件清单(CDF)与 UL 认证件选用、铭牌参数合规。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">44.5</span>IEC 62443 工控信息安全入门</h3><ul>
+<li><strong>Zone &amp; Conduit 模型</strong>：把系统划分为安全区域（Zone）与受控通道（Conduit），每区/道评估并指定 <strong>SL1~SL4 安全等级</strong>；</li>
+<li>对设备商的要求（62443-4-1/4-2）：安全开发生命周期（SDL）+ 组件技术要求（如最小权限、输入校验、审计日志、安全启动）；</li>
+<li>与第33章 Web 监控的「Known Limitations」呼应：产品化路线 = HTTPS+账号体系+审计日志+网络分区，正是朝 SL1/SL2 靠拢。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：自研设备到底要不要做功能安全认证？</summary><div class="ans"><p>取决于用途：设备用于安全相关回路（客户 SIS 系统里）→ 必须有 SIL 认证否则投标出局；仅做普通控制 → 不强制，但按 61508 思路设计（诊断+看门狗+安全输出态）能显著提升可靠性并是极好的卖点。先问销售场景再定投入。</p></div></details>
+<details class="qa"><summary>Q2：SIL2 和 SIL3 的成本差多少？</summary><div class="ans"><p>经验量级：SIL2 认证投入百万级人民币、周期约1年；SIL3 需要更严的冗余结构+MC/DC 覆盖+更重的文档与独立评估，投入翻数倍。所以市场上 SIL3 产品稀缺且贵。</p></div></details>
+<details class="qa"><summary>Q3：IEC 61508 与 ISO 26262 / IEC 61511 什么关系？</summary><div class="ans"><p>61508 是母标准；26262=汽车行业改编（ASIL A~D 分级）；61511=过程工业应用改编（SIS 系统生命周期，只允许用已认证设备）；机械安全对应 ISO 13849（PL 等级 Performance Level）。答题时能画出这棵衍生树即显专业。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L44-1：合规差距分析</strong>
+<p>以你的软 PLC 为对象，产出《IEC 61131-2 / 61508 差距分析表》：左列标准条款（挑 15 条核心：温度范围/ESD/EFT/浪涌/绝缘/看门狗/存储器自检/IO回读/安全输出态/软件V模型文档…），中列当前状态（满足/部分/缺失），右列整改措施与成本估计。这份文档本身就是研发评审的真实工作产物。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>2oo3 表决为什么能同时优于 1oo2（防误动）和 2oo2（防拒动）？用失效模式表推演。</li>
+<li>若诊断覆盖率 DC=90%，SFF 如何计算？它如何影响允许的 HFT 要求？</li>
+<li>你的软 PLC 若要冲击 SIL2，列出最贵的三项投入并说明能否用设计手段降低（如多样性 vs 双倍硬件）。</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">44.6 定量练习：先列假设，不凭数值宣称 SIL</h3><p>先用单通道 1oo1 理解验证测试周期的影响。假设危险未检出失效率为常数、λDU×T 很小、证明测试能完全发现潜伏故障、测试后完全恢复、忽略测试停机与修复时间，则可近似：</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>PFDavg ≈ λDU × T / 2
+练习设定：λDU = 500 FIT = 5×10^-7 /h，T = 8760 h
+PFDavg ≈ 0.00219（无量纲）
+T 缩短一半，其他假设不变，近似值也缩短一半。
+这是单个简化模型的数值，不是整套安全功能的等级证书。</code></pre></div><p>多通道模型须交代投票架构、测试是否同步、独立性、共因、诊断、维修和完整功能边界。把未说明的 2oo3 系数、问号与区间猜测留在“完整算例”里会误导，因此改为可手算核对的基础练习。SIL 还涉及架构与系统能力及生命周期证据。</p><p>标准适用范围以现行正式文本和项目合规依据为准：<a href="https://www.iec.ch/functional-safety" target="_blank" rel="noopener">IEC 功能安全资料入口</a>。</p></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">44.7</span>深潜：软件工具置信度分类（T1/T2/T3）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>类</th><td>定义</td><td>例子</td><td>要求</td></tr>
+<tr><td>T1</td><td>不影响输出(编辑器/版本管理)</td><td>Vim, Git, diff</td><td>基本验证即可</td></tr>
+<tr><td>T2</td><td>可能有错但可发现/规避</td><td>编译器、静态分析器、示波器</td><td>按使用说明+确认测试</td></tr>
+<tr><td>T3</td><td>错误直接进产品且难以发现</td><td>代码生成器(如 IEC 编程IDE的代码生成)、仿真模型转换器</td><td>需按 T3 类开发论证或已有认证 ★</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">44.8</span>深潜：防爆入门——分区与 Ex 标志解读</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">区域划分(气体): Zone0(连续存在) Zone1(正常可能) Zone2(异常短时)
+设备标志例: Ex II 2G Ex db IIB T4 Gb
+  II=非矿用  2G=Zone1适用
+  db=隔爆外壳(保护型式; 另有 ia本质安全/in正压/mi浇封…)
+  IIB=气体组(氢气属IIC更严)  T4=表面温度组(≤135℃)
+本安设计核心: 火花+热表面能量双双限制 → 储能元件(L/C)参数与限能电阻
+按 Uo/Io/Po 表匹配现场设备 —— PLC 的防爆 IO 卡即按此认证。</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">44.9</span>深潜：IEC 62443-4-2 组件要求(CR)节选</h3><ul>
+<li><strong>CR1.1 认证与 CR1.2 用户管理</strong>：唯一标识+角色分级；<strong>CR2.1 最小权限</strong>；<strong>CR3.1 通信完整性</strong>(防篡改)；<strong>CR4.x 资源可用性</strong>(防 DoS：连接数/速率上限——对应33章 Web 限流)；</li>
+<li>SL 定级方法：对每个威胁场景问「攻击者能力到哪级仍被防住」→ SL2 = 防内部低技能；SL3 = 防具备工控知识的小团队。产品安全声明写「支持至 SL2」比空喊「安全」专业一百倍。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch44"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>建立 PLC 相关国际/国家标准的完整地图</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握功能安全核心概念：SIL/PFD/HFT/SFF 与冗余表决结构</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>了解 CE/UL 认证流程与 IEC 62443 工控安全框架</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「标准体系与功能安全认证」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter43.html"><span><span class="pager-label">上一章</span><b>第 43 章 · PLC 硬件模块研发设计</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter45.html"><span><span class="pager-label">下一章</span><b>第 45 章 · 工业总线与工业以太网全景</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 44 章 · 标准体系与功能安全认证 · 第六篇 · 工业自动化</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

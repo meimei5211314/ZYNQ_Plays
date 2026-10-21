@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 42 章 · 精通之路：能力矩阵与成长闭环 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 42 章 · 精通之路：能力矩阵与成长闭环：课程终点，职业起点 —— 给你一张可自评的地图和一套可持续十年的成长算法。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-advanced" data-chapter-id="ch42" data-chapter-file="chapter42.html" data-chapter-label="第 42 章 · 精通之路：能力矩阵与成长闭环">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 42 章 · 进阶精通</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>嵌入式工程师六维能力矩阵</a>
+<a href="#sec-2"><span class="num">02</span>刻意练习四段循环</a>
+<a href="#sec-3"><span class="num">03</span>开源参与阶梯</a>
+<a href="#sec-4"><span class="num">04</span>知识管理最小集</a>
+<a href="#sec-5"><span class="num">05</span>终极资源地图</a>
+<a href="#sec-6"><span class="num">06</span>深潜：90 天进阶冲刺模板（可复制执行）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 42 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第五篇 · 进阶精通 / Chapter 42</div>
+      <h1 id="heroTitle">第 42 章<br><span class="grad">精通之路：能力矩阵与成长闭环</span></h1>
+      <p class="hero-sub">课程终点，职业起点 —— 给你一张可自评的地图和一套可持续十年的成长算法。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">6 个小节</span>
+        <span class="meta-chip">1 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">42</div>
+          <div class="console-part">进阶精通 / CH42</div>
+          <div class="console-title">精通之路：能力矩阵与成长闭环</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>6</b></div>
+            <div class="console-metric"><span>CODE</span><b>0</b></div>
+            <div class="console-metric"><span>TBL</span><b>4</b></div>
+            <div class="console-metric"><span>QA</span><b>1</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:8%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:33%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:8%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>42 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>6</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>4</b><span>速查表格</span></div>
+    <div class="stat"><b>1</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">用能力矩阵客观定位自己当前层级与下一跳</li>
+<li class="goal-item">建立「复现→改造→重构→原创」的刻意练习循环</li>
+<li class="goal-item">掌握开源参与与技术影响力路径</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第五篇 · 进阶精通</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>1,915 字 · 6 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>0 段 · 4 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>1 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        并发、DMA、性能、AMP 与项目矩阵，跨过进阶门槛。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">42.1</span>嵌入式工程师六维能力矩阵</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>维度</th><th>L1 入门(本课L1~20章)</th><th>L2 熟练(21~36章)</th><th>L3 高级(37~41章)</th><th>L4 专家</th></tr>
+<tr><td>数字/FPGA 设计</td><td>能完成寄存器传输级小模块并上板</td><td>独立完成多IP集成、时序收敛、CDC防御</td><td>高速接口(SerDes/DDR)、面积时序权衡量化</td><td>定义架构级IP，带团队评审</td></tr>
+<tr><td>嵌入式软件</td><td>裸机外设编程、API调用</td><td>多线程架构、协议实现(Modbus)</td><td>实时性设计、AMP分工、性能调优有据</td><td>定义产品软件框架，跨团队接口仲裁</td></tr>
+<tr><td>Linux 系统</td><td>会用命令行与交叉编译</td><td>PetaLinux全流程、字符驱动、DT定制</td><td>内核机制精通(并发/内存/DMA子系统)</td><td>向主线提交patch、解决疑难内核问题</td></tr>
+<tr><td>调试验证</td><td>printf+示波器</td><td>ILA/GDB/oops解析、回归自动化</td><td>ftrace/perf量化、故障注入体系</td><td>建立组织级测试平台与方法论</td></tr>
+<tr><td>架构设计</td><td>照图搭建</td><td>模块契约、寄存器映射文档化</td><td>需求→ADR→里程碑的完整交付</td><td>成本/风险/演进路线的综合决策</td></tr>
+<tr><td>工程素养</td><td>会Git基本操作</td><td>规范commit、实验笔记、验收报告</td><td>CI化测试、代码评审、知识输出</td><td>技术布道、培养他人</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 自评方法</span>
+<p>逐格打分（0.5 粒度），你的短板象限就是下一年度的学习预算。面试官问「你是什么水平」时，直接展示这张表并指出自己的两长一短 —— 这是高级感的回答。</p></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">42.2</span>刻意练习四段循环</h3><ol>
+<li><strong>复现 Reproduce</strong>：跟教程做出结果（本课程 1~36 章）；</li>
+<li><strong>改造 Modify</strong>：换需求重做——把 PLC 扫描改 1ms？Modbus 换 RTU over TCP？（每章思考题即此训练）；</li>
+<li><strong>重构 Refactor</strong>：不看原代码重写，再 diff 找差距——你会震惊于自己第一次写的丑陋之处；</li>
+<li><strong>原创 Create</strong>：第41章项目集，从需求文档开始白纸起步。</li>
+</ol>
+<p>每个项目走完四段，才真正属于你。只停留在第 1 段的学习是「收藏家式学习」—— 收藏了 100 个教程，动手能力为零。</p></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">42.3</span>开源参与阶梯</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>阶梯</th><th>动作</th><th>目标项目建议</th></tr>
+<tr><td>1</td><td>认真提 issue（附最小复现+环境信息）</td><td>libmodbus / mosquitto</td></tr>
+<tr><td>2</td><td>修文档错别字、补 README 用例 → 首个 PR</td><td>pymodbus / trace-cmd</td></tr>
+<tr><td>3</td><td>修复 good-first-issue bug，走完整 review 流程</td><td>Beremiz / open62541</td></tr>
+<tr><td>4</td><td>为 linux-xlnx 驱动提 patch（从 checkpatch 清理开始）</td><td>linux-xlnx → 主线</td></tr>
+<tr><td>5</td><td>发布自己的开源项目（如本课程 PLC 运行时）并运营社区</td><td>-</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">42.4</span>知识管理最小集</h3><ul>
+<li><strong>实验笔记</strong>：每实验一条记录（日期/目的/步骤/现象/结论/下次改进），Markdown 存 Git 仓库 <code class="inline">lablog/</code>；</li>
+<li><strong>个人 Wiki</strong>：把 FAQ 类知识沉淀成词条（如「DMA cache 一致性三种对策」），用 Obsidian 双链串联；</li>
+<li><strong>博客节奏</strong>：两周一篇（踩坑复盘 or 小型原理剖析），坚持一年 = 求职时最有力的作品集；</li>
+<li><strong>代码资产</strong>：所有练习进 GitHub，README 写清「解决什么问题、怎么跑、已知限制」。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5"><span class="h3-num">42.5</span>终极资源地图</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方向</th><th>必读</th><th>进阶</th></tr>
+<tr><td>FPGA/IC</td><td>UG585/UG949、《数字设计和计算机体系结构》</td><td>AMD Adaptive 文档库全集、HDLBits 刷题</td></tr>
+<tr><td>Linux 内核</td><td>《Linux Device Drivers》+ 内核源码 Documentation/</td><td>《深入理解Linux内核》、LWN 订阅、内核新手任务列表</td></tr>
+<tr><td>实时与工业</td><td>IEC 61131-3 标准原文、OSADL RT 资料</td><td>EtherCAT EG 规范、OPC UA 规格(Part 14)</td></tr>
+<tr><td>体系结构</td><td>Cortex-A9 TRM、《CSAPP》</td><td>ARM ARM (DDI0487)、内存模型论文集</td></tr>
+</table></div>
+
+<div class="box tip"><span class="bt">🎓 写在最后</span>
+<p>精通不是「学完」，而是<strong>建立起自我迭代的学习系统</strong>：能力矩阵告诉你缺什么，刻意练习补什么，开源与写作放大你的影响。十年后回看，你会感谢今天在领航者板上点亮的第一个 LED。</p></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>对照 42.1 矩阵给自己打分，写出未来 12 个月的三个提升目标与衡量标准。</li>
+<li>选择课程中你最不满意的模块，制定一份重构计划（范围/原则/验收）。</li>
+<li>如果由你来讲授这门课，你会删掉哪一章、增加哪一章？为什么？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">42.6</span>深潜：90 天进阶冲刺模板（可复制执行）</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>周</th><td>主题</td><td>产出物（可验证）</td></tr>
+<tr><td>1-2</td><td>并发专题落地</td><td>L37 全部实验 + lockdep 报告归档</td></tr>
+<tr><td>3-4</td><td>DMA 通路打通</td><td>Ping-Pong 采集器 + 带宽数据表</td></tr>
+<tr><td>5-6</td><td>性能工程实践</td><td>《性能基线报告》+ 火焰图三张</td></tr>
+<tr><td>7-8</td><td>AMP 双核闭环</td><td>L40-1 延迟直方图 + PWM 下沉对比图</td></tr>
+<tr><td>9-11</td><td>扩展项目 P1 或 P2 完成 M1-M3</td><td>可演示 Demo + README + 发布 v0.1 tag</td></tr>
+<tr><td>12-13</td><td>面试题库二轮 + STAR 卡片定稿</td><td>模拟面试录音复盘 ×2</td></tr>
+</table></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch42"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>用能力矩阵客观定位自己当前层级与下一跳</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>建立「复现→改造→重构→原创」的刻意练习循环</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>掌握开源参与与技术影响力路径</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「精通之路：能力矩阵与成长闭环」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter41.html"><span><span class="pager-label">上一章</span><b>第 41 章 · 扩展实战项目集（4 选 2）</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter43.html"><span><span class="pager-label">下一章</span><b>第 43 章 · PLC 硬件模块研发设计</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 42 章 · 精通之路：能力矩阵与成长闭环 · 第五篇 · 进阶精通</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

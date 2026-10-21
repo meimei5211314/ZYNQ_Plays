@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 14 章 · 内核编译与设备树基础 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 14 章 · 内核编译与设备树基础：设备树是嵌入式 Linux 的「硬件普通话」—— 学会它，你的驱动才有舞台。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-linux" data-chapter-id="ch14" data-chapter-file="chapter14.html" data-chapter-label="第 14 章 · 内核编译与设备树基础">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 14 章 · 嵌入式 Linux</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>获取、配置、编译</a>
+<a href="#sec-2"><span class="num">02</span>设备树语法十五分钟精通</a>
+<a href="#sec-3"><span class="num">03</span>板级 DTS 的正确姿势：覆盖而非重写</a>
+<a href="#sec-4"><span class="num">04</span>启动自编内核</a>
+<a href="#sec-5"><span class="num">05</span>常见问题 FAQ（避坑指南）</a>
+<a href="#sec-6"><span class="num">06</span>深潜：内核启动日志逐段精读 ★</a>
+<a href="#sec-7"><span class="num">07</span>深潜：Kconfig 与内核构建语法最小集</a>
+<a href="#sec-8"><span class="num">08</span>深潜：initcall 分级机制与调试法</a>
+<a href="#sec-9"><span class="num">09</span>深潜：符号导出、模块参数与版本魔数</a>
+<a href="#sec-10"><span class="num">10</span>深潜：设备树 Overlay（动态改树）</a>
+<a href="#sec-11"><span class="num">11</span>深潜：earlycon 与 console 双阶段</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 14 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第二篇 · 嵌入式Linux / Chapter 14</div>
+      <h1 id="heroTitle">第 14 章<br><span class="grad">内核编译与设备树基础</span></h1>
+      <p class="hero-sub">设备树是嵌入式 Linux 的「硬件普通话」—— 学会它，你的驱动才有舞台。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">11 个小节</span>
+        <span class="meta-chip">4 个问答</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">14</div>
+          <div class="console-part">嵌入式 Linux / CH14</div>
+          <div class="console-title">内核编译与设备树基础</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>11</b></div>
+            <div class="console-metric"><span>CODE</span><b>7</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:61%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:50%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>14 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>11</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">独立完成 Linux 5.4 (xilinx-v2020.2) 的配置与编译</li>
+<li class="goal-item">掌握设备树语法核心：节点/属性/phandle/层级覆盖</li>
+<li class="goal-item">会用 menuconfig 为 PLC 篇预置 UIO 等关键内核特性</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第二篇 · 嵌入式Linux</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>5,073 字 · 11 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>7 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 0 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        从 BOOT.BIN 到根文件系统，完整走通嵌入式 Linux 链路。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">14.1</span>获取、配置、编译</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">cd ~/work/src
+git clone https://github.com/Xilinx/linux-xlnx.git
+cd linux-xlnx && git checkout xilinx-v2020.2
+
+source ~/work/sdk/environment-setup-cortexa9t2hf-neon-xilinx-linux-gnueabi
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- xilinx_zynq_defconfig
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- menuconfig   # 微调
+# PLC 篇必开选项（搜索路径：/ 键）
+#   Device Drivers → Userspace I/O drivers →
+#     [*] Userspace I/O platform driver with generic IRQ handling (CONFIG_UIO_PDRV_GENIRQ)
+#   Device Drivers → GPIO Support → Xilinx GPIO support (CONFIG_GPIO_XILINX)
+#   Kernel hacking → Compile-time checks ... printk 调试等级按需
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- -j$(nproc) zImage dtbs
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- modules
+make ARCH=arm CROSS_COMPILE=arm-xilinx-linux-gnueabi- \
+     INSTALL_MOD_PATH=~/work/rootfs modules_install   # 模块装进NFS根目录</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>产物</th><th>路径</th><th>去向</th></tr>
+<tr><td>zImage</td><td><code class="inline">arch/arm/boot/zImage</code></td><td>TFTP 目录 / SD 卡 FAT 分区</td></tr>
+<tr><td>DTB</td><td><code class="inline">arch/arm/boot/dts/zynq-*.dtb</code></td><td>同上，bootz 第二参数</td></tr>
+<tr><td>模块 .ko</td><td><code class="inline">$INSTALL_MOD_PATH/lib/modules/&lt;ver&gt;/</code></td><td>NFS 根文件系统</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">14.2</span>设备树语法十五分钟精通</h3><p>设备树(DT)是一份描述「板上有什么硬件」的数据结构，<strong>驱动代码不再硬编码地址/中断，全部由 DT 提供</strong>。核心语法：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">DTS</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="dts">/dts-v1/;
+#include "zynq-7000.dtsi"        /* SoC 级公共描述(PS 全部外设) */
+
+/ {
+    model = "ALIENTEK Navigator ZYNQ7020";
+    compatible = "alientek,navigator", "xlnx,zynq-7000";
+
+    chosen {                       /* 启动参数入口 */
+        bootargs = "console=ttyPS0,115200 earlycon";
+        stdout-path = "serial1:115200n8";
+    };
+
+    memory@0 {
+        device_type = "memory";
+        reg = &lt;0x0 0x40000000&gt;;    /* 1GB DDR */
+    };
+
+    /* 板载 LED：复用内核通用 gpio-leds 驱动 */
+    leds {
+        compatible = "gpio-leds";
+        led0 {
+            label = "pl_led0";
+            gpios = &lt;&amp;gpio0 54 GPIO_ACTIVE_HIGH&gt;;   /* EMIO54 */
+            default-state = "off";
+        };
+    };
+
+    /* 用户自定义节点示例：软PLC硬件描述（第28章将扩展） */
+    plc_io@43c10000 {
+        compatible = "demo,plc-io-v1";      /* 驱动匹配的关键字！ */
+        reg = &lt;0x43c10000 0x1000&gt;;          /* 基地址 + 大小 */
+        interrupt-parent = &lt;&amp;intc&gt;;
+        interrupts = &lt;0 29 4&gt;;              /* SPI 类型, GIC号29+32偏移规则见下 */
+        clocks = &lt;&amp;clkc 15&gt;;                /* FCLK0 */
+    };
+};</code></pre></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>概念</th><th>说明</th><th>速记</th></tr>
+<tr><td>compatible</td><td>驱动匹配字符串，platform 驱动的 of_match_table 与之比对</td><td>「厂商,型号」惯例</td></tr>
+<tr><td>reg</td><td>寄存器地址窗口；单元格数由父节点 <code class="inline">#address-cells/#size-cells</code> 决定</td><td>PS 外设通常 &lt;base size&gt;</td></tr>
+<tr><td>interrupts</td><td>&lt;type number flags&gt;：0=SPI 共享中断；number=GIC ID−32；flags=触发沿</td><td>PL 中断61→写29</td></tr>
+<tr><td>phandle 引用</td><td><code class="inline">&amp;label</code> 指向其他节点（gpio0 是 dtsi 里 PS GPIO 的标签）</td><td>跨节点连线靠它</td></tr>
+<tr><td>status</td><td>"okay" 启用 / "disabled" 关闭 —— dtsi 默认关闭的板级打开它即可</td><td>最常用的覆盖手法</td></tr>
+</table></div>
+<div class="box tip"><span class="bt">💡 学习捷径</span>
+<p>不要凭空背语法。执行 <code class="inline">dtc -I dtb -O dts system.dtb &gt; all.dts</code> 把现有 DTB 反编译成全文，对照 UG585 地址表逐节点读懂 PS 描述 —— 一晚上胜过读十篇博客。运行期则看 <code class="inline">/proc/device-tree/</code>。</p></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">14.3</span>板级 DTS 的正确姿势：覆盖而非重写</h3><p>公版 <code class="inline">zynq-7000.dtsi</code> 已把 UART/GEM/SD/QSPI 等全部定义好（多数 status=disabled）。板级文件只做三件事：<strong>打开需要的（status="okay"）、填板级参数（PHY地址/flash型号）、追加板载器件（led/按键/自定义IP）</strong>。第18章的 platform 驱动实验将直接消费你今天写的 <code class="inline">plc_io</code> 节点。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4"><span class="h3-num">14.4</span>启动自编内核</h3><div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash">cp arch/arm/boot/zImage arch/arm/boot/dts/zynq-navigator.dtb /tftpboot/
+# U-Boot 下重复第13章 bootz 流程；进入系统后验证：
+uname -r                      # 你的版本串
+ls /proc/device-tree/model    # 应输出板名
+uname -r                      # 你的版本串
+ls /proc/device-tree/model    # 应输出板名
+cat /proc/device-tree/plc_io@43c10000/compatible
+# 应输出 demo,plc-io-v1 —— 设备树已生效</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：改了 DTS 重新生成 dtb，板上却毫无变化？</summary><div class="ans"><p>① U-Boot 加载的还是旧 dtb 文件名（tftpboot 缓存了同名旧文件）；② bootz 命令第二参数忘了更新；③ PetaLinux 工程里改的是 <code class="inline">components/plnx_workspace/...</code> 自动生成区而非 <code class="inline">project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi</code>（正确位置）——构建时会被覆盖。</p></div></details>
+<details class="qa"><summary>Q2：节点写了 compatible 却没有驱动匹配，系统会怎样？</summary><div class="ans"><p>什么也不发生：内核遍历设备树找不到对应驱动就静默跳过（dmesg 无报错）。这正是 DT 的解耦之美 —— 硬件描述先行，驱动后补。排查时用 <code class="inline">ls /sys/bus/platform/devices/</code> 与 dmesg | grep probe。</p></div></details>
+<details class="qa"><summary>Q3：menuconfig 搜索到的 CONFIG 名与 .config 里对不上？</summary><div class="ans"><p>搜索结果会显示「依赖链」，若依赖的父选项未开，该选项不可见。按提示先打开依赖项再回搜。保存后 diff .config.old .config 确认生效。</p></div></details>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 Zynq 的 PL 自定义 IP 中断号在 DT 里要写「GIC ID − 32」？写出 IRQ_F2P 第0根(61)对应的 interrupts 三元组。</li>
+<li>对比「寄存器硬编码在驱动里」与「从 DT reg 属性读取」两种写法的可移植性差异。</li>
+<li>如果两个自定义 IP 节点的 reg 地址窗口重叠，会发生什么？内核有工具能发现这类冲突吗？（提示：/proc/iomem）</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6"><span class="h3-num">14.5</span>深潜：内核启动日志逐段精读 ★</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.4.0-xilinx (gcc 9.2.0)   ← 版本+编译器指纹
+[    0.000000] CPU: ARMv7-MIDR=413fc090 ...NEON FPU?     ← 特性位解析
+[    0.000000] Machine model: ALIENTEK Navigator        ← 来自 DT root 的 model
+[    0.000000] Memory policy: Data cache writealloc
+[    0.000000] Zone ranges: DMA normal highmem           ← 内存分区布局
+[    0.000004] psci? no——Zynq 用 smp_ops/scu
+[    0.000xxx] Clocks: CPU767 DDR533 IO100?              ← PLL 结果打印(PCW核对点)
+[    0.1xxxxx] console [ttyPS0] enabled                  ← 控制台驱动接管(此前是earlycon)
+[    0.2xxxxx] Calibrating delay loop... 1526.88 BogoMIPS← 频率旁证(≈767MHz/5)
+[    0.3xxxxx] gpio-xilinx? / zynq-gpio e000a000: ...    ← 设备逐个 probe 的证据流
+[    0.4xxxxx] macb e000b000 eth0: Cadence GEM rev ...
+[    0.5xxxxx] mmc0: SDHCI controller on e0100000
+[    1.2xxxxx] VFS: Mounted root (nfs filesystem) on device 0:11
+[    1.3xxxxx] devtmpfs: mounted / Freeing unused kernel memory: 1024K
+[    1.4xxxxx] Run /sbin/init as init process            ← 内核使命完成</code></pre></div>
+<p>精读要点：① <strong>时间戳跳变处</strong>往往藏着慢设备（如 PHY 自协商 ~1-3s）；② probe 失败通常只打一行 warn 不致命，用 <code class="inline">initcall_debug</code> 可强制每条 initcall 打印耗时；③ "Freeing unused kernel memory" 标志 <code class="inline">__init</code> 段释放 —— 内核把一次性初始化函数放特殊段的资源智慧。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7"><span class="h3-num">14.6</span>深潜：Kconfig 与内核构建语法最小集</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text"># drivers/plc/Kconfig
+menuconfig PLC_SUPPORT
+    tristate "PLC IO engine support"          # y/m/n 三态
+    default n
+    depends on ARM || COMPILE_TEST            # 依赖条件
+    select UIO if !CHARDEV_PLC                # 自动选中依赖项
+    help
+      Say Y to build-in, M for module.
+
+# drivers/plc/Makefile
+obj-$(CONFIG_PLC_SUPPORT) += plc_io.o        # y→编入 vmlinux；m→模块
+plc_io-y := plc_core.o plc_irq.o             # 多文件组成一个模块</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8"><span class="h3-num">14.7</span>深潜：initcall 分级机制与调试法</h3><ul>
+<li>链接脚本把 <code class="inline">core_initcall…late_initcall</code>(0~7级) 的函数指针集中成数组段；启动时 do_initcalls() 顺序遍历 —— <strong>这就是"驱动无需手动注册即可 probe"的底层机关</strong>；</li>
+<li>调试：<code class="inline">initcall_debug=1</code> 加入 cmdline → 每条 initcall 前后打印名字与耗时，慢启动元凶无所遁形（配合39章 ftrace 更佳）；</li>
+<li><code class="inline">module_init()</code> 在编入内建时映射为 device_initcall(6级) —— 同一份代码双形态的魔法所在。</li>
+</ul></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9"><span class="h3-num">14.8</span>深潜：符号导出、模块参数与版本魔数</h3><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">EXPORT_SYMBOL(plc_register_client);        /* 供其他模块调用 */
+EXPORT_SYMBOL_GPL(plc_internal_helper);    /* 仅GPL模块可用——许可证防火墙 */
+
+static int period_ms = 10;
+module_param(period_ms, int, S_IRUGO|S_IWUSR);   /* insmod x.ko period_ms=20 */
+MODULE_PARM_DESC(period_ms, "scan period in ms");
+
+MODULE_LICENSE("GPL");   /* 缺失则 taint kernel 'P' 且禁用 GPL-only 符号 */
+/* vermagic 校验：uname版本+SMP+抢占模型必须一致(17章Q1根因) */
+/* modinfo x.ko 查看 vermagic/parm/author 全套元数据 */</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10"><span class="h3-num">14.9</span>深潜：设备树 Overlay（动态改树）</h3><p>PL 逻辑可重载（fpga manager），硬件描述也应能动态更新 —— 这就是 overlay：</p>
+<div class="code-block"><div class="code-head"><span class="code-lang">BASH</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="bash"># 编译：需要主 dtb 提供符号表(-@ 编译选项)
+dtc -@ -I dts -O dtb -o plc_overlay.dtbo plc_overlay.dts
+# 运行期经 configfs 应用：
+mkdir /sys/kernel/config/device-tree/overlays/plc
+cat plc_overlay.dtbo > /sys/kernel/config/device-tree/overlays/plc/dtbo
+cat /sys/kernel/config/device-tree/overlays/plc/status   # applied ✓</code></pre></div>
+<p>典型场景：FPGA 重载新 bitstream 后，用不同 overlay 挂接新的自定义 IP 节点 —— 实现「硬件热插拔」。注意 PetaLinux 默认需开启 CONFIG_OF_OVERLAY 与 symbols 支持。</p></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11"><span class="h3-num">14.10</span>深潜：earlycon 与 console 双阶段</h3><ul>
+<li><strong>earlycon</strong>（如 <code class="inline">earlycon=uart8250,mmio32,0xe0001000? 对Zynq为 earlycon=xlnx,mmio?</code> 实际写法 <code class="inline">earlyprintk</code> 或 DT chosen/stdout-path）在内存管理未就绪时用<strong>轮询直写寄存器</strong>输出 —— 它能活过 MMU 开启前后最凶险的窗口；</li>
+<li>正式 console（ttyPS0）由 uart 驱动 probe 后注册接管，两者并存期日志会重复 —— 属正常现象；</li>
+<li>排障口诀：<strong>"Starting kernel 后黑屏必加 earlycon"</strong>，它能把死亡时间从「黑屏」精确到具体行。</li>
+</ul></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch14"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 3</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>独立完成 Linux 5.4 (xilinx-v2020.2) 的配置与编译</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握设备树语法核心：节点/属性/phandle/层级覆盖</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用 menuconfig 为 PLC 篇预置 UIO 等关键内核特性</span></label>
+      </div>
+      <p class="check-note">勾选全部目标即视为本章通关；进度只保存在当前浏览器。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「内核编译与设备树基础」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter13.html"><span><span class="pager-label">上一章</span><b>第 13 章 · U-Boot 编译移植与 BOOT.BIN 制作</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter15.html"><span><span class="pager-label">下一章</span><b>第 15 章 · PetaLinux 全流程实战</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 14 章 · 内核编译与设备树基础 · 第二篇 · 嵌入式Linux</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

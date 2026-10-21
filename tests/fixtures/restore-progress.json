@@ -1,0 +1,10 @@
+{
+  "format": "zynq-learning-records",
+  "version": 1,
+  "exportedAt": "2026-10-21T00:00:00.000Z",
+  "entries": {
+    "zynq_progress_v1": "{\"ch04\":100}",
+    "zynq_ch04_goals_v1": "[true,true,true]",
+    "zynq_ch04_labs_v1": "[true]"
+  }
+}

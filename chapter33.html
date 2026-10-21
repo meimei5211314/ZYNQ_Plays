@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 33 章 · Web 监控界面 | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 33 章 · Web 监控界面：给 PLC 装上「仪表盘」：浏览器里看 IO、改参数、下载程序 —— 零客户端依赖的现代工控体验。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-plc" data-chapter-id="ch33" data-chapter-file="chapter33.html" data-chapter-label="第 33 章 · Web 监控界面">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 33 章 · 软 PLC 实战</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>架构决策</a>
+<a href="#sec-2"><span class="num">02</span>API 设计合同</a>
+<a href="#sec-3"><span class="num">03</span>监控页面 index.html（核心 JS 节选）</a>
+<a href="#sec-4"><span class="num">04</span>常见问题 FAQ（避坑指南）</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 33 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第四篇 · 软PLC实战 / Chapter 33</div>
+      <h1 id="heroTitle">第 33 章<br><span class="grad">Web 监控界面</span></h1>
+      <p class="hero-sub">给 PLC 装上「仪表盘」：浏览器里看 IO、改参数、下载程序 —— 零客户端依赖的现代工控体验。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 15 分钟</span>
+        <span class="meta-chip">4 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">33</div>
+          <div class="console-part">软 PLC 实战 / CH33</div>
+          <div class="console-title">Web 监控界面</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>4</b></div>
+            <div class="console-metric"><span>CODE</span><b>2</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>4</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:22%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:14%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:11%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>33 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>4</b><span>本章小节</span></div>
+    <div class="stat"><b>15</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>4</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">在运行时内嵌轻量 HTTP 服务与 JSON API</li>
+<li class="goal-item">编写自动刷新的单页监控界面</li>
+<li class="goal-item">理解工控 Web 服务的安全边界</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第四篇 · 软PLC实战</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>2,835 字 · 4 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>2 段 · 2 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>4 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        把 ZYNQ 变成一台软 PLC：IO 引擎、运行时、协议与 Web。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1"><span class="h3-num">33.1</span>架构决策</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方案</th><th>优点</th><th>结论</th></tr>
+<tr><td>外挂 lighttpd + CGI</td><td>功能全</td><td>进程间共享映像区复杂（需 IPC）</td></tr>
+<tr><td><strong>运行时内嵌 HTTP 线程 ★</strong></td><td>直接读映像区、零依赖、代码量 ~300 行</td><td>本项目采用</td></tr>
+<tr><td>WebSocket 推送</td><td>实时性最佳</td><td>作为拓展任务（L33-2）</td></tr>
+</table></div></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2"><span class="h3-num">33.2</span>API 设计合同</h3><div class="table-wrap" tabindex="0" role="region" aria-label="数据表，可横向滚动"><table class="source-table">
+<tr><th>方法/路径</th><th>功能</th><th>响应示例</th></tr>
+<tr><td>GET /api/status</td><td>全量状态快照</td><td><code class="inline">{"run":true,"di":[1,0,..],"do":[..],"ai":[4096,2048],"scan":{"avg":9.98,"max":11.2,"cnt":183000}}</code></td></tr>
+<tr><td>POST /api/control</td><td>启动/停止 <code class="inline">{cmd:"start|stop"}</code></td><td><code class="inline">{"ok":true}</code></td></tr>
+<tr><td>POST /api/force</td><td>DO强制 <code class="inline">{ch:3,val:1,on:true}</code></td><td><code class="inline">{"ok":true}</code></td></tr>
+<tr><td>POST /api/program</td><td>上传IL文本 → 校验 → 热替换</td><td><code class="inline">{"ok":false,"line":12,"err":"bad operand"}</code></td></tr>
+<tr><td>GET /</td><td>监控页面(index.html 内嵌)</td><td>-</td></tr>
+</table></div>
+<div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="c">/* web.c —— 路由分发骨架 */
+void *web_thread(void *arg)
+{
+    int srv = tcp_listen(g_cfg.web_port);
+    for (;;) {
+        int c = accept(srv, NULL, NULL);
+        char req[1024];
+        read_http_request(c, req, sizeof req);       /* 读到 \r\n\r\n */
+        if (strstr(req, "GET /api/status"))
+            api_status(c);                           /* 拼 JSON 发送 */
+        else if (strstr(req, "POST /api/control"))
+            api_control(c, req);
+        else if (strstr(req, "POST /api/force"))
+            api_force(c, req);
+        else if (strstr(req, "POST /api/program"))
+            api_program(c, req);
+        else
+            send_static(c, req);                     /* 页面/404 */
+        close(c);                                    /* 短连接，够用 */
+    }
+}
+
+void api_status(int c)
+{
+    char buf[2048], *p = buf;
+    p += sprintf(p, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{");
+    img_lock();
+    p += json_di_do(p);                              /* 数组拼接 */
+    p += sprintf(p, ",\"ai\":[%d,%d]", g_img.iw[0], g_img.iw[1]);
+    img_unlock();
+    stat_lock();
+    p += sprintf(p, ",\"scan\":{\"avg\":%.2f,\"max\":%.2f,\"cnt\":%u}}",
+                 st.avg_us / 1000.0, st.max_us / 1000.0, st.cnt);
+    writen(c, buf, strlen(buf));
+}</code></pre></div></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3"><span class="h3-num">33.3</span>监控页面 index.html（核心 JS 节选）</h3><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code data-lang="text">&lt;!-- 单文件内嵌进 C 字符串或从 /etc/plc/www 读取 --&gt;
+&lt;table id="io"&gt;&lt;/table&gt;
+&lt;script&gt;
+async function refresh() {
+  const s = await (await fetch('/api/status')).json();
+  let h = '&lt;tr&gt;&lt;th&gt;通道&lt;/th&gt;' +
+          Array.from({length:8},(_,i)=&gt;'&lt;th&gt;'+i+'&lt;/th&gt;').join('')+'&lt;/tr&gt;';
+  h += '&lt;tr&gt;&lt;td&gt;DI&lt;/td&gt;' + s.di.map(v=&gt;
+        `&lt;td style="background:${v?'#7ee787':'none'}"&gt;${v}&lt;/td&gt;`).join('');
+  h += '&lt;tr&gt;&lt;td&gt;DO&lt;/td&gt;' + s.do.map((v,i)=&gt;
+        `&lt;td onclick="force(${i},${v?0:1})" style="cursor:pointer"&gt;${v}&lt;/td&gt;`).join('');
+  document.getElementById('io').innerHTML = h;
+  scan.textContent = `扫描 ${s.scan.avg} ms (max ${s.scan.max}) · ${s.scan.cnt} 次`;
+}
+async function force(ch, val) {
+  await fetch('/api/force', {method:'POST',
+      body: JSON.stringify({ch, val, on:true})});
+}
+setInterval(refresh, 1000);   /* 1Hz 轮询：对 10ms 扫描零干扰 */
+&lt;/script&gt;</code></pre></div>
+<p>效果：LED 表格点击即强制、AI 数值实时刷新、扫描统计一目了然。所有写操作走「映像区锁」串行化 —— 与 Modbus 共享同一真源。</p>
+
+<div class="box warn"><span class="bt">⚠️ 工控 Web 安全红线</span>
+<p>本课程为教学简化：<strong>无认证、明文 HTTP、仅限实验局域网</strong>。产品化必须补齐：HTTPS(TLS)、登录会话、操作审计日志、写操作二次确认、与办公网隔离。把这份清单写进你的项目 README 的 Known Limitations —— 面试时这是加分项。</p></div></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">常见问题 FAQ（避坑指南）</h3><details class="qa"><summary>Q1：页面数据不刷新？</summary><div class="ans"><p>F12 看 Network：① 请求被浏览器缓存（响应加 Cache-Control: no-store）；② JSON 拼接语法错误导致 fetch 解析失败 —— 用控制台看原始响应排查。</p></div></details>
+<details class="qa"><summary>Q2：频繁刷新后板子变卡？</summary><div class="ans"><p>短连接 TIME_WAIT 堆积 + accept 风暴。限流：每 IP 并发≤2、刷新间隔≥500ms 校验；或升级长轮询/WebSocket（拓展任务）。</p></div></details>
+<details class="qa"><summary>Q3：上传程序接口被恶意大文件撑爆内存？</summary><div class="ans"><p>读 body 时硬性限制 Content-Length ≤64KB，超限直接断开并记录审计日志。所有对外输入都过闸门 —— 与 mb_process 的长度检查同一纪律。</p></div></details>
+
+<div class="lab" data-lab-card="1"><strong>🧪 动手实验 L33-1：仪表盘完工</strong>
+<p>① 实现 status/control/force/program 四个 API 全部联调；② 页面增加「程序编辑器」textarea：加载当前 IL、修改提交、错误行高亮显示返回的 err 信息；③ 用两个浏览器窗口同时操作验证并发一致性。完成后你的 PLC 已具备完整的人机交互闭环。</p><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"> <span>标记本实验完成</span></label><span class="lab-state">待完成</span></div></div>
+
+<div class="quiz" data-quiz="1"><strong>📝 思考题</strong><ol>
+<li>为什么 api_status 里要持 img_lock？如果只读单个 uint32 是否可以不加锁？（提示：撕裂读）</li>
+<li>对比轮询与 WebSocket 在 10 台客户端同时监控时的服务器负载模型。</li>
+<li>设计「操作权限分级」：观察员/操作员/工程师三级，各自可用的 API 子集如何裁剪？</li>
+</ol><button class="quiz-note-btn" type="button">在笔记中作答 →</button></div></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch33"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>在运行时内嵌轻量 HTTP 服务与 JSON API</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>编写自动刷新的单页监控界面</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>理解工控 Web 服务的安全边界</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「Web 监控界面」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter32.html"><span><span class="pager-label">上一章</span><b>第 32 章 · Modbus TCP / RTU 从站实现</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter34.html"><span><span class="pager-label">下一章</span><b>第 34 章 · 系统集成与开机自启</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 33 章 · Web 监控界面 · 第四篇 · 软PLC实战</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>

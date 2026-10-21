@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战） | ZYNQ-7020 学习讲义</title>
+<meta name="description" content="第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战）：从源码到上板：把 FreeRTOS 跑在你的 ZYNQ 核1 上，并与 Linux 组成完整的 AMP 系统。">
+<link rel="stylesheet" href="style.css?v=20261021-senior4">
+<link rel="stylesheet" href="chapter.css?v=20261021-senior4">
+<link rel="stylesheet" href="lab.css?v=20261021-senior4">
+<script>document.documentElement.classList.add('js');</script>
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+<link rel="stylesheet" href="workbench.css?v=20261021-senior4">
+</head>
+<body id="top" class="chapter-page part-rtos" data-chapter-id="ch49" data-chapter-file="chapter49.html" data-chapter-label="第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战）">
+<a class="skip-link" href="#content">跳到正文</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<aside class="sidebar" id="sidebar">
+  <a class="brand" href="course.html">
+    <span class="brand-mark">Z</span>
+    <span>
+      <b>ZYNQ 学习讲义</b>
+      <small>第 49 章 · 嵌入式 RTOS</small>
+    </span>
+  </a>
+  <div class="nav-label">本章目录</div>
+  <nav class="nav" aria-label="本章目录">
+<a href="#sec-1"><span class="num">01</span>49.1 先固定平台支持，再做 A9 AMP</a>
+<a href="#sec-2"><span class="num">02</span>49.2 移植五步：工程、异常、tick、内存、配置</a>
+<a href="#sec-3"><span class="num">03</span>49.3 先做能量化的 1 ms 周期任务</a>
+<a href="#sec-4"><span class="num">04</span>49.4 任务划分与所有权</a>
+<a href="#sec-5"><span class="num">05</span>49.5 调试：tick、栈、时间线与 A9 异常</a>
+<a href="#sec-6"><span class="num">06</span>49.6 用现象区分配置与业务故障</a>
+<a href="#sec-7"><span class="num">07</span>49.7 动手实验：从 1 ms 到 100 µs</a>
+<a href="#sec-8"><span class="num">08</span>49.8 移植检查清单</a>
+<a href="#sec-9"><span class="num">09</span>49.9 GIC 优先级：逻辑值与寄存器编码</a>
+<a href="#sec-10"><span class="num">10</span>49.10 静态分配使内存预算可见</a>
+<a href="#sec-11"><span class="num">11</span>49.11 核间通信：先选实现，再对照 API</a>
+<a href="#sec-12"><span class="num">12</span>49.12 A9 故障黑匣子：先捕获，再发布有效记录</a>
+<a href="#zx-lab"><span class="num">LAB</span>互动实验室</a>
+<a href="#check"><span class="num">✓</span>通关与笔记</a>
+  </nav>
+  <div class="side-progress">
+    <div class="side-progress-top">
+      <span>通关进度</span>
+      <b id="sideProgressText">0%</b>
+    </div>
+    <div class="side-progress-bar"><i id="sideProgressBar"></i></div>
+    <small>勾选学习目标与动手实验，自动保存在本机。</small>
+  </div>
+  <a class="chapter-return" href="course.html"><span>←</span> 课程目录</a>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="mobile-bar">
+  <a class="mobile-brand" href="#top">
+    <span class="brand-mark">Z</span>
+    <span>ZYNQ 讲义 · 第 49 章</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="打开目录" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<main>
+<div class="wrap">
+
+<section class="hero chapter-hero" aria-labelledby="heroTitle">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">第七篇 · 嵌入式RTOS / Chapter 49</div>
+      <h1 id="heroTitle">第 49 章<br><span class="grad">FreeRTOS 移植部署与调试（ZYNQ 核1 实战）</span></h1>
+      <p class="hero-sub">从源码到上板：把 FreeRTOS 跑在你的 ZYNQ 核1 上，并与 Linux 组成完整的 AMP 系统。</p>
+      <div class="hero-meta">
+        <span class="meta-chip">约 20 分钟</span>
+        <span class="meta-chip">12 个小节</span>
+        <span class="meta-chip">1 个动手实验</span>
+        <span class="meta-chip">可离线打开</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn primary" href="#overview">开始阅读 <span class="arrow">↓</span></a>
+        <a class="btn ghost" href="course.html">课程目录</a>
+      </div>
+    </div>
+    <div class="hero-figure">
+      <div class="chapter-console" aria-hidden="true">
+        <div class="console-top">
+          <span>ZYNQ // LECTURE MODULE</span>
+          <span class="console-lights"><i></i><i></i><i></i></span>
+        </div>
+        <div class="console-screen">
+          <div class="console-number">49</div>
+          <div class="console-part">嵌入式 RTOS / CH49</div>
+          <div class="console-title">FreeRTOS 移植部署与调试（ZYNQ 核1 实战）</div>
+          <div class="console-metrics">
+            <div class="console-metric"><span>SEC</span><b>12</b></div>
+            <div class="console-metric"><span>CODE</span><b>8</b></div>
+            <div class="console-metric"><span>TBL</span><b>2</b></div>
+            <div class="console-metric"><span>QA</span><b>3</b></div>
+          </div>
+          <div class="console-bars">
+            <div class="console-bar"><span>SEC</span><i style="--bar:67%"></i></div>
+            <div class="console-bar"><span>CODE</span><i style="--bar:57%"></i></div>
+            <div class="console-bar"><span>TBL</span><i style="--bar:17%"></i></div>
+            <div class="console-bar"><span>QA</span><i style="--bar:8%"></i></div>
+          </div>
+        </div>
+        <div class="console-foot"><span>OFFLINE READY · XC7Z020</span><b>49 / 55</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>12</b><span>本章小节</span></div>
+    <div class="stat"><b>20</b><span>预计分钟</span></div>
+    <div class="stat"><b>2</b><span>速查表格</span></div>
+    <div class="stat"><b>3</b><span>问答与思考</span></div>
+  </div>
+</section>
+
+<section class="chapter-overview" id="overview" aria-labelledby="overviewTitle">
+  <div class="section-head reveal">
+    <div class="section-index">GOAL</div>
+    <div>
+      <h2 id="overviewTitle">读完这一章，你应该能</h2>
+      <p class="lead">先看目标，再进入正文。每一条都会出现在章末通关清单中，勾选状态自动保存在本机。</p>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="goals-card reveal">
+      <ol class="goals-list">
+<li class="goal-item">独立完成 FreeRTOS 在 ZYNQ 核1 的移植五步法</li>
+<li class="goal-item">掌握 RTOS 应用的任务划分与优先级设计范式</li>
+<li class="goal-item">会用运行时统计/Tracealyzer/fault 寄存器三板斧调试</li>
+      </ol>
+      <p class="goals-foot">勾选后会同步到章末通关清单，进度只保存在本机。</p>
+    </div>
+    <aside class="facts-card reveal" aria-label="本章信息">
+      <div class="fact-row"><span>所属篇章</span><b>第七篇 · 嵌入式RTOS</b></div>
+      <div class="fact-row"><span>篇幅规模</span><b>3,660 字 · 12 节</b></div>
+      <div class="fact-row"><span>代码 / 表格</span><b>3 段 · 1 张</b></div>
+      <div class="fact-row"><span>自检与实验</span><b>3 个问答 · 1 个实验</b></div>
+      <div class="study-tip">
+        <b>学习建议</b>
+        FreeRTOS 源码与移植，以及 SeL4 微内核视角。
+      </div>
+    </aside>
+  </div>
+</section>
+
+<article class="reader" id="content" aria-label="本章正文">
+
+<div class="lesson-block reveal" id="sec-1" aria-labelledby="h-1"><h3 id="h-1">49.1 先固定平台支持，再做 A9 AMP</h3><p>本章目标是理解 Cortex-A9 上的 FreeRTOS 移植和可测量周期任务。Zynq-7000 是双 Cortex-A9，<b>不是 Zynq UltraScale+ 的 A53/R5 组合</b>；不能照搬后者的 RPU 固件名、remoteproc 节点和 IPI 配置。</p><p>先冻结 BSP、FreeRTOS 内核、工具、Linux 与 OpenAMP 的版本，确认本版本是否提供所需 CPU1 启动与通信路径。第一阶段只运行 RTOS 最小工程；第二阶段才加入 Linux 与核间通信。内存分区、向量、外设、GIC、时钟和共享缓冲各有明确归属。</p></div>
+<div class="lesson-block reveal" id="sec-2" aria-labelledby="h-2"><h3 id="h-2">49.2 移植五步：工程、异常、tick、内存、配置</h3><ol><li><b>选正确 port：</b>核对所选源码树；上游 GCC Cortex-A9 port 位于 <a href="https://github.com/FreeRTOS/FreeRTOS-Kernel/tree/main/portable/GCC/ARM_CA9" target="_blank" rel="noopener">portable/GCC/ARM_CA9</a>。厂商 BSP 可能另有集成，不猜目录名。</li><li><b>核对异常入口：</b>SVC/SWI 走移植层任务切换入口，IRQ 走该 port 的中断分发与返回路径；以 portASM.S 和链接向量为准。</li><li><b>建立 tick：</b>由 BSP/port 的定时器配置提供，测量真实频率；不能只凭 CPU 主频假定分频关系。</li><li><b>核对内存：</b>readelf -l 的各加载段、栈、堆、vring 与 Linux 保留区域不重叠；不是只比较一个起始地址。</li><li><b>配置与断言：</b>按该版本配置优先级、tick、栈检查、静态分配与 FPU 使用；保留 configASSERT 验证集成。</li></ol><p>不要创建 portUSE_PS_TIMER? 这类不存在的宏。复制配置前，必须在所用版本源码中找到宏的定义与消费位置。</p></div>
+<div class="lesson-block reveal" id="sec-3" aria-labelledby="h-3"><h3 id="h-3">49.3 先做能量化的 1 ms 周期任务</h3><p>以下是任务函数片段，board_control_step 是你提供的业务函数；工程还需经验证的 BSP、向量、定时器、任务创建与 FreeRTOSConfig.h。</p><div class="code-block"><div class="code-head"><span class="code-lang">C</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>static void control_task(void *argument)
+{
+    const TickType_t period = pdMS_TO_TICKS(1);
+    TickType_t last_wake = xTaskGetTickCount();
+    (void) argument;
+    configASSERT(period &gt; 0);
+    for (;;) {
+        board_control_step();     /* 有界、无阻塞 IO，需由本工程实现 */
+        vTaskDelayUntil(&amp;last_wake, period);
+    }
+}</code></pre></div><p>在 configTICK_RATE_HZ=1000 时，每 tick 为 1 ms。绝对延时避免把每轮执行耗时不断累加为漂移，<b>仍不保证任务准时运行或在截止期前完成</b>。用下方周期实验先算量化，再上板量唤醒与执行时间。</p></div>
+<div class="lesson-block reveal" id="sec-4" aria-labelledby="h-4"><h3 id="h-4">49.4 任务划分与所有权</h3><p>控制任务高优先级且工作量有界；通信与日志在较低优先级任务执行。控制数据采用不可变快照或清楚的交接协议；大块数据传指针时要说明谁分配、谁持有、何时归还。</p><p>速率单调（RM）按周期排序，截止期单调（DM）按相对截止期排序；二者不能混为一句“截止期最紧就是 RM”。经典利用率界依赖独立周期任务、可抢占及截止期等于周期等假设，有共享资源时须计阻塞时间。</p><p>task notification、队列、互斥量和事件组按通信与同步语义选择；速度数字必须绑定版本、处理器和测量条件，不能当作通用保证。</p></div>
+<div class="lesson-block reveal" id="sec-5" aria-labelledby="h-5"><h3 id="h-5">49.5 调试：tick、栈、时间线与 A9 异常</h3><ul><li><b>tick：</b>用独立时间基准与 GPIO/定时器交叉验证，记录配置和测量区间。</li><li><b>栈与运行统计：</b>按当前 API 读取栈高水位，确认返回单位为 StackType_t 项或该版本定义的单位；运行统计计时器要独立、足够精确并考虑回绕。格式化输出本身有开销。</li><li><b>时间线：</b>记录任务释放、开始、结束、阻塞和 IRQ，区分 tick 量化、唤醒延迟与业务执行超时。</li><li><b>A9 异常：</b>Data Abort 收集 DFSR/DFAR，Prefetch Abort 收集 IFSR/IFAR；同时保存异常模式、SPSR、LR 与必要寄存器。PC 还原偏移按异常类型和指令状态核对。</li></ul><p>Cortex-M 的 HardFault、SCB_CFSR、SCB_AIRCR 和自动堆栈 xPSR 模型<b>不适用于 Cortex-A9</b>。</p></div>
+<div class="lesson-block reveal" id="sec-6" aria-labelledby="h-6"><h3 id="h-6">49.6 用现象区分配置与业务故障</h3><div class="table-wrap"><table class="source-table"><tr><th>现象</th><th>先取什么证据</th></tr><tr><td>调度器启动后无任务日志</td><td>首任务入口、SVC 向量、栈/堆与断言位置</td></tr><tr><td>任务只运行一次</td><td>tick 是否增加，延时列表是否到期，IRQ 是否到达本核</td></tr><tr><td>FromISR 后随机错误</td><td>实际 GIC 优先级、port 门槛、嵌套与 API 是否允许在 ISR 使用</td></tr><tr><td>周期越来越慢</td><td>相对延时、任务执行时间、超时及优先级干扰</td></tr><tr><td>通信不通</td><td>共享地址、通知机制、端点发现、驱动与缓冲所有权</td></tr><tr><td>Abort</td><td>异常状态、故障地址、匹配 ELF 的反汇编和栈范围</td></tr></table></div><p>异常名称与寄存器属于架构知识，不能把所有崩溃统一叫 HardFault。</p></div>
+<div class="lesson-block reveal" id="sec-7" aria-labelledby="h-7"><h3 id="h-7">49.7 动手实验：从 1 ms 到 100 µs</h3><p><b>问题：</b>1 kHz tick 能否用 vTaskDelayUntil 表达 100 µs？不能：一个 tick 已是 1000 µs。提高 tick 频率还会增加中断与调度开销，不能只改常量就宣布满足要求。</p><div class="lab" data-lab-card="1"><strong>动手实验 L49-1：独立测量释放、唤醒与完成</strong><ol><li>先完成 1 ms tick 周期任务，记录 GPIO 边沿与执行时间。</li><li>再用硬件定时器或 PL 产生 100 µs 事件；ISR 只做有界工作或通知任务，明确事件积压时的处理策略。</li><li>统计事件时刻→ISR、ISR→任务开始、任务执行三段延迟；加入日志/通信压力。</li><li>比较裸机、RTOS 两个版本的 max/p99 和超时计数，记录采样条件；不能用页面模型代替上板数据。</li></ol><div class="lab-check"><label for="lab-1"><input id="lab-1" type="checkbox" data-lab="0"><span>已保存周期、延迟分布和超时证据</span></label><span class="lab-state">待完成</span></div></div></div>
+<div class="lesson-block reveal" id="sec-8" aria-labelledby="h-8"><h3 id="h-8">49.8 移植检查清单</h3><ol><li>核对 A9 异常向量与 port handler 的符号地址。</li><li>独立测量 tick，中断确实送到目标核。</li><li>加载段、栈、堆和共享缓冲不重叠。</li><li>configASSERT 与栈检查能被受控测试触发。</li><li>FPU/NEON 使用规则与所选 port、ABI 一致。</li><li>通信先 echo，再业务；重启、断连与缓冲耗尽均有恢复策略。</li></ol><p>每项留存命令或波形，而不只打勾。</p></div>
+<div class="lesson-block reveal" id="sec-9" aria-labelledby="h-9"><h3 id="h-9">49.9 GIC 优先级：逻辑值与寄存器编码</h3><p>数值越小，GIC 中断优先级越高。Zynq-7000 实现的有效优先级位需按 UG585 与 port 配置核对。若配置 32 个级别，则逻辑值 p 写入 8 位优先级寄存器时通常为 p &lt;&lt; 3。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>例：32 个有效级别时
+逻辑优先级  5 → 寄存器值 0x28
+逻辑优先级 20 → 寄存器值 0xA0
+0xA0 不是逻辑优先级 5。
+上游 ARM_CA9 的 configMAX_API_CALL_INTERRUPT_PRIORITY 按 port 期望的逻辑值配置。
+逻辑值越小、越高于允许 API 的门槛者，不得调用内核 API；
+门槛边界是否允许及保留级别，按该版本 port.c/portmacro.h 的断言与注释核对。</code></pre></div><p>先在实际源码中确认逻辑值与位移的处理，避免重复移位。不要从 Cortex-M 配置中直接复制已左移的优先级常量。</p></div>
+<div class="lesson-block reveal" id="sec-10" aria-labelledby="h-10"><h3 id="h-10">49.10 静态分配使内存预算可见</h3><p>使用 xTaskCreateStatic 需要开启静态分配配置，并提供持久存在的 StaticTask_t 与 StackType_t 数组。栈深度参数以 StackType_t 项计，不直接等同于字节。还需按配置为 Idle/Timer 服务任务提供静态资源。</p><p>静态分配减少运行时分配的不确定性，<b>不等于整体时间行为完全确定，也不构成 SIL 认证结论</b>。仍要验证栈深度、阻塞、IRQ、外设与共享总线干扰。</p></div>
+<div class="lesson-block reveal" id="sec-11" aria-labelledby="h-11"><h3 id="h-11">49.11 核间通信：先选实现，再对照 API</h3><p>OpenAMP 与 rpmsg-lite 是不同实现。先选能覆盖所用 Zynq-7000/BSP 版本的参考工程，再按它的初始化、资源描述、端点发现与缓冲释放约定集成；不能混写两个库的 init/create/send API。</p><ol><li>核对固件加载方式与 Linux 驱动，不假设必然生成 /dev/rpmsg0；字符设备是否出现取决于绑定驱动与版本。</li><li>固定共享内存、vring、缓存属性与通知机制。</li><li>先跑官方 echo，记录端点地址与发现过程。</li><li>明确零拷贝接收缓冲是自动归还还是由应用保留后释放，避免重复释放。</li><li>加入 seq、超时、重启代次与流控，再接入控制协议。</li></ol></div>
+<div class="lesson-block reveal" id="sec-12" aria-labelledby="h-12"><h3 id="h-12">49.12 A9 故障黑匣子：先捕获，再发布有效记录</h3><p>异常入口通常需要汇编胶水保存现场。以下是设计记录格式的流程，不是可直接复制的异常 handler；捕获寄存器与异常返回依赖具体 A9 port。</p><div class="code-block"><div class="code-head"><span class="code-lang">TEXT</span><button class="copy-btn" type="button" aria-label="复制这段代码">复制</button></div><pre><code>记录区域：由链接脚本与 Linux 保留内存共同约定，固定大小和版本。
+记录内容：记录版本、异常类型、CPU/模式、SPSR、原始 LR、故障寄存器、
+          保存的通用寄存器、任务 ID、栈范围、序号、校验。
+捕获顺序：使记录无效 → 保存现场 → 计算校验 → 完成必要的缓存/屏障
+          → 最后发布有效标记 → 按本板恢复策略处理。
+重启读取：先验证版本、长度与校验；用相同 Build ID 的 ELF 解码。
+OCM/DDR 在复位后的保留性需按复位种类、启动软件和硬件实测确认。</code></pre></div><p>不要在 A9 handler 中写 SCB_AIRCR；不要保存复位后可能无效的任务名指针。需要名称时复制有限长内容或保存稳定 ID。</p></div>
+<div class="reader-end reveal">
+  <p>正文读完后，去章末核对目标、勾选实验，并把疑问写进笔记。笔记与进度都只保存在本机。</p>
+  <a href="#check">前往通关清单 →</a>
+</div>
+</article>
+
+  <section id="zx-lab" class="zx-section" data-zx-chapter="ch49"></section>
+
+<section class="chapter-check" id="check" aria-labelledby="checkTitle">
+  <div class="section-head reveal">
+    <div class="section-index">CHECK</div>
+    <div>
+      <h2 id="checkTitle">通关清单与本章笔记</h2>
+      <p class="lead">目标与实验共同构成通关进度。你的勾选、实验状态和笔记都会自动保存在浏览器本地。</p>
+    </div>
+  </div>
+  <div class="check-grid">
+    <div class="check-panel reveal">
+      <h3>本章通关目标</h3>
+      <div class="check-progress">
+        <div class="check-progress-bar"><i id="checkBar"></i></div>
+        <span id="checkText">0 / 4</span>
+      </div>
+      <div class="checklist" id="checklist">
+<label class="check-item"><input id="goal-1" type="checkbox" data-goal="0"> <span>独立完成 FreeRTOS 在 ZYNQ 核1 的移植五步法</span></label>
+<label class="check-item"><input id="goal-2" type="checkbox" data-goal="1"> <span>掌握 RTOS 应用的任务划分与优先级设计范式</span></label>
+<label class="check-item"><input id="goal-3" type="checkbox" data-goal="2"> <span>会用运行时统计/Tracealyzer/fault 寄存器三板斧调试</span></label>
+      </div>
+      <p class="check-note">正文中的 <b>1 个动手实验</b> 已计入进度，记得在实验卡底部勾选完成。</p>
+    </div>
+    <div class="check-panel notes-panel reveal">
+      <h3>本章笔记</h3>
+      <p class="note-prompt">记录推导、实验现象、命令输出、踩坑与还没想明白的问题。</p>
+      <div class="notes-area">
+        <textarea id="notes" placeholder="写下你对「FreeRTOS 移植部署与调试（ZYNQ 核1 实战）」的理解、实验现象与疑问……内容会自动保存在本机浏览器。"></textarea>
+        <div class="note-status" id="noteStatus">自动保存在本机</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapter-pager reveal">
+    <a class="pager-card prev" href="chapter48.html"><span><span class="pager-label">上一章</span><b>第 48 章 · FreeRTOS 源码框架解析</b></span><span class="pager-arrow">←</span></a>
+    <a class="pager-card next" href="chapter50.html"><span><span class="pager-label">下一章</span><b>第 50 章 · SeL4 微内核解析与实践视角</b></span><span class="pager-arrow">→</span></a>
+  </div>
+
+  <footer class="site-footer">
+    <div>
+      本讲义依据 <a href="https://zn-phd336699.github.io/ZYNQ_Learning/" target="_blank" rel="noopener">ZYNQ-7020 嵌入式开发完全教程</a> 整理与再设计，
+      加入统一导航、互动清单与本地笔记。可离线打开，无需联网。
+    </div>
+    <div>第 49 章 · FreeRTOS 移植部署与调试（ZYNQ 核1 实战） · 第七篇 · 嵌入式RTOS</div>
+  </footer>
+</section>
+
+</div>
+</main>
+<script src="chapter.js?v=20261021-senior4"></script>
+<script>
+setTimeout(function () {
+  if (window.__zynqChapterReady) return;
+  var els = document.querySelectorAll('.reveal:not(.in)');
+  for (var i = 0; i < els.length; i += 1) els[i].classList.add('in');
+}, 2200);
+</script>
+<script src="lab-data-1.js?v=20261021-senior4"></script>
+<script src="lab-data-2.js?v=20261021-senior4"></script>
+<script src="lab-data-3.js?v=20261021-senior4"></script>
+<script src="workbench-models.js?v=20261021-senior4"></script>
+<script src="advanced-models.js?v=20261021-senior4"></script>
+<script src="workbench.js?v=20261021-senior4"></script>
+<script src="advanced-workbench.js?v=20261021-senior4"></script>
+<script src="learning-paths.js?v=20261021-senior4"></script>
+<script src="senior-content-core.js?v=20261021-senior4"></script>
+<script src="senior-content-systems.js?v=20261021-senior4"></script>
+<script src="senior-registration.js?v=20261021-senior4"></script>
+<script src="learning.js?v=20261021-senior4"></script>
+<script src="lab.js?v=20261021-senior4"></script>
+</body>
+</html>
